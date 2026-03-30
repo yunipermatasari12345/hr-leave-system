@@ -51,6 +51,18 @@ func main() {
 			r.Get("/api/hrd/employees", handlers.GetAllEmployees)
 			r.Get("/api/hrd/leaves", handlers.GetAllLeaves)
 			r.Put("/api/hrd/leaves/{id}/status", handlers.UpdateLeaveStatus)
+
+			// Enterprise Features
+			r.Get("/api/hrd/dashboard/stats", handlers.GetDashboardStats)
+			r.Get("/api/hrd/dashboard/monthly", handlers.GetMonthlyStats)
+			r.Get("/api/hrd/leaves/advanced", handlers.GetAdvancedLeaves)
+			r.Get("/api/hrd/reports/departments", handlers.GetLeaveRecapPerDepartment)
+			
+			// Master Data
+			r.Get("/api/hrd/departments", handlers.GetDepartments)
+			r.Get("/api/hrd/positions", handlers.GetPositions)
+			r.Put("/api/hrd/employees/{id}", handlers.UpdateEmployee)
+			r.Delete("/api/hrd/employees/{id}", handlers.DeleteEmployee)
 		})
 	})
 

@@ -9,6 +9,12 @@ import (
 	"time"
 )
 
+type Department struct {
+	ID          int32          `json:"id"`
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+}
+
 type Employee struct {
 	ID         int32          `json:"id"`
 	UserID     int32          `json:"user_id"`
@@ -27,6 +33,15 @@ type LeaveBalance struct {
 	TotalDays     int32 `json:"total_days"`
 	UsedDays      int32 `json:"used_days"`
 	RemainingDays int32 `json:"remaining_days"`
+}
+
+type LeaveHistory struct {
+	ID             int32          `json:"id"`
+	LeaveRequestID int32          `json:"leave_request_id"`
+	Action         string         `json:"action"`
+	HrdNote        sql.NullString `json:"hrd_note"`
+	ActorID        int32          `json:"actor_id"`
+	CreatedAt      sql.NullTime   `json:"created_at"`
 }
 
 type LeaveRequest struct {
@@ -56,6 +71,12 @@ type Notification struct {
 	Message   string       `json:"message"`
 	IsRead    sql.NullBool `json:"is_read"`
 	CreatedAt sql.NullTime `json:"created_at"`
+}
+
+type Position struct {
+	ID    int32         `json:"id"`
+	Name  string        `json:"name"`
+	Level sql.NullInt32 `json:"level"`
 }
 
 type User struct {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Chip, Avatar, Divider } from "@heroui/react";
+import { Button, Avatar, Divider } from "@heroui/react";
 import axios from "axios";
 
 const api = axios.create({ baseURL: "http://localhost:8080" });
@@ -31,170 +31,213 @@ export default function EmployeeDashboard() {
 
   const handleLogout = () => { localStorage.clear(); navigate("/login"); };
 
-  const total    = leaves.length;
+  const total = leaves.length;
   const approved = leaves.filter(l => l.status === "approved").length;
   const rejected = leaves.filter(l => l.status === "rejected").length;
-  const pending  = leaves.filter(l => l.status === "pending").length;
+  const pending = leaves.filter(l => l.status === "pending").length;
 
-  const statusColor = { pending: "warning", approved: "success", rejected: "danger" };
+  const statusBg = { pending: "#fffbeb", approved: "#f0fdf4", rejected: "#fef2f2" };
   const statusLabel = { pending: "Menunggu", approved: "Disetujui", rejected: "Ditolak" };
 
+  const mainBgColor = "#eef4fb";
+  const sidebarColor = "#1a73e8";
+
+  const MenuItem = ({ id, label, icon }) => {
+    const isActive = activePage === id;
+    return (
+      <div
+        onClick={() => setActivePage(id)}
+        style={{
+          background: isActive ? mainBgColor : "transparent",
+          color: isActive ? "#000000" : "#ffffff",
+          padding: "12px 20px",
+          borderTopLeftRadius: 20,
+          borderBottomLeftRadius: 20,
+          position: "relative",
+          display: "flex", alignItems: "center", gap: 12,
+          cursor: "pointer",
+          fontWeight: "bold",
+          transition: "all 0.2s",
+          marginBottom: 4
+        }}>
+        {isActive && (
+          <>
+            <div style={{ position: "absolute", right: 0, top: -20, width: 20, height: 20, background: "transparent", borderBottomRightRadius: 20, boxShadow: `10px 10px 0 0 ${mainBgColor}` }} />
+            <div style={{ position: "absolute", right: 0, bottom: -20, width: 20, height: 20, background: "transparent", borderTopRightRadius: 20, boxShadow: `10px -10px 0 0 ${mainBgColor}` }} />
+          </>
+        )}
+        <span style={{ fontSize: 16 }}>{icon}</span>
+        <span style={{ fontSize: 14 }}>{label}</span>
+      </div>
+    );
+  };
+
+  const today = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f1f5f9" }}>
-      {/* Sidebar */}
-      <div style={{ width: 240, background: "white", borderRight: "1px solid #e2e8f0", display: "flex", flexDirection: "column", flexShrink: 0, boxShadow: "2px 0 8px rgba(0,0,0,0.04)" }}>
-        <div style={{ padding: "24px 20px", borderBottom: "1px solid #f1f5f9" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: "#0ea5e9", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="18" height="18" fill="none" stroke="white" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1" />
-              </svg>
-            </div>
-            <div>
-              <p style={{ fontWeight: 800, fontSize: 14, margin: 0, color: "#0f172a" }}>Appskep HR</p>
-              <p style={{ fontSize: 11, margin: 0, color: "#94a3b8" }}>Portal Karyawan</p>
-            </div>
+    <div style={{ display: "flex", minHeight: "100vh", background: mainBgColor, fontFamily: "'Inter', sans-serif" }}>
+      {/* SIDEBAR */}
+      <div style={{ width: 240, background: sidebarColor, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
+        <div style={{ padding: "0 24px", marginBottom: 40, display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 32, height: 32, background: "white", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+            <svg width="18" height="18" fill="none" stroke={sidebarColor} strokeWidth={3} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1" /></svg>
           </div>
+          <h1 style={{ color: "white", fontSize: 18, fontWeight: "bold", margin: 0, letterSpacing: -0.5 }}>Appskep</h1>
         </div>
 
-        <nav style={{ flex: 1, padding: "12px 10px" }}>
-          {[{ id: "dashboard", label: "Dashboard" }, { id: "leaves", label: "Riwayat Cuti" }].map(item => (
-            <button key={item.id} onClick={() => setActivePage(item.id)}
-              style={{
-                width: "100%", border: "none", padding: "11px 16px", borderRadius: 8, fontSize: 13,
-                fontWeight: activePage === item.id ? 700 : 500, cursor: "pointer", textAlign: "left", marginBottom: 2,
-                background: activePage === item.id ? "#eff6ff" : "transparent",
-                color: activePage === item.id ? "#0ea5e9" : "#64748b",
-                borderLeft: activePage === item.id ? "3px solid #0ea5e9" : "3px solid transparent",
-              }}>
-              {item.label}
-            </button>
-          ))}
-        </nav>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, paddingLeft: 20 }}>
+          <MenuItem id="dashboard" label="Dashboard" icon="❖" />
+          <MenuItem id="leaves" label="Riwayat Cuti" icon="📄" />
+        </div>
 
-        <div style={{ padding: "12px 16px", borderTop: "1px solid #f1f5f9" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-            <Avatar name={name} size="sm" style={{ background: "#0ea5e9", color: "white", fontWeight: 700 }} />
-            <div>
-              <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>{name}</p>
-              <p style={{ fontSize: 11, color: "#94a3b8", margin: 0 }}>Karyawan</p>
+        <div style={{ marginTop: "auto", padding: "24px", borderTop: "2px solid rgba(255,255,255,0.2)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+            <Avatar name={name} size="sm" style={{ background: "white", color: "#000", fontWeight: "bold", border: "2px solid white" }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 13, fontWeight: "bold", color: "white", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
+              <p style={{ fontSize: 11, fontWeight: "bold", color: "white", margin: 0, opacity: 0.9 }}>Portal Karyawan</p>
             </div>
           </div>
-          <Button size="sm" variant="flat" color="danger" onPress={handleLogout} className="w-full" style={{ fontSize: 12 }}>
-            Keluar
+          <Button disableRipple onPress={handleLogout} style={{ width: "100%", background: "white", border: "none", color: "#000", fontWeight: "bold", fontSize: 13, padding: "16px 0", borderRadius: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+            KELUAR
           </Button>
         </div>
       </div>
 
-      {/* Main */}
-      <div style={{ flex: 1, padding: "32px 36px", overflow: "auto" }}>
+      {/* MAIN CONTENT */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
-        {activePage === "dashboard" && (
+        {/* TOPBAR */}
+        <div style={{ padding: "32px 40px 24px", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
           <div>
-            <div style={{ marginBottom: 28 }}>
-              <h1 style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", margin: 0 }}>Dashboard</h1>
-              <p style={{ fontSize: 13, color: "#64748b", margin: "4px 0 0 0" }}>Selamat datang, {name}</p>
+            <h2 style={{ fontSize: 24, fontWeight: "bold", color: "#000000", margin: "0 0 6px 0", letterSpacing: -0.5 }}>
+              {activePage === "dashboard" ? "DASHBOARD" : "RIWAYAT CUTI"}
+            </h2>
+            <p style={{ fontSize: 13, fontWeight: "bold", color: "#000000", margin: 0 }}>
+              {activePage === "dashboard" ? `SELAMAT DATANG KEMBALI, ${name.toUpperCase()}` : `${leaves.length} PENGAJUAN DITEMUKAN`}
+            </p>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: "bold", color: "#000000", background: "white", padding: "10px 16px", borderRadius: 20, boxShadow: "0 2px 10px rgba(0,0,0,0.03)" }}>
+              📅 &nbsp; {today.toUpperCase()}
             </div>
+            <div style={{ width: 40, height: 40, background: "white", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 10px rgba(0,0,0,0.03)", cursor: "pointer", color: "#000", fontSize: 16 }}>
+              🔔
+            </div>
+            <Avatar name={name} size="md" style={{ background: "#000", color: "white", fontWeight: "bold", cursor: "pointer", width: 40, height: 40 }} />
+          </div>
+        </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 32 }}>
-              {[
-                { label: "Total Pengajuan", value: total, color: "#0ea5e9", bg: "#eff6ff" },
-                { label: "Total Diterima", value: approved, color: "#10b981", bg: "#f0fdf4" },
-                { label: "Total Ditolak", value: rejected, color: "#ef4444", bg: "#fef2f2" },
-                { label: "Total Pending", value: pending, color: "#f59e0b", bg: "#fffbeb" },
-              ].map(stat => (
-                <div key={stat.label} style={{ background: "white", borderRadius: 16, padding: "20px 18px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", border: "1px solid #f1f5f9" }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 12, background: stat.bg, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
-                    <div style={{ width: 16, height: 16, borderRadius: "50%", background: stat.color }} />
+        {/* CONTENT AREA */}
+        <div style={{ flex: 1, padding: "0 40px 40px", overflowX: "hidden", overflowY: "auto" }}>
+
+          {activePage === "dashboard" && (
+            <div>
+              {/* STATS */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 28 }}>
+                {[
+                  { label: "TOTAL PENGAJUAN", value: total },
+                  { label: "TOTAL DITERIMA", value: approved },
+                  { label: "TOTAL DITOLAK", value: rejected },
+                  { label: "TOTAL PENDING", value: pending },
+                ].map((stat, idx) => (
+                  <div key={idx} style={{ background: "white", borderRadius: 16, padding: "20px", boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}>
+                    <p style={{ fontSize: 12, fontWeight: "bold", color: "#000000", margin: "0 0 10px 0" }}>{stat.label}</p>
+                    <p style={{ fontSize: 32, fontWeight: "bold", color: "#000000", margin: 0 }}>{stat.value}</p>
                   </div>
-                  <p style={{ fontSize: 28, fontWeight: 800, color: "#0f172a", margin: 0 }}>{stat.value}</p>
-                  <p style={{ fontSize: 12, color: "#94a3b8", margin: "4px 0 0 0", fontWeight: 500 }}>{stat.label}</p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
 
-            <div style={{ background: "white", borderRadius: 16, padding: "20px 24px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", border: "1px solid #f1f5f9" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <h2 style={{ fontSize: 15, fontWeight: 700, color: "#0f172a", margin: 0 }}>Pengajuan Terakhir</h2>
-                <Button size="sm" onPress={() => navigate("/leaves/new")}
-                  style={{ background: "#0ea5e9", color: "white", fontWeight: 600, fontSize: 12 }}>
-                  + Ajukan Cuti
+              {/* RECENT LEAVES */}
+              <div style={{ background: "white", borderRadius: 20, padding: "24px", boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                  <h3 style={{ fontSize: 16, fontWeight: "bold", color: "#000", margin: 0 }}>PENGAJUAN TERAKHIR</h3>
+                  <Button disableRipple onPress={() => navigate("/leaves/new")} style={{ background: "#000", color: "white", fontWeight: "bold", fontSize: 13, borderRadius: 10, padding: "0 20px", height: 38 }}>
+                    + AJUKAN CUTI
+                  </Button>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div style={{ display: "flex", padding: "0 20px 10px", borderBottom: "2px solid #000", fontSize: 12, fontWeight: "bold", color: "#000" }}>
+                    <div style={{ flex: 1 }}>PERIODE & ALASAN</div>
+                    <div style={{ width: 100 }}>DURASI</div>
+                    <div style={{ width: 120 }}>STATUS</div>
+                  </div>
+                  {leaves.slice(0, 5).map((leave, i) => (
+                    <div key={leave.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", background: mainBgColor, borderRadius: 14, border: "2px solid transparent", transition: "all 0.2s", cursor: "pointer" }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#000"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.04)"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "transparent"; e.currentTarget.style.boxShadow = "none"; }}
+                    >
+                      <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 16 }}>
+                        <div style={{ width: 40, height: 40, borderRadius: 10, background: "white", border: "2px solid #000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>
+                          📅
+                        </div>
+                        <div>
+                          <p style={{ fontSize: 13, fontWeight: "bold", color: "#000", margin: "0 0 4px 0" }}>{leave.start_date?.slice(0, 10)} &nbsp;—&nbsp; {leave.end_date?.slice(0, 10)}</p>
+                          <p style={{ fontSize: 12, fontWeight: "bold", color: "#000", margin: 0 }}>ALASAN: {leave.reason.toUpperCase()}</p>
+                        </div>
+                      </div>
+                      <div style={{ width: 100, fontSize: 13, fontWeight: "bold", color: "#000" }}>{leave.total_days} HARI</div>
+                      <div style={{ width: 120, display: "flex" }}>
+                        <span style={{ fontSize: 11, fontWeight: "bold", padding: "6px 12px", borderRadius: 16, background: statusBg[leave.status], border: "2px solid #000", color: "#000" }}>
+                          {statusLabel[leave.status].toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {leaves.length === 0 && (
+                    <div style={{ textAlign: "center", padding: "32px 0" }}>
+                      <p style={{ color: "#000", fontSize: 13, fontWeight: "bold", margin: "0 0 16px 0", opacity: 0.6 }}>BELUM ADA PENGAJUAN CUTI</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activePage === "leaves" && (
+            <div style={{ background: "white", borderRadius: 20, padding: "24px", boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}>
+              <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 20 }}>
+                <Button disableRipple onPress={() => navigate("/leaves/new")} style={{ background: "#000", color: "white", fontWeight: "bold", fontSize: 13, borderRadius: 10, padding: "0 20px", height: 38 }}>
+                  + AJUKAN CUTI
                 </Button>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {leaves.slice(0, 5).map((leave, i) => {
+              {/* LIST */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ display: "flex", padding: "0 20px 10px", borderBottom: "2px solid #000", fontSize: 12, fontWeight: "bold", color: "#000" }}>
+                  <div style={{ width: 40 }}>NO</div>
+                  <div style={{ flex: 1 }}>KARYAWAN</div>
+                  <div style={{ flex: 1 }}>ALASAN</div>
+                  <div style={{ flex: 1 }}>PERIODE</div>
+                  <div style={{ width: 120 }}>STATUS</div>
+                </div>
+                {leaves.map((leave, i) => {
                   const hrdNote = getStr(leave.hrd_note);
                   return (
-                    <div key={leave.id}>
-                      <div style={{ padding: "12px 0" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                          <Chip size="sm" color={statusColor[leave.status] || "default"} variant="flat">
-                            {statusLabel[leave.status] || leave.status}
-                          </Chip>
-                        </div>
-                        <p style={{ fontSize: 13, color: "#475569", margin: "0 0 2px 0" }}>
-                          {leave.start_date?.slice(0,10)} — {leave.end_date?.slice(0,10)}
-                          <Chip size="sm" variant="flat" color="default" style={{ marginLeft: 8, fontSize: 11 }}>{leave.total_days} hari</Chip>
-                        </p>
-                        <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>{leave.reason}</p>
-                        {hrdNote && <p style={{ fontSize: 12, color: "#0ea5e9", margin: "4px 0 0 0" }}>Catatan HRD: {hrdNote}</p>}
+                    <div key={leave.id} style={{ display: "flex", alignItems: "center", padding: "14px 20px", background: mainBgColor, borderRadius: 14, border: "2px solid transparent", transition: "all 0.2s" }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#000"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.04)"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "transparent"; e.currentTarget.style.boxShadow = "none"; }}
+                    >
+                      <div style={{ width: 40, fontSize: 13, fontWeight: "bold", color: "#000" }}>#{leave.id}</div>
+                      <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 12 }}>
+                        <Avatar name={name} style={{ background: "white", border: "2px solid #000", color: "#000", fontWeight: "bold", width: 32, height: 32 }} />
+                        <span style={{ fontSize: 13, fontWeight: "bold", color: "#000" }}>{name}</span>
                       </div>
-                      {i < leaves.slice(0,5).length - 1 && <Divider />}
+                      <div style={{ flex: 1, fontSize: 12, fontWeight: "bold", color: "#000", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", paddingRight: 16 }}>{leave.reason.toUpperCase()}</div>
+                      <div style={{ flex: 1, fontSize: 12, fontWeight: "bold", color: "#000" }}>{leave.start_date?.slice(0, 10)} &mdash; {leave.end_date?.slice(0, 10)}</div>
+                      <div style={{ width: 120 }}>
+                        <span style={{ fontSize: 11, fontWeight: "bold", padding: "6px 12px", borderRadius: 16, background: statusBg[leave.status], border: "2px solid #000", color: "#000" }}>
+                          {statusLabel[leave.status].toUpperCase()}
+                        </span>
+                      </div>
                     </div>
-                  );
+                  )
                 })}
-                {leaves.length === 0 && (
-                  <div style={{ textAlign: "center", padding: 40 }}>
-                    <p style={{ color: "#94a3b8", marginBottom: 16, fontSize: 14 }}>Belum ada pengajuan cuti</p>
-                    <Button onPress={() => navigate("/leaves/new")}
-                      style={{ background: "#0ea5e9", color: "white", fontWeight: 600, fontSize: 13 }}>
-                      Ajukan Cuti Sekarang
-                    </Button>
-                  </div>
-                )}
+                {leaves.length === 0 && <p style={{ textAlign: "center", color: "#000", fontWeight: "bold", fontSize: 13, padding: 32, margin: 0, opacity: 0.6 }}>BELUM ADA RIWAYAT CUTI</p>}
               </div>
             </div>
-          </div>
-        )}
-
-        {activePage === "leaves" && (
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-              <div>
-                <h1 style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", margin: 0 }}>Riwayat Cuti</h1>
-                <p style={{ fontSize: 13, color: "#64748b", margin: "4px 0 0 0" }}>Total {leaves.length} pengajuan</p>
-              </div>
-              <Button onPress={() => navigate("/leaves/new")}
-                style={{ background: "#0ea5e9", color: "white", fontWeight: 600, fontSize: 13 }}>
-                + Ajukan Cuti
-              </Button>
-            </div>
-            <div style={{ background: "white", borderRadius: 16, padding: "8px 24px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", border: "1px solid #f1f5f9" }}>
-              {leaves.map((leave, i) => {
-                const hrdNote = getStr(leave.hrd_note);
-                return (
-                  <div key={leave.id}>
-                    <div style={{ padding: "14px 0" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                        <Chip size="sm" color={statusColor[leave.status] || "default"} variant="flat">
-                          {statusLabel[leave.status] || leave.status}
-                        </Chip>
-                      </div>
-                      <p style={{ fontSize: 13, color: "#475569", margin: "0 0 2px 0" }}>
-                        {leave.start_date?.slice(0,10)} — {leave.end_date?.slice(0,10)}
-                        <Chip size="sm" variant="flat" color="default" style={{ marginLeft: 8, fontSize: 11 }}>{leave.total_days} hari</Chip>
-                      </p>
-                      <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>{leave.reason}</p>
-                      {hrdNote && <p style={{ fontSize: 12, color: "#0ea5e9", margin: "4px 0 0 0" }}>Catatan HRD: {hrdNote}</p>}
-                    </div>
-                    {i < leaves.length - 1 && <Divider />}
-                  </div>
-                );
-              })}
-              {leaves.length === 0 && <p style={{ textAlign: "center", color: "#94a3b8", padding: 32, margin: 0 }}>Belum ada riwayat cuti</p>}
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

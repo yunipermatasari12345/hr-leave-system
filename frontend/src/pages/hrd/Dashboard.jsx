@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Chip, Textarea, Avatar, Divider } from "@heroui/react";
+import { Button, Textarea, Avatar, Divider } from "@heroui/react";
 import axios from "axios";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import * as XLSX from "xlsx";
 
 const api = axios.create({ baseURL: "http://localhost:8080" });
 api.interceptors.request.use((config) => {
@@ -17,6 +19,7 @@ function getStr(val) {
 }
 
 export default function HrdDashboard() {
+  // Existing States
   const [leaves, setLeaves] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -25,250 +28,468 @@ export default function HrdDashboard() {
   const [modalOpen, setModalOpen] = useState(false);
   const [activePage, setActivePage] = useState("dashboard");
   const navigate = useNavigate();
-  const name = localStorage.getItem("name") || "HRD";
+  const name = localStorage.getItem("name") || "HRD Admin";
 
-  useEffect(() => { fetchLeaves(); fetchEmployees(); }, []);
+  // New Enterprise States
+  const [stats, setStats] = useState({ total_employees: 0, pending_today: 0, total_approved: 0, total_rejected: 0, total_pending: 0 });
+  const [monthlyStats, setMonthlyStats] = useState([]);
+  const [reports, setReports] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [positions, setPositions] = useState([]);
+  const [leaveTypes, setLeaveTypes] = useState([]);
+
+  // Filters
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterDept, setFilterDept] = useState("");
+
+  useEffect(() => {
+    if (activePage === "dashboard") {
+      fetchDashboardStats();
+    }
+    fetchLeaves();
+    fetchEmployees();
+    if (activePage === "reports" || activePage === "master") {
+      fetchMasterData();
+      fetchReports();
+    }
+  }, [activePage, filterStatus, filterDept]);
+
+  const fetchDashboardStats = async () => {
+    try {
+      const res = await api.get("/api/hrd/dashboard/stats");
+      setStats(res.data || {});
+      const resMonth = await api.get("/api/hrd/dashboard/monthly");
+      setMonthlyStats(resMonth.data || []);
+    } catch { }
+  };
 
   const fetchLeaves = async () => {
-    try { const res = await api.get("/api/hrd/leaves"); setLeaves(res.data || []); }
+    try {
+      const res = await api.get(`/api/hrd/leaves/advanced?status=${filterStatus}&department=${filterDept}`);
+      setLeaves(res.data || []);
+    }
     catch { setLeaves([]); }
   };
+
   const fetchEmployees = async () => {
     try { const res = await api.get("/api/hrd/employees"); setEmployees(res.data || []); }
     catch { setEmployees([]); }
   };
+
+  const fetchMasterData = async () => {
+    try {
+      const d = await api.get("/api/hrd/departments"); setDepartments(d.data || []);
+      const p = await api.get("/api/hrd/positions"); setPositions(p.data || []);
+      const lt = await api.get("/api/leave-types"); setLeaveTypes(lt.data || []);
+    } catch { }
+  };
+
+  const fetchReports = async () => {
+    try {
+      const res = await api.get("/api/hrd/reports/departments");
+      setReports(res.data || []);
+    } catch { }
+  };
+
   const openAction = (leave, type) => {
     setSelected(leave); setActionType(type); setHrdNote(""); setModalOpen(true);
   };
   const handleAction = async () => {
     try {
       await api.put(`/api/hrd/leaves/${selected.id}/status`, { status: actionType, hrd_note: hrdNote });
-      setModalOpen(false); fetchLeaves();
+      setModalOpen(false); fetchLeaves(); fetchDashboardStats();
     } catch { alert("Gagal update status"); }
   };
   const handleLogout = () => { localStorage.clear(); navigate("/login"); };
+
+  const exportLeavesToExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(leaves.map(l => ({
+      ID: l.id,
+      Karyawan: l.employee_name,
+      Departemen: l.employee_department,
+      "Tanggal Mulai": l.start_date?.slice(0, 10),
+      "Tanggal Selesai": l.end_date?.slice(0, 10),
+      "Total Hari": l.total_days,
+      Alasan: l.reason,
+      Status: l.status.toUpperCase(),
+      "Catatan HRD": l.hrd_note || "-"
+    })));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Pengajuan Cuti");
+    XLSX.writeFile(wb, "Data_Pengajuan_Cuti.xlsx");
+  };
+
+  const exportReportsToExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(reports.map(r => ({
+      Departemen: r.department.toUpperCase(),
+      "Total Pengajuan Disetujui": r.total_leaves,
+      "Total Hari Cuti": r.total_days
+    })));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Rekap Laporan");
+    XLSX.writeFile(wb, "Laporan_Rekap_Departemen.xlsx");
+  };
 
   const pending = leaves.filter(l => l.status === "pending");
   const approved = leaves.filter(l => l.status === "approved");
   const rejected = leaves.filter(l => l.status === "rejected");
 
-  const statusColor = { pending: "warning", approved: "success", rejected: "danger" };
+  const statusBg = { pending: "#fffbeb", approved: "#f0fdf4", rejected: "#fef2f2" };
   const statusLabel = { pending: "Menunggu", approved: "Disetujui", rejected: "Ditolak" };
 
-  const menuItems = [
-    { id: "dashboard", label: "Dashboard" },
-    { id: "leaves", label: "Pengajuan Cuti" },
-    { id: "employees", label: "Karyawan" },
-  ];
+  const mainBgColor = "#eef4fb";
+  const sidebarColor = "#1a73e8";
+
+  const MenuItem = ({ id, label, icon }) => {
+    const isActive = activePage === id;
+    return (
+      <div
+        onClick={() => setActivePage(id)}
+        style={{
+          background: isActive ? mainBgColor : "transparent",
+          color: isActive ? "#000000" : "#ffffff",
+          padding: "12px 20px",
+          borderTopLeftRadius: 20,
+          borderBottomLeftRadius: 20,
+          position: "relative",
+          display: "flex", alignItems: "center", gap: 12,
+          cursor: "pointer",
+          fontWeight: "bold",
+          transition: "all 0.2s",
+          marginBottom: 4
+        }}>
+        {isActive && (
+          <>
+            <div style={{ position: "absolute", right: 0, top: -20, width: 20, height: 20, background: "transparent", borderBottomRightRadius: 20, boxShadow: `10px 10px 0 0 ${mainBgColor}` }} />
+            <div style={{ position: "absolute", right: 0, bottom: -20, width: 20, height: 20, background: "transparent", borderTopRightRadius: 20, boxShadow: `10px -10px 0 0 ${mainBgColor}` }} />
+          </>
+        )}
+        <span style={{ fontSize: 16 }}>{icon}</span>
+        <span style={{ fontSize: 13 }}>{label}</span>
+      </div>
+    );
+  };
+
+  const today = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f1f5f9" }}>
-      {/* Sidebar */}
-      <div style={{ width: 240, background: "white", borderRight: "1px solid #e2e8f0", display: "flex", flexDirection: "column", flexShrink: 0, boxShadow: "2px 0 8px rgba(0,0,0,0.04)" }}>
-        <div style={{ padding: "24px 20px", borderBottom: "1px solid #f1f5f9" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: "#0ea5e9", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="18" height="18" fill="none" stroke="white" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1" />
-              </svg>
-            </div>
-            <div>
-              <p style={{ fontWeight: 800, fontSize: 14, margin: 0, color: "#0f172a" }}>Appskep HR</p>
-              <p style={{ fontSize: 11, margin: 0, color: "#94a3b8" }}>HRD Panel</p>
-            </div>
+    <div style={{ display: "flex", minHeight: "100vh", background: mainBgColor, fontFamily: "'Inter', sans-serif" }}>
+      {/* SIDEBAR */}
+      <div style={{ width: 240, background: sidebarColor, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
+        <div style={{ padding: "0 24px", marginBottom: 40, display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 32, height: 32, background: "white", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+            <svg width="18" height="18" fill="none" stroke={sidebarColor} strokeWidth={3} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1" /></svg>
           </div>
+          <h1 style={{ color: "white", fontSize: 18, fontWeight: "bold", margin: 0, letterSpacing: -0.5 }}>Appskep</h1>
         </div>
 
-        <nav style={{ flex: 1, padding: "12px 10px" }}>
-          {menuItems.map(item => (
-            <button key={item.id} onClick={() => setActivePage(item.id)}
-              style={{
-                width: "100%", border: "none", padding: "11px 16px", borderRadius: 8, fontSize: 13,
-                fontWeight: activePage === item.id ? 700 : 500, cursor: "pointer", textAlign: "left", marginBottom: 2,
-                background: activePage === item.id ? "#eff6ff" : "transparent",
-                color: activePage === item.id ? "#0ea5e9" : "#64748b",
-                borderLeft: activePage === item.id ? "3px solid #0ea5e9" : "3px solid transparent",
-              }}>
-              {item.label}
-            </button>
-          ))}
-        </nav>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingLeft: 20 }}>
+          <MenuItem id="dashboard" label="Dashboard" icon="❖" />
+          <MenuItem id="leaves" label="Pengajuan Cuti" icon="📑" />
+          <MenuItem id="employees" label="Data Karyawan" icon="👥" />
+          <MenuItem id="reports" label="Laporan & Ekspor" icon="📊" />
 
-        <div style={{ padding: "12px 16px", borderTop: "1px solid #f1f5f9" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-            <Avatar name={name} size="sm" style={{ background: "#0ea5e9", color: "white", fontWeight: 700 }} />
-            <div>
-              <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>{name}</p>
-              <p style={{ fontSize: 11, color: "#94a3b8", margin: 0 }}>HRD Admin</p>
+        </div>
+
+        <div style={{ marginTop: "auto", padding: "24px", borderTop: "2px solid rgba(255,255,255,0.2)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 13, fontWeight: "bold", color: "white", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
+              <p style={{ fontSize: 11, fontWeight: "bold", color: "white", margin: 0, opacity: 0.9 }}>Portal HRD</p>
             </div>
           </div>
-          <Button size="sm" variant="flat" color="danger" onPress={handleLogout} className="w-full" style={{ fontSize: 12 }}>
-            Keluar
+          <Button disableRipple onPress={handleLogout} style={{ width: "100%", background: "white", border: "none", color: "#000", fontWeight: "bold", fontSize: 13, padding: "16px 0", borderRadius: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+            KELUAR
           </Button>
         </div>
       </div>
 
-      {/* Main */}
-      <div style={{ flex: 1, padding: "32px 36px", overflow: "auto" }}>
+      {/* MAIN CONTENT */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
-        {/* DASHBOARD */}
-        {activePage === "dashboard" && (
+        {/* TOPBAR */}
+        <div style={{ padding: "32px 40px 24px", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
           <div>
-            <div style={{ marginBottom: 28 }}>
-              <h1 style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", margin: 0 }}>Dashboard</h1>
-              <p style={{ fontSize: 13, color: "#64748b", margin: "4px 0 0 0" }}>Selamat datang, {name}</p>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 32 }}>
-              {[
-                { label: "Total Pengajuan", value: leaves.length, color: "#0ea5e9", bg: "#eff6ff" },
-                { label: "Menunggu Review", value: pending.length, color: "#f59e0b", bg: "#fffbeb" },
-                { label: "Disetujui", value: approved.length, color: "#10b981", bg: "#f0fdf4" },
-                { label: "Ditolak", value: rejected.length, color: "#ef4444", bg: "#fef2f2" },
-              ].map(stat => (
-                <div key={stat.label} style={{ background: "white", borderRadius: 16, padding: "20px 18px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", border: "1px solid #f1f5f9" }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 12, background: stat.bg, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
-                    <div style={{ width: 16, height: 16, borderRadius: "50%", background: stat.color }} />
-                  </div>
-                  <p style={{ fontSize: 28, fontWeight: 800, color: "#0f172a", margin: 0 }}>{stat.value}</p>
-                  <p style={{ fontSize: 12, color: "#94a3b8", margin: "4px 0 0 0", fontWeight: 500 }}>{stat.label}</p>
-                </div>
-              ))}
-            </div>
-
-            <div style={{ background: "white", borderRadius: 16, padding: "20px 24px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", border: "1px solid #f1f5f9" }}>
-              <h2 style={{ fontSize: 15, fontWeight: 700, color: "#0f172a", margin: "0 0 16px 0" }}>Pengajuan Terbaru</h2>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {leaves.slice(0, 5).map(leave => (
-                  <LeaveCard key={leave.id} leave={leave} statusColor={statusColor} statusLabel={statusLabel}
-                    onApprove={() => openAction(leave, "approved")} onReject={() => openAction(leave, "rejected")} />
-                ))}
-                {leaves.length === 0 && <p style={{ textAlign: "center", color: "#94a3b8", padding: 32, margin: 0 }}>Belum ada pengajuan cuti</p>}
-              </div>
-            </div>
+            <h2 style={{ fontSize: 24, fontWeight: "bold", color: "#000000", margin: "0 0 6px 0", letterSpacing: -0.5 }}>
+              {activePage === "dashboard" ? "DASHBOARD" :
+                activePage === "leaves" ? "PENGAJUAN CUTI" :
+                  activePage === "reports" ? "LAPORAN & EKSPOR" :
+                    "DATA KARYAWAN"}
+            </h2>
+            <p style={{ fontSize: 13, fontWeight: "bold", color: "#000000", margin: 0 }}>
+              {activePage === "dashboard" ? `SELAMAT DATANG KEMBALI, ${name.toUpperCase()}` :
+                activePage === "leaves" ? `${leaves.length} PENGAJUAN DITEMUKAN` :
+                  activePage === "reports" ? "REKAPITULASI CUTI PER DEPARTEMEN" :
+                    `${employees.length} KARYAWAN TERDAFTAR`}
+            </p>
           </div>
-        )}
-
-        {/* LEAVES */}
-        {activePage === "leaves" && (
-          <div>
-            <div style={{ marginBottom: 24 }}>
-              <h1 style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", margin: 0 }}>Pengajuan Cuti</h1>
-              <p style={{ fontSize: 13, color: "#64748b", margin: "4px 0 0 0" }}>Total {leaves.length} pengajuan</p>
-            </div>
-            <div style={{ background: "white", borderRadius: 16, padding: "20px 24px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", border: "1px solid #f1f5f9" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {leaves.map(leave => (
-                  <LeaveCard key={leave.id} leave={leave} statusColor={statusColor} statusLabel={statusLabel}
-                    onApprove={() => openAction(leave, "approved")} onReject={() => openAction(leave, "rejected")} />
-                ))}
-                {leaves.length === 0 && <p style={{ textAlign: "center", color: "#94a3b8", padding: 32, margin: 0 }}>Belum ada pengajuan</p>}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* EMPLOYEES */}
-        {activePage === "employees" && (
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-              <div>
-                <h1 style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", margin: 0 }}>Karyawan</h1>
-                <p style={{ fontSize: 13, color: "#64748b", margin: "4px 0 0 0" }}>Total {employees.length} karyawan</p>
-              </div>
-              <Button onPress={() => navigate("/hrd/employees/add")} color="primary"
-                style={{ background: "#0ea5e9", fontWeight: 600, fontSize: 13 }}>
-                + Tambah Karyawan
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            {activePage === "employees" && (
+              <Button disableRipple onPress={() => navigate("/hrd/employees/add")} style={{ background: "#000", color: "white", fontWeight: "bold", fontSize: 13, borderRadius: 20, padding: "0 16px", height: 38 }}>
+                + TAMBAH KARYAWAN
               </Button>
+            )}
+            <div style={{ fontSize: 12, fontWeight: "bold", color: "#000000", background: "white", padding: "10px 16px", borderRadius: 20, boxShadow: "0 2px 10px rgba(0,0,0,0.03)" }}>
+              📅 &nbsp; {today.toUpperCase()}
             </div>
-            <div style={{ background: "white", borderRadius: 16, padding: "8px 24px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", border: "1px solid #f1f5f9" }}>
-              {employees.map((emp, i) => (
-                <div key={emp.id}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 0" }}>
-                    <Avatar name={emp.full_name} size="md" style={{ background: "#0ea5e9", color: "white", fontWeight: 700, flexShrink: 0 }} />
-                    <div style={{ flex: 1 }}>
-                      <p style={{ fontWeight: 700, color: "#0f172a", margin: 0, fontSize: 14 }}>{emp.full_name}</p>
-                      <p style={{ fontSize: 12, color: "#64748b", margin: "2px 0 0 0" }}>{emp.position} · {emp.department}</p>
-                    </div>
-                    <Chip size="sm" color="success" variant="flat">Aktif</Chip>
-                  </div>
-                  {i < employees.length - 1 && <Divider />}
-                </div>
-              ))}
-              {employees.length === 0 && <p style={{ textAlign: "center", color: "#94a3b8", padding: 32, margin: 0 }}>Belum ada data karyawan</p>}
+            <div style={{ width: 40, height: 40, background: "white", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 10px rgba(0,0,0,0.03)", cursor: "pointer", color: "#000", fontSize: 16 }}>
+              🔔
             </div>
           </div>
-        )}
+        </div>
+
+        {/* CONTENT AREA */}
+        <div style={{ flex: 1, padding: "0 40px 40px", overflowX: "hidden", overflowY: "auto" }}>
+
+          {activePage === "dashboard" && (
+            <div>
+              {/* STATS */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 20 }}>
+                {[
+                  { label: "TOTAL KARYAWAN", value: stats.total_employees },
+                  { label: "PENDING HARI INI", value: stats.pending_today, c: "#f59e0b" },
+                  { label: "TOTAL DISETUJUI", value: stats.total_approved, c: "#10b981" },
+                  { label: "TOTAL DITOLAK", value: stats.total_rejected, c: "#ef4444" },
+                ].map((stat, idx) => (
+                  <div key={idx} style={{ background: "white", borderRadius: 16, padding: "20px", border: "2px solid #e2e8f0", boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}>
+                    <p style={{ fontSize: 12, fontWeight: "bold", color: "#000", margin: "0 0 10px 0" }}>{stat.label}</p>
+                    <p style={{ fontSize: 32, fontWeight: "bold", color: stat.c || "#000", margin: 0 }}>{stat.value || 0}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* CHART */}
+              <div style={{ background: "white", borderRadius: 20, padding: "24px 28px", border: "2px solid #e2e8f0", boxShadow: "0 4px 20px rgba(0,0,0,0.03)", marginBottom: 20 }}>
+                <h3 style={{ fontSize: 16, fontWeight: "bold", color: "#000", margin: "0 0 20px 0" }}>GRAFIK PENGAJUAN (DISETUJUI) 6 BULAN TERAKHIR</h3>
+                <div style={{ width: "100%", height: 300 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={monthlyStats} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="month" tick={{ fontSize: 12, fontWeight: "bold", fill: "#000" }} />
+                      <YAxis tick={{ fontSize: 12, fontWeight: "bold", fill: "#000" }} allowDecimals={false} />
+                      <Tooltip contentStyle={{ borderRadius: 12, border: "2px solid #000", fontWeight: "bold", fontSize: 12 }} />
+                      <Bar dataKey="total" fill="#1a73e8" radius={[8, 8, 0, 0]} barSize={40} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* RECENT LEAVES (SAME AS BEFORE) */}
+              <div style={{ background: "white", borderRadius: 20, padding: "24px 28px", border: "2px solid #e2e8f0", boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                  <h3 style={{ fontSize: 16, fontWeight: "bold", color: "#000", margin: 0 }}>PENGAJUAN TERBARU</h3>
+                  <button onClick={() => setActivePage("leaves")} style={{ fontSize: 13, fontWeight: "bold", color: "#000", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>LIHAT SEMUA</button>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div style={{ display: "flex", padding: "0 16px 10px", borderBottom: "2px solid #000", fontSize: 12, fontWeight: "bold", color: "#000" }}>
+                    <div style={{ width: 40 }}>NO</div>
+                    <div style={{ flex: 1 }}>KARYAWAN</div>
+                    <div style={{ flex: 1 }}>DEPARTEMEN</div>
+                    <div style={{ flex: 1 }}>PERIODE</div>
+                    <div style={{ width: 100 }}>STATUS</div>
+                    <div style={{ width: 80, textAlign: "right" }}>AKSI</div>
+                  </div>
+                  {leaves.slice(0, 5).map((leave, i) => (
+                    <div key={leave.id} style={{ display: "flex", alignItems: "center", padding: "14px 16px", background: mainBgColor, borderRadius: 14, border: "2px solid transparent", transition: "all 0.2s", cursor: "pointer" }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#000"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.04)"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "transparent"; e.currentTarget.style.boxShadow = "none"; }}
+                    >
+                      <div style={{ width: 40, fontSize: 13, fontWeight: "bold", color: "#000" }}>#{leave.id}</div>
+                      <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10 }}>
+                        <span style={{ fontSize: 13, fontWeight: "bold", color: "#000" }}>{leave.employee_name}</span>
+                      </div>
+                      <div style={{ flex: 1, fontSize: 12, fontWeight: "bold", color: "#000", textTransform: "uppercase" }}>{leave.employee_department}</div>
+                      <div style={{ flex: 1, fontSize: 12, fontWeight: "bold", color: "#000" }}>{leave.start_date?.slice(0, 10)} &mdash; {leave.end_date?.slice(0, 10)}</div>
+                      <div style={{ width: 100 }}>
+                        <span style={{ fontSize: 11, fontWeight: "bold", padding: "6px 12px", borderRadius: 16, background: statusBg[leave.status], border: "2px solid #000", color: "#000" }}>
+                          {statusLabel[leave.status]?.toUpperCase() || leave.status}
+                        </span>
+                      </div>
+                      <div style={{ width: 80, display: "flex", justifyContent: "flex-end" }}>
+                        {leave.status === "pending" ? (
+                          <div style={{ display: "flex", gap: 6 }}>
+                            <button onClick={(e) => { e.stopPropagation(); openAction(leave, "approved"); }} style={{ width: 30, height: 30, borderRadius: 8, background: "#10b981", color: "white", border: "2px solid #000", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: 14 }}>✓</button>
+                            <button onClick={(e) => { e.stopPropagation(); openAction(leave, "rejected"); }} style={{ width: 30, height: 30, borderRadius: 8, background: "#ef4444", color: "white", border: "2px solid #000", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: 14 }}>✕</button>
+                          </div>
+                        ) : <span style={{ color: "#000", fontWeight: "bold", fontSize: 14 }}>&mdash;</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activePage === "leaves" && (
+            <div style={{ background: "white", borderRadius: 20, padding: "24px 28px", border: "2px solid #e2e8f0", boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}>
+              {/* FILTERS */}
+              <div style={{ display: "flex", gap: 16, marginBottom: 20 }}>
+                <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} style={{ padding: "10px 16px", borderRadius: 12, border: "2px solid #000", fontSize: 12, fontWeight: "bold", outline: "none", cursor: "pointer", background: mainBgColor }}>
+                  <option value="">SEMUA STATUS</option>
+                  <option value="pending">PENDING</option>
+                  <option value="approved">DISETUJUI</option>
+                  <option value="rejected">DITOLAK</option>
+                </select>
+                <select value={filterDept} onChange={(e) => setFilterDept(e.target.value)} style={{ padding: "10px 16px", borderRadius: 12, border: "2px solid #000", fontSize: 12, fontWeight: "bold", outline: "none", cursor: "pointer", background: mainBgColor }}>
+                  <option value="">SEMUA DEPARTEMEN</option>
+                  <option value="HRD">HRD</option>
+                  <option value="IT">IT</option>
+                  <option value="Finance">FINANCE</option>
+                  <option value="Marketing">MARKETING</option>
+                </select>
+                <Button disableRipple onPress={exportLeavesToExcel} style={{ background: "#10b981", color: "white", fontWeight: "bold", fontSize: 12, borderRadius: 12, padding: "0 16px", marginLeft: "auto", border: "2px solid #000" }}>
+                  📥 EXPORT KE EXCEL
+                </Button>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ display: "flex", padding: "0 16px 10px", borderBottom: "2px solid #000", fontSize: 12, fontWeight: "bold", color: "#000" }}>
+                  <div style={{ width: 40 }}>NO</div>
+                  <div style={{ flex: 1 }}>KARYAWAN</div>
+                  <div style={{ flex: 1 }}>ALASAN</div>
+                  <div style={{ flex: 1 }}>PERIODE</div>
+                  <div style={{ width: 100 }}>STATUS</div>
+                  <div style={{ width: 80, textAlign: "right" }}>AKSI</div>
+                </div>
+                {leaves.map((leave, i) => (
+                  <div key={leave.id} style={{ display: "flex", alignItems: "center", padding: "14px 16px", background: mainBgColor, borderRadius: 14, border: "2px solid transparent", transition: "all 0.2s", cursor: "pointer" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#000"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.04)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = "transparent"; e.currentTarget.style.boxShadow = "none"; }}
+                  >
+                    <div style={{ width: 40, fontSize: 13, fontWeight: "bold", color: "#000" }}>#{leave.id}</div>
+                    <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ fontSize: 13, fontWeight: "bold", color: "#000" }}>{leave.employee_name}</span>
+                    </div>
+                    <div style={{ flex: 1, fontSize: 12, fontWeight: "bold", color: "#000", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", paddingRight: 16 }}>{leave.reason.toUpperCase()}</div>
+                    <div style={{ flex: 1, fontSize: 12, fontWeight: "bold", color: "#000" }}>{leave.start_date?.slice(0, 10)} &mdash; {leave.end_date?.slice(0, 10)}</div>
+                    <div style={{ width: 100 }}>
+                      <span style={{ fontSize: 11, fontWeight: "bold", padding: "6px 12px", borderRadius: 16, background: statusBg[leave.status], border: "2px solid #000", color: "#000" }}>
+                        {statusLabel[leave.status]?.toUpperCase() || leave.status}
+                      </span>
+                    </div>
+                    <div style={{ width: 80, display: "flex", justifyContent: "flex-end" }}>
+                      {leave.status === "pending" ? (
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button onClick={(e) => { e.stopPropagation(); openAction(leave, "approved"); }} style={{ width: 30, height: 30, borderRadius: 8, background: "#10b981", color: "white", border: "2px solid #000", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: 14 }}>✓</button>
+                          <button onClick={(e) => { e.stopPropagation(); openAction(leave, "rejected"); }} style={{ width: 30, height: 30, borderRadius: 8, background: "#ef4444", color: "white", border: "2px solid #000", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: 14 }}>✕</button>
+                        </div>
+                      ) : <span style={{ color: "#000", fontWeight: "bold", fontSize: 14 }}>&mdash;</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activePage === "reports" && (
+            <div style={{ background: "white", borderRadius: 20, padding: "24px 28px", border: "2px solid #e2e8f0", boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                <h3 style={{ fontSize: 16, fontWeight: "bold", color: "#000", margin: 0 }}>REKAP CUTI DEPARTEMEN</h3>
+                <Button disableRipple onPress={exportReportsToExcel} style={{ background: "#2563eb", color: "white", fontWeight: "bold", fontSize: 12, borderRadius: 12, padding: "0 16px", border: "2px solid #000" }}>
+                  📥 DOWNLOAD PDF / EXCEL
+                </Button>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ display: "flex", padding: "0 16px 10px", borderBottom: "2px solid #000", fontSize: 12, fontWeight: "bold", color: "#000" }}>
+                  <div style={{ flex: 2 }}>DEPARTEMEN</div>
+                  <div style={{ flex: 1, textAlign: "center" }}>TOTAL PENGAJUAN (ACC)</div>
+                  <div style={{ flex: 1, textAlign: "right" }}>TOTAL DURASI CUTI</div>
+                </div>
+                {reports.map((r, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", padding: "14px 16px", background: mainBgColor, borderRadius: 14, border: "2px solid transparent" }}>
+                    <div style={{ flex: 2, fontSize: 13, fontWeight: "bold", color: "#000", textTransform: "uppercase" }}>{r.department}</div>
+                    <div style={{ flex: 1, fontSize: 13, fontWeight: "bold", color: "#000", textAlign: "center" }}>{r.total_leaves} DATA TRANSAKSI</div>
+                    <div style={{ flex: 1, fontSize: 13, fontWeight: "bold", color: "#000", textAlign: "right" }}>{r.total_days} HARI TOTAL</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+
+
+          {activePage === "employees" && (
+            <div style={{ background: "white", borderRadius: 20, padding: "24px 28px", border: "2px solid #e2e8f0", boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ display: "flex", padding: "0 16px 10px", borderBottom: "2px solid #000", fontSize: 12, fontWeight: "bold", color: "#000" }}>
+                  <div style={{ width: 40 }}>NO</div>
+                  <div style={{ flex: 1 }}>KARYAWAN</div>
+                  <div style={{ flex: 1 }}>DEPARTEMEN</div>
+                  <div style={{ flex: 1 }}>JABATAN</div>
+                  <div style={{ width: 100 }}>STATUS</div>
+                  <div style={{ width: 80, textAlign: "right" }}>AKSI</div>
+                </div>
+                {employees.map((emp, i) => (
+                  <div key={emp.id} style={{ display: "flex", alignItems: "center", padding: "14px 16px", background: mainBgColor, borderRadius: 14, border: "2px solid transparent", transition: "all 0.2s", cursor: "pointer" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#000"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.04)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = "transparent"; e.currentTarget.style.boxShadow = "none"; }}
+                  >
+                    <div style={{ width: 40, fontSize: 13, fontWeight: "bold", color: "#000" }}>#{emp.id}</div>
+                    <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ fontSize: 13, fontWeight: "bold", color: "#000" }}>{emp.full_name}</span>
+                    </div>
+                    <div style={{ flex: 1, fontSize: 12, fontWeight: "bold", color: "#000", textTransform: "uppercase" }}>{emp.department}</div>
+                    <div style={{ flex: 1, fontSize: 12, fontWeight: "bold", color: "#000", textTransform: "uppercase" }}>{emp.position}</div>
+                    <div style={{ width: 100 }}>
+                      <span style={{ fontSize: 11, fontWeight: "bold", padding: "6px 12px", borderRadius: 16, background: "#f0fdf4", border: "2px solid #000", color: "#000" }}>AKTIF</span>
+                    </div>
+                    <div style={{ width: 80, display: "flex", justifyContent: "flex-end", gap: 6 }}>
+                      <button style={{ width: 30, height: 30, borderRadius: 8, background: "#1a73e8", color: "white", border: "2px solid #000", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: 12 }}>✏️</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Modal */}
+      {/* MODAL ACTION VIEW */}
       {modalOpen && selected && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, backdropFilter: "blur(4px)" }}>
-          <div style={{ background: "white", borderRadius: 20, padding: 28, width: 460, maxWidth: "90vw", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}>
-            <h2 style={{ fontSize: 17, fontWeight: 700, color: "#0f172a", margin: "0 0 16px 0" }}>
-              {actionType === "approved" ? "Setujui Pengajuan Cuti" : "Tolak Pengajuan Cuti"}
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, backdropFilter: "blur(4px)" }}>
+          <div style={{ background: "white", borderRadius: 20, border: "3px solid #000", padding: 32, width: 420, maxWidth: "90vw", boxShadow: `8px 8px 0 0 ${sidebarColor}` }}>
+            <h2 style={{ fontSize: 18, fontWeight: "bold", color: "#000", margin: "0 0 20px 0" }}>
+              {actionType === "approved" ? "SETUJUI PENGAJUAN" : "TOLAK PENGAJUAN"}
             </h2>
-            <div style={{ background: "#f8fafc", borderRadius: 12, padding: "14px 16px", marginBottom: 16, border: "1px solid #e2e8f0" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                <Avatar name={selected.employee_name} size="sm" style={{ background: "#0ea5e9", color: "white", fontWeight: 700 }} />
+            <div style={{ background: mainBgColor, borderRadius: 16, padding: "16px", marginBottom: 20, border: "2px solid #000" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
                 <div>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>{selected.employee_name}</p>
-                  <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>{selected.employee_department} · {selected.employee_position}</p>
+                  <p style={{ fontSize: 16, fontWeight: "bold", color: "#000", margin: 0 }}>{selected.employee_name}</p>
+                  <p style={{ fontSize: 13, fontWeight: "bold", color: "#000", margin: "4px 0 0 0" }}>{selected.employee_department.toUpperCase()} · {selected.employee_position.toUpperCase()}</p>
                 </div>
               </div>
-              <Divider style={{ margin: "8px 0" }} />
-              <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>
-                {selected.start_date?.slice(0,10)} sampai {selected.end_date?.slice(0,10)}
-                <span style={{ fontWeight: 600, color: "#0f172a", marginLeft: 6 }}>({selected.total_days} hari)</span>
-              </p>
+              <Divider style={{ margin: "12px 0", background: "#000", height: 2 }} />
+              <div style={{ display: "flex", gap: 24 }}>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: "bold", color: "#000", margin: "0 0 4px 0" }}>PERIODE</p>
+                  <p style={{ fontSize: 13, fontWeight: "bold", color: "#000", margin: 0 }}>{selected.start_date?.slice(0, 10)} — {selected.end_date?.slice(0, 10)}</p>
+                </div>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: "bold", color: "#000", margin: "0 0 4px 0" }}>DURASI</p>
+                  <p style={{ fontSize: 13, fontWeight: "bold", color: "#000", margin: 0 }}>{selected.total_days} HARI</p>
+                </div>
+              </div>
             </div>
-            <Textarea placeholder="Catatan untuk karyawan (opsional)"
-              value={hrdNote} onValueChange={setHrdNote} variant="bordered" minRows={3}
-              label="Catatan HRD"
-              classNames={{ label: "text-xs font-semibold text-slate-600", inputWrapper: "border-slate-200" }}
+            <Textarea
+              label="CATATAN HRD"
+              placeholder="Catatan untuk karyawan (opsional)"
+              value={hrdNote}
+              onValueChange={setHrdNote}
+              variant="bordered"
+              minRows={3}
+              classNames={{ label: "text-xs font-bold text-black", inputWrapper: "border-black border-2 rounded-xl" }}
             />
-            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 16 }}>
-              <Button variant="bordered" onPress={() => setModalOpen(false)} style={{ fontSize: 13 }}>Batal</Button>
-              <Button onPress={handleAction} color={actionType === "approved" ? "success" : "danger"}
-                style={{ fontWeight: 600, fontSize: 13, color: "white" }}>
-                {actionType === "approved" ? "Setujui" : "Tolak"}
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 24 }}>
+              <Button disableRipple variant="bordered" onPress={() => setModalOpen(false)} style={{ fontSize: 13, fontWeight: "bold", borderRadius: 10, border: "2px solid #000", color: "#000", padding: "0 20px", height: 40 }}>BATAL</Button>
+              <Button disableRipple onPress={handleAction} style={{ background: actionType === "approved" ? "#10b981" : "#ef4444", border: "2px solid #000", fontWeight: "bold", fontSize: 13, color: "white", borderRadius: 10, padding: "0 20px", height: 40 }}>
+                {actionType === "approved" ? "SETUJUI" : "TOLAK"}
               </Button>
             </div>
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function LeaveCard({ leave, statusColor, statusLabel, onApprove, onReject }) {
-  const hrdNote = getStr(leave.hrd_note);
-  return (
-    <div style={{ border: "1px solid #f1f5f9", borderRadius: 12, padding: "14px 16px", background: "#fafafa" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <Chip size="sm" color={statusColor[leave.status] || "default"} variant="flat">
-              {statusLabel[leave.status] || leave.status}
-            </Chip>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{leave.employee_name}</span>
-            <span style={{ fontSize: 11, color: "#cbd5e1" }}>#{leave.id}</span>
-          </div>
-          <p style={{ fontSize: 12, color: "#94a3b8", margin: "0 0 4px 0" }}>{leave.employee_department} · {leave.employee_position}</p>
-          <p style={{ fontSize: 13, color: "#475569", margin: "0 0 2px 0" }}>
-            {leave.start_date?.slice(0,10)} — {leave.end_date?.slice(0,10)}
-            <Chip size="sm" variant="flat" color="default" style={{ marginLeft: 8, fontSize: 11 }}>{leave.total_days} hari</Chip>
-          </p>
-          <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>{leave.reason}</p>
-          {hrdNote && <p style={{ fontSize: 12, color: "#0ea5e9", margin: "4px 0 0 0", fontWeight: 500 }}>Catatan: {hrdNote}</p>}
-        </div>
-        {leave.status === "pending" && (
-          <div style={{ display: "flex", gap: 6, marginLeft: 16, flexShrink: 0 }}>
-            <Button size="sm" color="success" variant="flat" onPress={onApprove} style={{ fontSize: 12, fontWeight: 600 }}>Setujui</Button>
-            <Button size="sm" color="danger" variant="flat" onPress={onReject} style={{ fontSize: 12, fontWeight: 600 }}>Tolak</Button>
-          </div>
-        )}
-      </div>
     </div>
   );
 }
