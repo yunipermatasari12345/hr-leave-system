@@ -1,22 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Textarea, Avatar, Divider } from "@heroui/react";
-import axios from "axios";
+import { Button, Textarea, Avatar } from "@heroui/react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import * as XLSX from "xlsx";
-
-const api = axios.create({ baseURL: "http://localhost:8080" });
-api.interceptors.request.use((config) => {
-  config.headers.Authorization = `Bearer ${localStorage.getItem("token")}`;
-  return config;
-});
-
-function getStr(val) {
-  if (!val) return "";
-  if (typeof val === "string") return val;
-  if (typeof val === "object" && "String" in val) return val.String || "";
-  return String(val);
-}
+import { leaveApi } from "../../api/leaveApi";
+import { employeeApi } from "../../api/employeeApi";
+import { reportingApi } from "../../api/reportingApi";
+import { getStr } from "../../lib/format";
+import { STORAGE_KEYS } from "../../constants/storage";
 
 export default function HrdDashboard() {
   // Existing States
@@ -28,7 +19,7 @@ export default function HrdDashboard() {
   const [modalOpen, setModalOpen] = useState(false);
   const [activePage, setActivePage] = useState("dashboard");
   const navigate = useNavigate();
-  const name = localStorage.getItem("name") || "HRD Admin";
+  const name = localStorage.getItem(STORAGE_KEYS.name) || "HRD Admin";
 
   // New Enterprise States
   const [stats, setStats] = useState({ total_employees: 0, pending_today: 0, total_approved: 0, total_rejected: 0, total_pending: 0 });
@@ -56,39 +47,50 @@ export default function HrdDashboard() {
 
   const fetchDashboardStats = async () => {
     try {
-      const res = await api.get("/api/hrd/dashboard/stats");
-      setStats(res.data || {});
-      const resMonth = await api.get("/api/hrd/dashboard/monthly");
-      setMonthlyStats(resMonth.data || []);
-    } catch { }
+      const statsData = await reportingApi.dashboardStats();
+      setStats(statsData || {});
+      const monthData = await reportingApi.monthlyLeaveStats();
+      setMonthlyStats(monthData || []);
+    } catch {}
   };
 
   const fetchLeaves = async () => {
     try {
-      const res = await api.get(`/api/hrd/leaves/advanced?status=${filterStatus}&department=${filterDept}`);
-      setLeaves(res.data || []);
+      const data = await leaveApi.getAdvancedForHR({
+        status: filterStatus,
+        department: filterDept,
+      });
+      setLeaves(data || []);
+    } catch {
+      setLeaves([]);
     }
-    catch { setLeaves([]); }
   };
 
   const fetchEmployees = async () => {
-    try { const res = await api.get("/api/hrd/employees"); setEmployees(res.data || []); }
-    catch { setEmployees([]); }
+    try {
+      const data = await employeeApi.listForHR();
+      setEmployees(data || []);
+    } catch {
+      setEmployees([]);
+    }
   };
 
   const fetchMasterData = async () => {
     try {
-      const d = await api.get("/api/hrd/departments"); setDepartments(d.data || []);
-      const p = await api.get("/api/hrd/positions"); setPositions(p.data || []);
-      const lt = await api.get("/api/leave-types"); setLeaveTypes(lt.data || []);
-    } catch { }
+      const d = await reportingApi.departments();
+      setDepartments(d || []);
+      const p = await reportingApi.positions();
+      setPositions(p || []);
+      const lt = await leaveApi.getTypes();
+      setLeaveTypes(lt || []);
+    } catch {}
   };
 
   const fetchReports = async () => {
     try {
-      const res = await api.get("/api/hrd/reports/departments");
-      setReports(res.data || []);
-    } catch { }
+      const data = await reportingApi.leaveRecapPerDepartment();
+      setReports(data || []);
+    } catch {}
   };
 
   const openAction = (leave, type) => {
@@ -96,7 +98,10 @@ export default function HrdDashboard() {
   };
   const handleAction = async () => {
     try {
-      await api.put(`/api/hrd/leaves/${selected.id}/status`, { status: actionType, hrd_note: hrdNote });
+      await leaveApi.updateStatusHR(selected.id, {
+        status: actionType,
+        hrd_note: hrdNote,
+      });
       setModalOpen(false); fetchLeaves(); fetchDashboardStats();
     } catch { alert("Gagal update status"); }
   };

@@ -1,16 +1,10 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
-	"hr-leave-system/config"
-	db "hr-leave-system/internal/db"
-	"hr-leave-system/internal/middleware"
+	"errors"
+	"hr-leave-system/internal/application"
 	"net/http"
-	"time"
-
-	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type LoginRequest struct {
@@ -37,44 +31,20 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	json.NewDecoder(r.Body).Decode(&req)
 
-	if req.Email == "" || req.Password == "" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Email dan password wajib diisi"})
-		return
-	}
-
-	queries := db.New(config.DB)
-	user, err := queries.GetUserByEmail(r.Context(), req.Email)
+	out, err := AuthService.Login(r.Context(), req.Email, req.Password)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Email atau password salah"})
-		return
-	}
-
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Email atau password salah"})
-		return
-	}
-
-	employee, err := queries.GetEmployeeByUserID(r.Context(), user.ID)
-	name := ""
-	if err == nil {
-		name = employee.FullName
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": user.ID,
-		"role":    user.Role,
-		"exp":     time.Now().Add(24 * time.Hour).Unix(),
-	})
-
-	tokenString, err := token.SignedString(middleware.JwtSecret)
-	if err != nil {
+		if errors.Is(err, application.ErrValidation) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Email dan password wajib diisi"})
+			return
+		}
+		if errors.Is(err, application.ErrUnauthorized) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Email atau password salah"})
+			return
+		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Gagal membuat token"})
@@ -83,9 +53,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(LoginResponse{
-		Token: tokenString,
-		Role:  user.Role,
-		Name:  name,
+		Token: out.Token,
+		Role:  out.Role,
+		Name:  out.Name,
 	})
 }
 
@@ -93,46 +63,20 @@ func CreateEmployee(w http.ResponseWriter, r *http.Request) {
 	var req CreateEmployeeRequest
 	json.NewDecoder(r.Body).Decode(&req)
 
-	if req.Email == "" || req.Password == "" || req.FullName == "" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Email, password, dan nama wajib diisi"})
-		return
-	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	emp, err := AuthService.CreateEmployeeAccount(r.Context(), req.Email, req.Password, req.FullName, req.Department, req.Position, req.Phone)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Gagal enkripsi password"})
-		return
-	}
-
-	queries := db.New(config.DB)
-
-	user, err := queries.CreateUser(r.Context(), db.CreateUserParams{
-		Email:    req.Email,
-		Password: string(hashedPassword),
-		Role:     "employee",
-	})
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Email sudah digunakan"})
-		return
-	}
-
-	employee, err := queries.CreateEmployee(r.Context(), db.CreateEmployeeParams{
-		UserID:     user.ID,
-		FullName:   req.FullName,
-		Department: req.Department,
-		Position:   req.Position,
-		Phone: sql.NullString{
-			String: req.Phone,
-			Valid:  req.Phone != "",
-		},
-	})
-	if err != nil {
+		if errors.Is(err, application.ErrValidation) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Email, password, dan nama wajib diisi"})
+			return
+		}
+		if errors.Is(err, application.ErrEmailTaken) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Email sudah digunakan"})
+			return
+		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Gagal membuat data karyawan"})
@@ -141,5 +85,5 @@ func CreateEmployee(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(employee)
+	json.NewEncoder(w).Encode(emp)
 }

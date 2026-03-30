@@ -2,7 +2,9 @@ package main
 
 import (
 	"hr-leave-system/config"
+	"hr-leave-system/internal/application"
 	"hr-leave-system/internal/handlers"
+	"hr-leave-system/internal/infrastructure/persistence"
 	mw "hr-leave-system/internal/middleware"
 	"log"
 	"net/http"
@@ -13,6 +15,18 @@ import (
 
 func main() {
 	config.InitDB()
+
+	raw := config.DB
+	leaveRepo := persistence.NewLeaveRepository(raw)
+	employeeRepo := persistence.NewEmployeeRepository(raw)
+	userRepo := persistence.NewUserRepository(raw)
+	notifRepo := persistence.NewNotificationRepository(raw)
+	reportingRepo := persistence.NewReportingRepository(raw)
+
+	handlers.LeaveService = application.NewLeaveService(leaveRepo, employeeRepo, notifRepo)
+	handlers.EmployeeService = application.NewEmployeeService(employeeRepo)
+	handlers.AuthService = application.NewAuthService(userRepo, employeeRepo, mw.JwtSecret)
+	handlers.ReportingService = application.NewReportingService(reportingRepo)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)

@@ -1,35 +1,30 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Avatar, Divider } from "@heroui/react";
-import axios from "axios";
-
-const api = axios.create({ baseURL: "http://localhost:8080" });
-api.interceptors.request.use((config) => {
-  config.headers.Authorization = `Bearer ${localStorage.getItem("token")}`;
-  return config;
-});
-
-function getStr(val) {
-  if (!val) return "";
-  if (typeof val === "string") return val;
-  if (typeof val === "object" && "String" in val) return val.String || "";
-  return String(val);
-}
+import { Button, Avatar } from "@heroui/react";
+import { leaveApi } from "../../api/leaveApi";
+import { STORAGE_KEYS } from "../../constants/storage";
 
 export default function EmployeeDashboard() {
   const [leaves, setLeaves] = useState([]);
   const [activePage, setActivePage] = useState("dashboard");
   const navigate = useNavigate();
-  const name = localStorage.getItem("name") || "Karyawan";
+  const name = localStorage.getItem(STORAGE_KEYS.name) || "Karyawan";
 
   useEffect(() => { fetchLeaves(); }, []);
 
   const fetchLeaves = async () => {
-    try { const res = await api.get("/api/employee/leaves"); setLeaves(res.data || []); }
-    catch { setLeaves([]); }
+    try {
+      const data = await leaveApi.getMyLeaves();
+      setLeaves(data || []);
+    } catch {
+      setLeaves([]);
+    }
   };
 
-  const handleLogout = () => { localStorage.clear(); navigate("/login"); };
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/login");
+  };
 
   const total = leaves.length;
   const approved = leaves.filter(l => l.status === "approved").length;
@@ -211,9 +206,7 @@ export default function EmployeeDashboard() {
                   <div style={{ flex: 1 }}>PERIODE</div>
                   <div style={{ width: 120 }}>STATUS</div>
                 </div>
-                {leaves.map((leave, i) => {
-                  const hrdNote = getStr(leave.hrd_note);
-                  return (
+                {leaves.map((leave) => (
                     <div key={leave.id} style={{ display: "flex", alignItems: "center", padding: "14px 20px", background: mainBgColor, borderRadius: 14, border: "2px solid transparent", transition: "all 0.2s" }}
                       onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#000"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.04)"; }}
                       onMouseLeave={(e) => { e.currentTarget.style.borderColor = "transparent"; e.currentTarget.style.boxShadow = "none"; }}
@@ -231,8 +224,7 @@ export default function EmployeeDashboard() {
                         </span>
                       </div>
                     </div>
-                  )
-                })}
+                ))}
                 {leaves.length === 0 && <p style={{ textAlign: "center", color: "#000", fontWeight: "bold", fontSize: 13, padding: 32, margin: 0, opacity: 0.6 }}>BELUM ADA RIWAYAT CUTI</p>}
               </div>
             </div>

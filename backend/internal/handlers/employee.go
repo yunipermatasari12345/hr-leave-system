@@ -2,12 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
-	"hr-leave-system/config"
-	db "hr-leave-system/internal/db"
 	"net/http"
+
+	"hr-leave-system/internal/domain/employee"
 )
 
-// Response struct bersih tanpa sql.Null types
 type EmployeeResponse struct {
 	ID         int32  `json:"id"`
 	UserID     int32  `json:"user_id"`
@@ -17,24 +16,19 @@ type EmployeeResponse struct {
 	Phone      string `json:"phone"`
 }
 
-func toEmployeeResponse(e db.Employee) EmployeeResponse {
-	phone := ""
-	if e.Phone.Valid {
-		phone = e.Phone.String
-	}
+func toEmployeeResponse(e employee.Employee) EmployeeResponse {
 	return EmployeeResponse{
 		ID:         e.ID,
 		UserID:     e.UserID,
 		FullName:   e.FullName,
 		Department: e.Department,
 		Position:   e.Position,
-		Phone:      phone,
+		Phone:      e.Phone,
 	}
 }
 
 func GetAllEmployees(w http.ResponseWriter, r *http.Request) {
-	queries := db.New(config.DB)
-	employees, err := queries.GetAllEmployees(r.Context())
+	employees, err := EmployeeService.List(r.Context())
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode([]EmployeeResponse{})

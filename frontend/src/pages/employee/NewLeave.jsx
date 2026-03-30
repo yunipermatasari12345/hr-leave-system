@@ -1,13 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Textarea, Avatar, Divider } from "@heroui/react";
-import axios from "axios";
-
-const api = axios.create({ baseURL: "http://localhost:8080" });
-api.interceptors.request.use((config) => {
-  config.headers.Authorization = `Bearer ${localStorage.getItem("token")}`;
-  return config;
-});
+import { Button, Textarea, Avatar } from "@heroui/react";
+import { leaveApi } from "../../api/leaveApi";
+import { STORAGE_KEYS } from "../../constants/storage";
 
 export default function NewLeave() {
   const navigate = useNavigate();
@@ -17,12 +12,15 @@ export default function NewLeave() {
   const [success, setSuccess] = useState("");
   const [form, setForm] = useState({ leave_type_id: "", start_date: "", end_date: "", reason: "" });
 
-  const name = localStorage.getItem("name") || "Karyawan";
+  const name = localStorage.getItem(STORAGE_KEYS.name) || "Karyawan";
   const mainBgColor = "#eef4fb";
   const sidebarColor = "#1a73e8";
 
   useEffect(() => {
-    api.get("/api/leave-types").then(res => setLeaveTypes(res.data || [])).catch(() => { });
+    leaveApi
+      .getTypes()
+      .then((data) => setLeaveTypes(data || []))
+      .catch(() => {});
   }, []);
 
   const totalDays = () => {
@@ -40,7 +38,10 @@ export default function NewLeave() {
     }
     setLoading(true); setError(""); setSuccess("");
     try {
-      await api.post("/api/employee/leaves", { ...form, leave_type_id: parseInt(form.leave_type_id) });
+      await leaveApi.createRequest({
+        ...form,
+        leave_type_id: parseInt(form.leave_type_id, 10),
+      });
       setSuccess("PENGAJUAN BERHASIL DIKIRIM! MENUNGGU PERSETUJUAN HRD");
       setTimeout(() => navigate("/dashboard"), 2000);
     } catch (e) {

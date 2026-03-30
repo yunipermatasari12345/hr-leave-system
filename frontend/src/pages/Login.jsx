@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Input, Card, CardBody } from "@heroui/react";
-import axios from "axios";
+import { Button, Input } from "@heroui/react";
+import { login } from "../api/authApi";
+import { STORAGE_KEYS } from "../constants/storage";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -15,13 +16,15 @@ export default function Login() {
     if (!email || !password) { setError("Email dan password wajib diisi!"); return; }
     setLoading(true); setError("");
     try {
-      const res = await axios.post("http://localhost:8080/api/auth/login", { email, password });
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("role", res.data.role);
-      localStorage.setItem("name", res.data.name);
-      if (res.data.role === "hrd") navigate("/hrd/dashboard");
+      const data = await login({ email, password });
+      localStorage.setItem(STORAGE_KEYS.token, data.token);
+      localStorage.setItem(STORAGE_KEYS.role, data.role);
+      localStorage.setItem(STORAGE_KEYS.name, data.name);
+      if (data.role === "hrd") navigate("/hrd/dashboard");
       else navigate("/dashboard");
-    } catch { setError("Email atau password salah!"); }
+    } catch {
+      setError("Email atau password salah!");
+    }
     finally { setLoading(false); }
   };
 

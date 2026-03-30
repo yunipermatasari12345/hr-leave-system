@@ -1,13 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Input, Avatar } from "@heroui/react";
-import axios from "axios";
-
-const api = axios.create({ baseURL: "http://localhost:8080" });
-api.interceptors.request.use((config) => {
-  config.headers.Authorization = `Bearer ${localStorage.getItem("token")}`;
-  return config;
-});
+import { employeeApi } from "../../api/employeeApi";
+import { STORAGE_KEYS } from "../../constants/storage";
 
 export default function AddEmployee() {
   const navigate = useNavigate();
@@ -16,7 +11,7 @@ export default function AddEmployee() {
   const [success, setSuccess] = useState("");
   const [form, setForm] = useState({ email: "", password: "", full_name: "", department: "", position: "", phone: "" });
 
-  const name = localStorage.getItem("name") || "HRD Admin";
+  const name = localStorage.getItem(STORAGE_KEYS.name) || "HRD Admin";
   const mainBgColor = "#eef4fb";
   const sidebarColor = "#1a73e8";
 
@@ -26,7 +21,7 @@ export default function AddEmployee() {
     }
     setLoading(true); setError(""); setSuccess("");
     try {
-      await api.post("/api/hrd/employees", form);
+      await employeeApi.createForHR(form);
       setSuccess("KARYAWAN BERHASIL DITAMBAHKAN!");
       setForm({ email: "", password: "", full_name: "", department: "", position: "", phone: "" });
     } catch (e) {
