@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Button, Textarea } from "@heroui/react";
 import axios from "axios";
 
 const api = axios.create({ baseURL: "http://localhost:8080" });
@@ -14,9 +15,7 @@ export default function NewLeave() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [form, setForm] = useState({
-    leave_type_id: "", start_date: "", end_date: "", reason: ""
-  });
+  const [form, setForm] = useState({ leave_type_id: "", start_date: "", end_date: "", reason: "" });
 
   useEffect(() => {
     api.get("/api/leave-types").then(res => setLeaveTypes(res.data || [])).catch(() => {});
@@ -24,7 +23,7 @@ export default function NewLeave() {
 
   const totalDays = () => {
     if (!form.start_date || !form.end_date) return 0;
-    const diff = Math.floor((new Date(form.end_date) - new Date(form.start_date)) / (1000 * 60 * 60 * 24)) + 1;
+    const diff = Math.floor((new Date(form.end_date) - new Date(form.start_date)) / 86400000) + 1;
     return diff > 0 ? diff : 0;
   };
 
@@ -38,7 +37,7 @@ export default function NewLeave() {
     setLoading(true); setError("");
     try {
       await api.post("/api/employee/leaves", { ...form, leave_type_id: parseInt(form.leave_type_id) });
-      setSuccess("Pengajuan cuti berhasil dikirim! Menunggu persetujuan HRD.");
+      setSuccess("Pengajuan berhasil dikirim! Menunggu persetujuan HRD.");
       setTimeout(() => navigate("/dashboard"), 2000);
     } catch (e) {
       setError(e.response?.data?.error || "Gagal mengajukan cuti");
@@ -46,113 +45,89 @@ export default function NewLeave() {
   };
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f9fafb" }}>
-      {/* Sidebar */}
-      <div style={{ width: 256, background: "#4338ca", color: "white", display: "flex", flexDirection: "column", flexShrink: 0 }}>
-        <div style={{ padding: "24px", borderBottom: "1px solid rgba(255,255,255,0.2)" }}>
-          <p style={{ fontWeight: "bold", fontSize: 14, margin: 0 }}>HR Leave System</p>
-          <p style={{ fontSize: 12, margin: 0, opacity: 0.7 }}>Portal Karyawan</p>
+    <div style={{ display: "flex", minHeight: "100vh" }}>
+      <div style={{ width: 220, background: "#0ea5e9", display: "flex", flexDirection: "column", flexShrink: 0 }}>
+        <div style={{ padding: "28px 20px 20px", borderBottom: "1px solid rgba(255,255,255,0.15)" }}>
+          <p style={{ fontWeight: 800, fontSize: 15, margin: 0, color: "white" }}>APPSKEP HR</p>
+          <p style={{ fontSize: 11, margin: "3px 0 0 0", color: "rgba(255,255,255,0.75)" }}>Portal Karyawan</p>
         </div>
-        <div style={{ padding: 16 }}>
-          <button
-            onClick={() => navigate("/dashboard")}
-            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.8)", cursor: "pointer", fontSize: 14, padding: "8px 12px", borderRadius: 8, display: "flex", alignItems: "center", gap: 8 }}
-          >
-            ← Kembali ke Dashboard
+        <div style={{ padding: "12px 10px" }}>
+          <button onClick={() => navigate("/dashboard")}
+            style={{ width: "100%", background: "rgba(255,255,255,0.15)", border: "none", color: "white", padding: "10px 16px", borderRadius: 8, fontSize: 13, cursor: "pointer", textAlign: "left" }}>
+            Kembali ke Dashboard
           </button>
         </div>
       </div>
 
-      {/* Form Content */}
-      <div style={{ flex: 1, padding: 32 }}>
-        <h1 style={{ fontSize: 24, fontWeight: "bold", color: "#111827", margin: 0 }}>Ajukan Cuti</h1>
-        <p style={{ color: "#6b7280", marginTop: 4, marginBottom: 24 }}>Isi form di bawah untuk mengajukan cuti</p>
+      <div style={{ flex: 1, padding: "36px 40px", background: "#f8fafc" }}>
+        <div style={{ marginBottom: 28 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", margin: 0 }}>Ajukan Cuti</h1>
+          <p style={{ fontSize: 13, color: "#64748b", margin: "4px 0 0 0" }}>Isi form di bawah untuk mengajukan cuti</p>
+        </div>
 
-        <div style={{ maxWidth: 640, background: "white", borderRadius: 16, border: "1px solid #e5e7eb", padding: 24, display: "flex", flexDirection: "column", gap: 20 }}>
+        <div style={{ maxWidth: 560, background: "white", border: "1px solid #e2e8f0", borderRadius: 12, padding: 28 }}>
+          {error && <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", padding: "10px 14px", borderRadius: 8, fontSize: 13, marginBottom: 20 }}>{error}</div>}
+          {success && <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", color: "#16a34a", padding: "10px 14px", borderRadius: 8, fontSize: 13, marginBottom: 20 }}>{success}</div>}
 
-          {error && (
-            <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", padding: "12px 16px", borderRadius: 12, fontSize: 14 }}>
-              {error}
-            </div>
-          )}
-          {success && (
-            <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", color: "#16a34a", padding: "12px 16px", borderRadius: 12, fontSize: 14 }}>
-              ✅ {success}
-            </div>
-          )}
-
-          {/* Jenis Cuti */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <label style={{ fontSize: 14, fontWeight: 500, color: "#374151" }}>Jenis Cuti <span style={{ color: "red" }}>*</span></label>
-            <select
-              value={form.leave_type_id}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6 }}>
+              Jenis Cuti <span style={{ color: "#ef4444" }}>*</span>
+            </label>
+            <select value={form.leave_type_id}
               onChange={(e) => setForm(prev => ({ ...prev, leave_type_id: e.target.value }))}
-              style={{ border: "2px solid #e5e7eb", borderRadius: 12, padding: "12px 16px", fontSize: 14, background: "white", outline: "none", cursor: "pointer" }}
-            >
-              <option value="">-- Pilih jenis cuti --</option>
+              style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 8, padding: "10px 12px", fontSize: 13, background: "white", outline: "none", cursor: "pointer", fontFamily: "inherit", color: "#0f172a" }}>
+              <option value="">Pilih jenis cuti</option>
               {leaveTypes.map(type => (
-                <option key={type.id} value={String(type.id)}>
-                  {type.name} (maks. {type.max_days} hari)
-                </option>
+                <option key={type.id} value={String(type.id)}>{type.name} (maks. {type.max_days} hari)</option>
               ))}
             </select>
           </div>
 
-          {/* Tanggal */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <label style={{ fontSize: 14, fontWeight: 500, color: "#374151" }}>Tanggal Mulai <span style={{ color: "red" }}>*</span></label>
-              <input
-                type="date"
-                value={form.start_date}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 16 }}>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6 }}>
+                Tanggal Mulai <span style={{ color: "#ef4444" }}>*</span>
+              </label>
+              <input type="date" value={form.start_date}
                 onChange={(e) => setForm(prev => ({ ...prev, start_date: e.target.value }))}
-                style={{ border: "2px solid #e5e7eb", borderRadius: 12, padding: "12px 16px", fontSize: 14, background: "white", outline: "none" }}
-              />
+                style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 8, padding: "10px 12px", fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }} />
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <label style={{ fontSize: 14, fontWeight: 500, color: "#374151" }}>Tanggal Selesai <span style={{ color: "red" }}>*</span></label>
-              <input
-                type="date"
-                value={form.end_date}
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6 }}>
+                Tanggal Selesai <span style={{ color: "#ef4444" }}>*</span>
+              </label>
+              <input type="date" value={form.end_date}
                 onChange={(e) => setForm(prev => ({ ...prev, end_date: e.target.value }))}
-                style={{ border: "2px solid #e5e7eb", borderRadius: 12, padding: "12px 16px", fontSize: 14, background: "white", outline: "none" }}
-              />
+                style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 8, padding: "10px 12px", fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }} />
             </div>
           </div>
 
           {totalDays() > 0 && (
-            <div style={{ background: "#eef2ff", border: "1px solid #c7d2fe", color: "#4338ca", padding: "12px 16px", borderRadius: 12, fontSize: 14 }}>
-              📅 Total cuti: <strong>{totalDays()} hari</strong>
+            <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", color: "#1d4ed8", padding: "8px 14px", borderRadius: 8, fontSize: 13, marginBottom: 16, fontWeight: 600 }}>
+              Total: {totalDays()} hari
             </div>
           )}
 
-          {/* Alasan */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <label style={{ fontSize: 14, fontWeight: 500, color: "#374151" }}>Alasan Cuti <span style={{ color: "red" }}>*</span></label>
-            <textarea
-              rows={4}
+          <div style={{ marginBottom: 24 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6 }}>
+              Alasan Cuti <span style={{ color: "#ef4444" }}>*</span>
+            </label>
+            <Textarea
               placeholder="Jelaskan alasan pengajuan cuti kamu..."
               value={form.reason}
-              onChange={(e) => setForm(prev => ({ ...prev, reason: e.target.value }))}
-              style={{ border: "2px solid #e5e7eb", borderRadius: 12, padding: "12px 16px", fontSize: 14, background: "white", outline: "none", resize: "none", fontFamily: "inherit" }}
+              onValueChange={(val) => setForm(prev => ({ ...prev, reason: val }))}
+              variant="bordered"
+              minRows={4}
+              classNames={{ inputWrapper: "border-gray-200 hover:border-sky-400 focus-within:!border-sky-500" }}
             />
           </div>
 
-          {/* Buttons */}
-          <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
-            <button
-              onClick={() => navigate("/dashboard")}
-              style={{ padding: "10px 20px", borderRadius: 12, border: "2px solid #e5e7eb", background: "white", color: "#374151", fontSize: 14, fontWeight: 500, cursor: "pointer" }}
-            >
-              Batal
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              style={{ padding: "10px 24px", borderRadius: 12, border: "none", background: loading ? "#a5b4fc" : "#4338ca", color: "white", fontSize: 14, fontWeight: 600, cursor: loading ? "not-allowed" : "pointer" }}
-            >
-              {loading ? "Mengirim..." : "Kirim Pengajuan"}
-            </button>
+          <div style={{ display: "flex", gap: 10 }}>
+            <Button variant="bordered" onPress={() => navigate("/dashboard")} style={{ fontSize: 13 }}>Batal</Button>
+            <Button isLoading={loading} onPress={handleSubmit}
+              style={{ background: "#0ea5e9", color: "white", fontWeight: 600, fontSize: 13 }}>
+              Kirim Pengajuan
+            </Button>
           </div>
         </div>
       </div>

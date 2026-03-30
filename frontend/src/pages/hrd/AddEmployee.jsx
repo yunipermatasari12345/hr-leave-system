@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardBody, Input, Button, Select, SelectItem } from "@heroui/react";
+import { Button, Input, Avatar } from "@heroui/react";
 import axios from "axios";
 
 const api = axios.create({ baseURL: "http://localhost:8080" });
@@ -14,102 +14,95 @@ export default function AddEmployee() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [form, setForm] = useState({
-    email: "", password: "", full_name: "",
-    department: "", position: "", phone: ""
-  });
-
-  const handleChange = (field, value) => {
-    setForm(prev => ({ ...prev, [field]: value }));
-  };
+  const [form, setForm] = useState({ email: "", password: "", full_name: "", department: "", position: "", phone: "" });
 
   const handleSubmit = async () => {
     if (!form.email || !form.password || !form.full_name || !form.department || !form.position) {
-      setError("Semua field wajib diisi kecuali nomor HP");
-      return;
+      setError("Semua field wajib diisi kecuali nomor HP"); return;
     }
-    setLoading(true);
-    setError("");
+    setLoading(true); setError("");
     try {
       await api.post("/api/hrd/employees", form);
       setSuccess("Karyawan berhasil ditambahkan!");
       setForm({ email: "", password: "", full_name: "", department: "", position: "", phone: "" });
     } catch (e) {
       setError(e.response?.data?.error || "Gagal menambahkan karyawan");
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
+  const fields = [
+    { label: "Nama Lengkap", field: "full_name", placeholder: "Budi Santoso", type: "text", required: true },
+    { label: "Nomor HP", field: "phone", placeholder: "08123456789", type: "text", required: false },
+    { label: "Departemen", field: "department", placeholder: "IT, HR, Finance...", type: "text", required: true },
+    { label: "Jabatan", field: "position", placeholder: "Engineer, Staff...", type: "text", required: true },
+    { label: "Email Login", field: "email", placeholder: "budi@appskep.com", type: "email", required: true },
+    { label: "Password", field: "password", placeholder: "Buat password", type: "password", required: true },
+  ];
+
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar mini */}
-      <div className="w-64 bg-indigo-700 text-white flex flex-col">
-        <div className="p-6 border-b border-indigo-600">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div style={{ display: "flex", minHeight: "100vh", background: "#f1f5f9" }}>
+      {/* Sidebar */}
+      <div style={{ width: 240, background: "white", borderRight: "1px solid #e2e8f0", display: "flex", flexDirection: "column", flexShrink: 0, boxShadow: "2px 0 8px rgba(0,0,0,0.04)" }}>
+        <div style={{ padding: "24px 20px", borderBottom: "1px solid #f1f5f9" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: "#0ea5e9", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="18" height="18" fill="none" stroke="white" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1" />
               </svg>
             </div>
             <div>
-              <p className="font-bold text-sm">HR Leave System</p>
-              <p className="text-indigo-200 text-xs">HRD Panel</p>
+              <p style={{ fontWeight: 800, fontSize: 14, margin: 0, color: "#0f172a" }}>Appskep HR</p>
+              <p style={{ fontSize: 11, margin: 0, color: "#94a3b8" }}>HRD Panel</p>
             </div>
           </div>
         </div>
-        <div className="p-4">
+        <div style={{ padding: "12px 10px" }}>
           <button onClick={() => navigate("/hrd/dashboard")}
-            className="flex items-center gap-2 text-indigo-200 hover:text-white text-sm px-3 py-2 rounded-lg hover:bg-white/10">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            style={{ width: "100%", border: "none", padding: "11px 16px", borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: "pointer", textAlign: "left", background: "transparent", color: "#64748b" }}>
             Kembali ke Dashboard
           </button>
         </div>
       </div>
 
       {/* Form */}
-      <div className="flex-1 p-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Tambah Karyawan</h1>
-        <p className="text-gray-500 mb-6">Buat akun baru untuk karyawan</p>
+      <div style={{ flex: 1, padding: "32px 36px" }}>
+        <div style={{ marginBottom: 28 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", margin: 0 }}>Tambah Karyawan</h1>
+          <p style={{ fontSize: 13, color: "#64748b", margin: "4px 0 0 0" }}>Buat akun baru untuk karyawan</p>
+        </div>
 
-        <Card className="max-w-2xl border border-gray-100">
-          <CardBody className="p-6 flex flex-col gap-4">
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
-                {error}
+        <div style={{ maxWidth: 600, background: "white", borderRadius: 16, padding: 28, boxShadow: "0 1px 4px rgba(0,0,0,0.06)", border: "1px solid #f1f5f9" }}>
+          {error && <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", padding: "10px 14px", borderRadius: 8, fontSize: 13, marginBottom: 20 }}>{error}</div>}
+          {success && <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", color: "#16a34a", padding: "10px 14px", borderRadius: 8, fontSize: 13, marginBottom: 20 }}>{success}</div>}
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+            {fields.map(item => (
+              <div key={item.field}>
+                <Input
+                  type={item.type}
+                  label={item.label + (item.required ? " *" : "")}
+                  placeholder={item.placeholder}
+                  value={form[item.field]}
+                  onValueChange={(val) => setForm(prev => ({ ...prev, [item.field]: val }))}
+                  variant="bordered"
+                  size="sm"
+                  classNames={{
+                    label: "text-xs font-semibold text-slate-600",
+                    inputWrapper: "border-slate-200 hover:border-sky-400 focus-within:!border-sky-500"
+                  }}
+                />
               </div>
-            )}
-            {success && (
-              <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-xl text-sm">
-                {success}
-              </div>
-            )}
+            ))}
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <Input label="Nama Lengkap" placeholder="Budi Santoso" value={form.full_name}
-                onValueChange={(v) => handleChange("full_name", v)} variant="bordered" />
-              <Input label="Nomor HP" placeholder="08123456789" value={form.phone}
-                onValueChange={(v) => handleChange("phone", v)} variant="bordered" />
-              <Input label="Departemen" placeholder="IT, HR, Finance..." value={form.department}
-                onValueChange={(v) => handleChange("department", v)} variant="bordered" />
-              <Input label="Jabatan" placeholder="Engineer, Staff..." value={form.position}
-                onValueChange={(v) => handleChange("position", v)} variant="bordered" />
-              <Input label="Email Login" type="email" placeholder="budi@perusahaan.com" value={form.email}
-                onValueChange={(v) => handleChange("email", v)} variant="bordered" />
-              <Input label="Password" type="password" placeholder="Buat password" value={form.password}
-                onValueChange={(v) => handleChange("password", v)} variant="bordered" />
-            </div>
-
-            <div className="flex gap-3 mt-2">
-              <Button variant="flat" onPress={() => navigate("/hrd/dashboard")}>Batal</Button>
-              <Button color="primary" className="bg-indigo-600" isLoading={loading} onPress={handleSubmit}>
-                Simpan Karyawan
-              </Button>
-            </div>
-          </CardBody>
-        </Card>
+          <div style={{ display: "flex", gap: 10 }}>
+            <Button variant="bordered" onPress={() => navigate("/hrd/dashboard")} style={{ fontSize: 13 }}>Batal</Button>
+            <Button isLoading={loading} onPress={handleSubmit}
+              style={{ background: "#0ea5e9", color: "white", fontWeight: 600, fontSize: 13 }}>
+              Simpan Karyawan
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
