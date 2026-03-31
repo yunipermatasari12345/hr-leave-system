@@ -1,8 +1,8 @@
 import axios from "axios";
-import { API_BASE_URL } from "../constants/config";
+import { API_BASE_URL, APPSKEP_API_URL } from "../constants/config";
 import { STORAGE_KEYS } from "../constants/storage";
 
-/** Satu client HTTP: base URL + token otomatis (kalau sudah login) */
+/** Client HTTP lokal: base URL localhost + token otomatis (kalau sudah login) */
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
 });
@@ -13,4 +13,9 @@ apiClient.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
+});
+
+/** Client HTTP untuk API eksternal (Appskep login) */
+export const appskepClient = axios.create({
+  baseURL: APPSKEP_API_URL,
 });

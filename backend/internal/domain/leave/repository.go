@@ -13,4 +13,6 @@ type Repository interface {
 	UpdateStatus(ctx context.Context, id int32, status Status, hrdNote string, reviewedByEmployeeID int32) (LeaveRequest, error)
 	ListLeaveTypes(ctx context.Context) ([]LeaveType, error)
 	ListAdvanced(ctx context.Context, statusFilter, departmentFilter string) ([]RequestSummary, error)
+	GetBalance(ctx context.Context, employeeID int32, year int32) ([]LeaveBalance, error)
+	UpdateBalance(ctx context.Context, employeeID int32, leaveTypeID int32, year int32, daysUsed int32) error
 }

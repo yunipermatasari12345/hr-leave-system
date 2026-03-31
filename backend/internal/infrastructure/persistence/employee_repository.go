@@ -9,11 +9,12 @@ import (
 )
 
 type employeeRepository struct {
-	q *db.Queries
+	q  *db.Queries
+	db *sql.DB
 }
 
 func NewEmployeeRepository(raw *sql.DB) employee.Repository {
-	return &employeeRepository{q: db.New(raw)}
+	return &employeeRepository{q: db.New(raw), db: raw}
 }
 
 func employeeFromDB(e db.Employee) employee.Employee {
@@ -93,5 +94,34 @@ func (r *employeeRepository) Update(ctx context.Context, id int32, fullName, dep
 }
 
 func (r *employeeRepository) Delete(ctx context.Context, id int32) error {
-	return r.q.DeleteEmployee(ctx, id)
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil { return err }
+	defer tx.Rollback()
+
+	// Ambil user_id dari employee
+	var userID int32
+	err = tx.QueryRowContext(ctx, "SELECT user_id FROM employees WHERE id = $1", id).Scan(&userID)
+	if err != nil { return err }
+
+	// Hapus notifications user ini
+	if _, err := tx.ExecContext(ctx, "DELETE FROM notifications WHERE user_id = $1", userID); err != nil { return err }
+
+	// Update leave_requests di mana employee ini bertindak sebagai reviewer menjadi NULL
+	if _, err := tx.ExecContext(ctx, "UPDATE leave_requests SET reviewed_by = NULL WHERE reviewed_by = $1", id); err != nil { return err }
+
+	// Hapus history, requests, balances
+	if _, err := tx.ExecContext(ctx, "DELETE FROM leave_histories WHERE leave_request_id IN (SELECT id FROM leave_requests WHERE employee_id = $1)", id); err != nil { return err }
+	if _, err := tx.ExecContext(ctx, "DELETE FROM leave_requests WHERE employee_id = $1", id); err != nil { return err }
+	if _, err := tx.ExecContext(ctx, "DELETE FROM leave_balances WHERE employee_id = $1", id); err != nil { return err }
+	
+	// Set null untuk user di tabel leave_histories supaya tidak FK constraint
+	if _, err := tx.ExecContext(ctx, "UPDATE leave_histories SET actor_id = NULL WHERE actor_id = $1", userID); err != nil { return err }
+
+	// Hapus employee itu sendiri
+	if _, err := tx.ExecContext(ctx, "DELETE FROM employees WHERE id = $1", id); err != nil { return err }
+
+	// Hapus user di tabel users untuk membersihkan akses otentikasi
+	if _, err := tx.ExecContext(ctx, "DELETE FROM users WHERE id = $1", userID); err != nil { return err }
+
+	return tx.Commit()
 }

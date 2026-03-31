@@ -7,8 +7,17 @@ export const leaveApi = {
   getMyLeaves() {
     return apiClient.get("/api/employee/leaves").then((r) => r.data);
   },
+  getMyBalances() {
+    return apiClient.get("/api/employee/leave-balances").then((r) => r.data);
+  },
   createRequest(payload) {
     return apiClient.post("/api/employee/leaves", payload).then((r) => r.data);
+  },
+  getMyNotifications() {
+    return apiClient.get("/api/employee/notifications").then((r) => r.data);
+  },
+  readNotification(id) {
+    return apiClient.put(`/api/employee/notifications/${id}/read`).then((r) => r.data);
   },
   /** HRD: filter opsional status & department */
   getAdvancedForHR({ status = "", department = "" } = {}) {

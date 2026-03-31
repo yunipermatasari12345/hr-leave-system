@@ -3,4 +3,6 @@ export const STORAGE_KEYS = {
   token: "token",
   role: "role",
   name: "name",
+  department: "department",
+  position: "position",
 };

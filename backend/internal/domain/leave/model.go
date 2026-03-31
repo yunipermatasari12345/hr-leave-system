@@ -41,6 +41,17 @@ type LeaveType struct {
 	Description string `json:"description"`
 }
 
+type LeaveBalance struct {
+	ID            int32 `json:"id"`
+	EmployeeID    int32 `json:"employee_id"`
+	LeaveTypeID   int32 `json:"leave_type_id"`
+	LeaveTypeName string `json:"leave_type_name"`
+	Year          int32 `json:"year"`
+	TotalDays     int32 `json:"total_days"`
+	UsedDays      int32 `json:"used_days"`
+	RemainingDays int32 `json:"remaining_days"`
+}
+
 func ParseReviewDecision(status string) (Status, error) {
 	switch status {
 	case string(StatusApproved), string(StatusRejected):

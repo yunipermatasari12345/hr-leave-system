@@ -23,6 +23,8 @@ func main() {
 	notifRepo := persistence.NewNotificationRepository(raw)
 	reportingRepo := persistence.NewReportingRepository(raw)
 
+	handlers.NotificationRepo = notifRepo
+
 	handlers.LeaveService = application.NewLeaveService(leaveRepo, employeeRepo, notifRepo)
 	handlers.EmployeeService = application.NewEmployeeService(employeeRepo)
 	handlers.AuthService = application.NewAuthService(userRepo, employeeRepo, mw.JwtSecret)
@@ -57,7 +59,10 @@ func main() {
 
 		// Karyawan
 		r.Get("/api/employee/leaves", handlers.GetMyLeaves)
+		r.Get("/api/employee/leave-balances", handlers.GetMyBalances)
 		r.Post("/api/employee/leaves", handlers.CreateLeaveRequest_)
+		r.Get("/api/employee/notifications", handlers.GetMyNotifications)
+		r.Put("/api/employee/notifications/{id}/read", handlers.MarkNotificationRead)
 
 		// HRD only
 		r.Group(func(r chi.Router) {

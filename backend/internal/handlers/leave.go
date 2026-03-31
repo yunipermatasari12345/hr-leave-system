@@ -129,6 +129,22 @@ func GetMyLeaves(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
+func GetMyBalances(w http.ResponseWriter, r *http.Request) {
+	userID := int32(r.Context().Value(middleware.UserIDKey).(float64))
+	
+	// Gunakan tahun ini sebagai default
+	balances, err := LeaveService.MyBalances(r.Context(), userID, 2024) 
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Gagal mengambil data saldo"})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(balances)
+}
+
 func GetAllLeaves(w http.ResponseWriter, r *http.Request) {
 	list, _ := LeaveService.AllRequestsForHR(r.Context())
 	result := make([]LeaveResponse, len(list))

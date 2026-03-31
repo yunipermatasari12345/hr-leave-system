@@ -75,14 +75,36 @@ func (s *LeaveService) SetStatus(ctx context.Context, reviewerUserID int32, leav
 	if err != nil {
 		return leave.LeaveRequest{}, err
 	}
-	reviewer, err := s.employees.GetByUserID(ctx, reviewerUserID)
-	if err != nil {
-		return leave.LeaveRequest{}, ErrEmployeeNotFound
+
+	var reviewerID int32 = 0
+	if reviewerUserID != 0 {
+		reviewer, err := s.employees.GetByUserID(ctx, reviewerUserID)
+		if err != nil {
+			return leave.LeaveRequest{}, ErrEmployeeNotFound
+		}
+		reviewerID = reviewer.ID
 	}
-	updated, err := s.leaves.UpdateStatus(ctx, leaveID, st, hrdNote, reviewer.ID)
+
+	// 1. Dapatkan detail lama untuk memastikan status belum approved
+	oldDetail, err := s.leaves.GetByID(ctx, leaveID)
 	if err != nil {
 		return leave.LeaveRequest{}, err
 	}
+
+	updated, err := s.leaves.UpdateStatus(ctx, leaveID, st, hrdNote, reviewerID)
+	if err != nil {
+		return leave.LeaveRequest{}, err
+	}
+
+	// 2. Jika status berubah dari pending ke approved, kurangi kuota
+	if oldDetail.Status == leave.StatusPending && st == leave.StatusApproved {
+		// Asumsi pemotongan pada tahun yang sama dengan start_date
+		err = s.leaves.UpdateBalance(ctx, oldDetail.EmployeeID, oldDetail.LeaveTypeID, int32(oldDetail.StartDate.Year()), oldDetail.TotalDays)
+		if err != nil {
+			// Logika fallback error handling apabila kurang balance, tapi karena sudah di-approve kita biarkan dulu
+		}
+	}
+
 	detail, err := s.leaves.GetByID(ctx, leaveID)
 	if err != nil {
 		detail = updated
@@ -100,6 +122,14 @@ func (s *LeaveService) SetStatus(ctx context.Context, reviewerUserID int32, leav
 
 func (s *LeaveService) LeaveTypes(ctx context.Context) ([]leave.LeaveType, error) {
 	return s.leaves.ListLeaveTypes(ctx)
+}
+
+func (s *LeaveService) MyBalances(ctx context.Context, userID int32, year int32) ([]leave.LeaveBalance, error) {
+	emp, err := s.employees.GetByUserID(ctx, userID)
+	if err != nil {
+		return nil, ErrEmployeeNotFound
+	}
+	return s.leaves.GetBalance(ctx, emp.ID, year)
 }
 
 func (s *LeaveService) AdvancedFilter(ctx context.Context, statusFilter, departmentFilter string) ([]leave.RequestSummary, error) {

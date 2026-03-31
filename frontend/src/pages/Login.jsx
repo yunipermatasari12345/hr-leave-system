@@ -21,39 +21,30 @@ export default function Login() {
        if (result && result.data && result.data.access_token) {
          const token = result.data.access_token;
          const user = result.data.user;
-         
-         // 1. Cek Admin Utama (Bypass check lokal)
-         const isSuperAdmin = user.email === "yunipermatasariyuni28@gmail.com";
-         
-         if (!isSuperAdmin) {
-           // 2. Cek apakah terdaftar di sistem lokal (Karyawan/HRD yang sudah diinput)
-           try {
-             const localCheck = await verifyRegistration(user.email);
-             if (!localCheck.is_registered) {
-               setError("Akun Anda belum terdaftar di sistem HR kami. Silakan hubungi HRD.");
-               setLoading(false);
-               return;
-             }
-             // Jika terdaftar, ambil role dari database lokal
-             const role = localCheck.role;
-             localStorage.setItem(STORAGE_KEYS.token, token);
-             localStorage.setItem(STORAGE_KEYS.role, role);
-             localStorage.setItem(STORAGE_KEYS.name, user.name);
-
-             if (role === "hrd") navigate("/hrd/dashboard");
-             else navigate("/dashboard");
-           } catch (err) {
-             setError("Gagal verifikasi data lokal. Pastikan server backend berjalan.");
+         try {
+           const localCheck = await verifyRegistration(user.email);
+           if (!localCheck.is_registered) {
+             setError("Akun Anda belum terdaftar di sistem HR kami. Silakan hubungi HRD.");
              setLoading(false);
              return;
            }
-         } else {
-           // Jalur Super Admin
-           const role = "hrd";
-           localStorage.setItem(STORAGE_KEYS.token, token);
+           
+           // Gunakan token dan role dari database lokal kita
+           const role = localCheck.role;
+           const localToken = localCheck.token;
+           
+           localStorage.setItem(STORAGE_KEYS.token, localToken);
            localStorage.setItem(STORAGE_KEYS.role, role);
            localStorage.setItem(STORAGE_KEYS.name, user.name);
-           navigate("/hrd/dashboard");
+           localStorage.setItem(STORAGE_KEYS.department, localCheck.department || "");
+           localStorage.setItem(STORAGE_KEYS.position, localCheck.position || "");
+
+           if (role === "hrd") navigate("/hrd/dashboard");
+           else navigate("/dashboard");
+         } catch (err) {
+           setError("Gagal verifikasi data lokal. Pastikan server backend berjalan.");
+           setLoading(false);
+           return;
          }
        } else {
          setError(result.message || "Gagal login. Periksa kembali email dan password.");
