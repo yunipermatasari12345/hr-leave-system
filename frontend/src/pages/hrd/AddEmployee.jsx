@@ -9,21 +9,21 @@ export default function AddEmployee() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [form, setForm] = useState({ email: "", password: "", full_name: "", department: "", position: "", phone: "" });
+  const [form, setForm] = useState({ email: "", full_name: "", department: "", position: "", phone: "" });
 
   const name = localStorage.getItem(STORAGE_KEYS.name) || "HRD Admin";
   const mainBgColor = "#eef4fb";
   const sidebarColor = "#1a73e8";
 
   const handleSubmit = async () => {
-    if (!form.email || !form.password || !form.full_name || !form.department || !form.position) {
+    if (!form.email || !form.full_name || !form.department || !form.position) {
       setError("SEMUA FIELD WAJIB DIISI KECUALI NOMOR HP"); return;
     }
     setLoading(true); setError(""); setSuccess("");
     try {
       await employeeApi.createForHR(form);
       setSuccess("KARYAWAN BERHASIL DITAMBAHKAN!");
-      setForm({ email: "", password: "", full_name: "", department: "", position: "", phone: "" });
+      setForm({ email: "", full_name: "", department: "", position: "", phone: "" });
     } catch (e) {
       setError(e.response?.data?.error?.toUpperCase() || "GAGAL MENAMBAHKAN KARYAWAN");
     } finally { setLoading(false); }
@@ -35,7 +35,6 @@ export default function AddEmployee() {
     { label: "DEPARTEMEN", field: "department", placeholder: "IT, HR, Finance...", type: "text", required: true },
     { label: "JABATAN", field: "position", placeholder: "Engineer, Staff...", type: "text", required: true },
     { label: "EMAIL LOGIN", field: "email", placeholder: "budi@appskep.com", type: "email", required: true },
-    { label: "PASSWORD", field: "password", placeholder: "Buat password", type: "password", required: true },
   ];
 
   const today = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });

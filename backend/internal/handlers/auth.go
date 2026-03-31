@@ -27,6 +27,15 @@ type CreateEmployeeRequest struct {
 	Phone      string `json:"phone"`
 }
 
+type VerifyRequest struct {
+	Email string `json:"email"`
+}
+
+type VerifyResponse struct {
+	IsRegistered bool   `json:"is_registered"`
+	Role         string `json:"role"`
+}
+
 func Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	json.NewDecoder(r.Body).Decode(&req)
@@ -86,4 +95,22 @@ func CreateEmployee(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(emp)
+}
+
+func VerifyRegistration(w http.ResponseWriter, r *http.Request) {
+	var req VerifyRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request"})
+		return
+	}
+
+	isRegistered, role, _ := AuthService.IsEmailRegistered(r.Context(), req.Email)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(VerifyResponse{
+		IsRegistered: isRegistered,
+		Role:         role,
+	})
 }

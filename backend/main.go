@@ -48,6 +48,7 @@ func main() {
 
 	// Route publik
 	r.Post("/api/auth/login", handlers.Login)
+	r.Post("/api/auth/verify", handlers.VerifyRegistration)
 	r.Get("/api/leave-types", handlers.GetLeaveTypes)
 
 	// Route butuh login

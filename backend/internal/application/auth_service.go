@@ -31,6 +31,14 @@ func NewAuthService(users user.Repository, employees employee.Repository, jwtSec
 	}
 }
 
+func (s *AuthService) IsEmailRegistered(ctx context.Context, email string) (bool, string, error) {
+	u, err := s.users.GetByEmail(ctx, email)
+	if err != nil {
+		return false, "", nil // Not found is not an error here, just false
+	}
+	return true, u.Role, nil
+}
+
 func (s *AuthService) Login(ctx context.Context, email, password string) (LoginResult, error) {
 	if email == "" || password == "" {
 		return LoginResult{}, ErrValidation
@@ -63,9 +71,15 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (LoginR
 }
 
 func (s *AuthService) CreateEmployeeAccount(ctx context.Context, email, password, fullName, department, position, phone string) (employee.Employee, error) {
-	if email == "" || password == "" || fullName == "" {
+	if email == "" || fullName == "" {
 		return employee.Employee{}, ErrValidation
 	}
+
+	// Jika password kosong (karena pakai Appskep), beri placeholder
+	if password == "" {
+		password = "EXTERNAL_AUTH_USER"
+	}
+
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return employee.Employee{}, err

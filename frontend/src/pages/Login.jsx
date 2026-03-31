@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Input } from "@heroui/react";
-import { login } from "../api/authApi";
+import { login, verifyRegistration } from "../api/authApi";
 import { STORAGE_KEYS } from "../constants/storage";
 
 export default function Login() {
@@ -12,117 +12,153 @@ export default function Login() {
   const [showPass, setShowPass] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
-    if (!email || !password) { setError("Email dan password wajib diisi!"); return; }
-    setLoading(true); setError("");
-    try {
-      const data = await login({ email, password });
-      localStorage.setItem(STORAGE_KEYS.token, data.token);
-      localStorage.setItem(STORAGE_KEYS.role, data.role);
-      localStorage.setItem(STORAGE_KEYS.name, data.name);
-      if (data.role === "hrd") navigate("/hrd/dashboard");
-      else navigate("/dashboard");
-    } catch {
-      setError("Email atau password salah!");
-    }
-    finally { setLoading(false); }
-  };
+   const handleLogin = async () => {
+     if (!email || !password) { setError("Email dan password wajib diisi!"); return; }
+     setLoading(true); setError("");
+     try {
+       const result = await login({ email, password });
+       
+       if (result && result.data && result.data.access_token) {
+         const token = result.data.access_token;
+         const user = result.data.user;
+         
+         // 1. Cek Admin Utama (Bypass check lokal)
+         const isSuperAdmin = user.email === "yunipermatasariyuni28@gmail.com";
+         
+         if (!isSuperAdmin) {
+           // 2. Cek apakah terdaftar di sistem lokal (Karyawan/HRD yang sudah diinput)
+           try {
+             const localCheck = await verifyRegistration(user.email);
+             if (!localCheck.is_registered) {
+               setError("Akun Anda belum terdaftar di sistem HR kami. Silakan hubungi HRD.");
+               setLoading(false);
+               return;
+             }
+             // Jika terdaftar, ambil role dari database lokal
+             const role = localCheck.role;
+             localStorage.setItem(STORAGE_KEYS.token, token);
+             localStorage.setItem(STORAGE_KEYS.role, role);
+             localStorage.setItem(STORAGE_KEYS.name, user.name);
+
+             if (role === "hrd") navigate("/hrd/dashboard");
+             else navigate("/dashboard");
+           } catch (err) {
+             setError("Gagal verifikasi data lokal. Pastikan server backend berjalan.");
+             setLoading(false);
+             return;
+           }
+         } else {
+           // Jalur Super Admin
+           const role = "hrd";
+           localStorage.setItem(STORAGE_KEYS.token, token);
+           localStorage.setItem(STORAGE_KEYS.role, role);
+           localStorage.setItem(STORAGE_KEYS.name, user.name);
+           navigate("/hrd/dashboard");
+         }
+       } else {
+         setError(result.message || "Gagal login. Periksa kembali email dan password.");
+       }
+     } catch (e) {
+       setError("Terjadi kesalahan sistem atau akun tidak ditemukan!");
+     }
+     finally { setLoading(false); }
+   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", background: "#f8fafc", fontFamily: "'Inter', sans-serif" }}>
-      <div style={{
-        width: 480,
-        background: "white",
-        borderRadius: 16,
-        padding: "48px",
-        boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01)",
-        position: "relative"
-      }}>
-        {/* Back Button */}
-        <button onClick={() => navigate(-1)} style={{
-          position: "absolute", top: 28, left: 28, background: "none", border: "none",
-          cursor: "pointer", color: "#0ea5e9", display: "flex", alignItems: "center", justifyContent: "center"
-        }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-          </svg>
-        </button>
-
-
-
-        {/* Text */}
-        <h2 style={{ fontSize: 24, fontWeight: 700, color: "#0f172a", textAlign: "center", margin: "16px 0 12px 0" }}>
-          Masuk ke Portal Cuti
-        </h2>
-        <p style={{ fontSize: 15, color: "#475569", textAlign: "center", margin: "0 0 36px 0", lineHeight: 1.5, padding: "0 10px" }}>
-          Gunakan akun perusahaan yang terdaftar untuk mengakses sistem manajemen cuti.
-        </p>
-
-        {error && (
-          <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", padding: "12px 16px", borderRadius: 8, fontSize: 14, marginBottom: 24, textAlign: "center" }}>
-            {error}
+    <div className="login-bg min-h-screen">
+      {/* Glassmorphism Card */}
+      <div className="relative z-10 w-full max-w-[440px] px-6">
+        <div className="backdrop-blur-2xl bg-white/70 border border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[40px] p-10 flex flex-col items-center">
+          
+          {/* User Icon Circle */}
+          <div className="w-20 h-20 bg-[#004a82] rounded-full flex items-center justify-center mb-6 shadow-lg shadow-black/10">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="white">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6.02-3.22.03-1.99 4.02-3.08 6.02-3.08 1.99 0 5.99 1.09 6.02 3.08-1.31 1.94-3.52 3.22-6.02 3.22z"/>
+            </svg>
           </div>
-        )}
 
-        {/* Inputs */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 24, marginBottom: 16 }}>
-          <Input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onValueChange={setEmail}
-            variant="bordered"
-            radius="md"
-            classNames={{
-              input: "text-[16px] font-medium py-2",
-              inputWrapper: "flex items-center w-full h-14 border border-gray-200 hover:border-gray-300 focus-within:!border-sky-500 bg-white"
-            }}
-          />
+          <h2 className="text-3xl font-medium text-[#003366] mb-10 tracking-tight">Portal Login</h2>
 
-          <Input
-            type={showPass ? "text" : "password"}
-            placeholder="Password"
-            value={password}
-            onValueChange={setPassword}
-            onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-            variant="bordered"
-            radius="md"
-            classNames={{
-              input: "text-[16px] font-medium py-2",
-              inputWrapper: "flex items-center w-full h-14 border border-gray-200 hover:border-gray-300 focus-within:!border-sky-500 bg-white"
-            }}
-            endContent={
-              <button onClick={() => setShowPass(!showPass)} type="button"
-                style={{ color: "#9ca3af", background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", paddingRight: 8 }}>
-                {showPass ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                ) : (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                )}
+          {error && (
+            <div className="w-full mb-6 py-3 px-4 bg-red-400/80 backdrop-blur-sm text-white text-sm font-semibold rounded-2xl text-center animate-shake">
+              {error}
+            </div>
+          )}
+
+          <div className="w-full space-y-6">
+            {/* Email Input */}
+            <div className="group transition-all duration-300">
+              <Input
+                type="email"
+                placeholder="Email Karyawan"
+                value={email}
+                onValueChange={setEmail}
+                variant="flat"
+                radius="none"
+                classNames={{
+                  input: "text-lg text-[#003366] placeholder:text-[#507ea4] font-medium px-6 py-4 h-[60px]",
+                  inputWrapper: "bg-white rounded-full border-none shadow-md group-focus-within:ring-2 group-focus-within:ring-sky-200 transition-all duration-300 h-[60px]"
+                }}
+              />
+            </div>
+
+            {/* Password Input */}
+            <div className="group transition-all duration-300 relative">
+              <Input
+                type={showPass ? "text" : "password"}
+                placeholder="Password"
+                value={password}
+                onValueChange={setPassword}
+                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                variant="flat"
+                radius="none"
+                classNames={{
+                  input: "text-lg text-[#003366] placeholder:text-[#507ea4] font-medium px-6 py-4 h-[60px]",
+                  inputWrapper: "bg-white rounded-full border-none shadow-md group-focus-within:ring-2 group-focus-within:ring-sky-200 transition-all duration-300 h-[60px] pr-12"
+                }}
+                endContent={
+                  <button
+                    className="focus:outline-none h-full flex items-center pr-2"
+                    type="button"
+                    onClick={() => setShowPass(!showPass)}
+                  >
+                    {showPass ? (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#507ea4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                      </svg>
+                    ) : (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#507ea4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                    )}
+                  </button>
+                }
+              />
+            </div>
+
+            <div className="text-center mt-2">
+              <button className="text-[#004a82] font-semibold text-[15px] hover:underline transition-all">
+                Lupa Password?
               </button>
-            }
-          />
-        </div>
+            </div>
 
-        {/* Forgot Password */}
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 32 }}>
-          <button style={{ background: "none", border: "none", color: "#0ea5e9", fontSize: 14, fontWeight: 500, cursor: "pointer", padding: 0 }}>
-            Lupa password ?
-          </button>
-        </div>
+            <Button
+              onPress={handleLogin}
+              isLoading={loading}
+              className="w-full h-[60px] bg-[#004a82] hover:bg-[#003366] text-white font-bold text-xl rounded-full shadow-lg shadow-[#004a82]/20 active:scale-[0.98] transition-all duration-300 mt-6"
+            >
+              {loading ? "Menghubungkan..." : "Masuk"}
+            </Button>
+          </div>
 
-        {/* Login Button */}
-        <Button onPress={handleLogin} isLoading={loading} size="lg" disableRipple
-          style={{ width: "100%", background: "#0ea5e9", color: "white", fontWeight: 600, fontSize: 16, borderRadius: 8, height: 52, marginBottom: 28 }}>
-          {loading ? "Memproses..." : "Masuk"}
-        </Button>
-
-        {/* Register Link */}
-        <div style={{ textAlign: "center", fontSize: 14, color: "#94a3b8", fontWeight: 500 }}>
-          Tidak punya akun? <button style={{ background: "none", border: "none", color: "#0ea5e9", fontWeight: 600, cursor: "pointer", padding: 0, fontSize: 14 }}>Daftar</button>
         </div>
       </div>
+
+      {/* Decorative Cloud-like blobs (extra depth) */}
+      <div className="absolute top-[10%] left-[5%] w-64 h-64 bg-white/20 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-[15%] right-[10%] w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
     </div>
   );
 }
