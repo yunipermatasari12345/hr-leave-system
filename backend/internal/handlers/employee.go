@@ -3,17 +3,20 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"hr-leave-system/internal/domain/employee"
 )
 
 type EmployeeResponse struct {
-	ID         int32  `json:"id"`
-	UserID     int32  `json:"user_id"`
-	FullName   string `json:"full_name"`
-	Department string `json:"department"`
-	Position   string `json:"position"`
-	Phone      string `json:"phone"`
+	ID            int32  `json:"id"`
+	UserID        int32  `json:"user_id"`
+	FullName      string `json:"full_name"`
+	Department    string `json:"department"`
+	Position      string `json:"position"`
+	Phone         string `json:"phone"`
+	RemainingDays int32  `json:"remaining_days"`
+	UsedDays      int32  `json:"used_days"`
 }
 
 func toEmployeeResponse(e employee.Employee) EmployeeResponse {
@@ -36,8 +39,25 @@ func GetAllEmployees(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result := make([]EmployeeResponse, len(employees))
+	year := int32(time.Now().Year())
+
 	for i, e := range employees {
-		result[i] = toEmployeeResponse(e)
+		res := toEmployeeResponse(e)
+		
+		// Fetch balance for the employee
+		balances, err := LeaveService.MyBalances(r.Context(), e.UserID, year)
+		if err == nil {
+			var totalRemaining int32
+			var totalUsed int32
+			for _, b := range balances {
+				totalRemaining += b.RemainingDays
+				totalUsed += b.UsedDays
+			}
+			res.RemainingDays = totalRemaining
+			res.UsedDays = totalUsed
+		}
+		
+		result[i] = res
 	}
 
 	w.Header().Set("Content-Type", "application/json")
