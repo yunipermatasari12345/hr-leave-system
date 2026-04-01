@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Input, Avatar } from "@heroui/react";
+import { Button, Input } from "@heroui/react";
 import { employeeApi } from "../../api/employeeApi";
 import { STORAGE_KEYS } from "../../constants/storage";
 
@@ -12,88 +12,61 @@ export default function AddEmployee() {
   const [form, setForm] = useState({ email: "", full_name: "", department: "", position: "", phone: "" });
 
   const name = localStorage.getItem(STORAGE_KEYS.name) || "HRD Admin";
-  const mainBgColor = "#eef4fb";
-  const sidebarColor = "#1a73e8";
+
+  const T = { bg: "#f8fafc", sidebar: "white", cardBorder: "1px solid #e5e7eb", textDark: "#1f2937", textGray: "#64748b", textLight: "#94a3b8", primary: "#2563eb", red: "#ef4444", green: "#10b981", yellow: "#f59e0b" };
 
   const handleSubmit = async () => {
     if (!form.email || !form.full_name || !form.department || !form.position) {
-      setError("SEMUA FIELD WAJIB DIISI KECUALI NOMOR HP"); return;
+      setError("Semua field wajib diisi kecuali nomor HP!"); return;
     }
     setLoading(true); setError(""); setSuccess("");
     try {
       await employeeApi.createForHR(form);
-      setSuccess("KARYAWAN BERHASIL DITAMBAHKAN!");
+      setSuccess("Karyawan berhasil ditambahkan!");
       setForm({ email: "", full_name: "", department: "", position: "", phone: "" });
     } catch (e) {
-      setError(e.response?.data?.error?.toUpperCase() || "GAGAL MENAMBAHKAN KARYAWAN");
+      setError(e.response?.data?.error || "Gagal menambahkan karyawan");
     } finally { setLoading(false); }
   };
 
   const fields = [
-    { label: "NAMA LENGKAP", field: "full_name", placeholder: "Budi Santoso", type: "text", required: true },
-    { label: "NOMOR HP", field: "phone", placeholder: "08123456789", type: "text", required: false },
-    { label: "DEPARTEMEN", field: "department", placeholder: "IT, HR, Finance...", type: "text", required: true },
-    { label: "JABATAN", field: "position", placeholder: "Engineer, Staff...", type: "text", required: true },
-    { label: "EMAIL LOGIN", field: "email", placeholder: "budi@appskep.com", type: "email", required: true },
+    { label: "Nama Lengkap", field: "full_name", placeholder: "Contoh: Budi Santoso", type: "text", required: true },
+    { label: "Nomor HP", field: "phone", placeholder: "Contoh: 08123456789", type: "text", required: false },
+    { label: "Departemen", field: "department", placeholder: "Contoh: IT, HR, Finance", type: "text", required: true },
+    { label: "Jabatan", field: "position", placeholder: "Contoh: Software Engineer", type: "text", required: true },
+    { label: "Email Login", field: "email", placeholder: "Contoh: budi@appskep.com", type: "email", required: true },
   ];
 
-  const today = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+  const today = new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
-  const MenuItem = ({ id, label, icon, isActive }) => {
-    return (
-      <div
-        onClick={() => navigate("/hrd/dashboard")}
-        style={{
-          background: isActive ? mainBgColor : "transparent",
-          color: isActive ? "#000000" : "#ffffff",
-          padding: "12px 20px",
-          borderTopLeftRadius: 20,
-          borderBottomLeftRadius: 20,
-          position: "relative",
-          display: "flex", alignItems: "center", gap: 12,
-          cursor: "pointer",
-          fontWeight: "bold",
-          transition: "all 0.2s",
-          marginBottom: 4
-        }}>
-        {isActive && (
-          <>
-            <div style={{ position: "absolute", right: 0, top: -20, width: 20, height: 20, background: "transparent", borderBottomRightRadius: 20, boxShadow: `10px 10px 0 0 ${mainBgColor}` }} />
-            <div style={{ position: "absolute", right: 0, bottom: -20, width: 20, height: 20, background: "transparent", borderTopRightRadius: 20, boxShadow: `10px -10px 0 0 ${mainBgColor}` }} />
-          </>
-        )}
-        <span style={{ fontSize: 16 }}>{icon}</span>
-        <span style={{ fontSize: 13 }}>{label}</span>
-      </div>
-    );
-  };
+  const MenuItem = ({ id, label, icon }) => (
+    <div onClick={() => navigate(id === 'dashboard' ? "/hrd/dashboard" : "/hrd/employees/add")} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 8, cursor: "pointer", background: id === "add_employee" ? "#eff6ff" : "transparent", color: id === "add_employee" ? "#1d4ed8" : T.textGray, fontWeight: id === "add_employee" ? "600" : "500", fontSize: 14, transition: "background 0.2s", marginBottom: 4 }}>
+      <span style={{ fontSize: 16 }}>{icon}</span> {label}
+    </div>
+  );
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: mainBgColor, fontFamily: "'Inter', sans-serif" }}>
-      {/* SIDEBAR */}
-      <div style={{ width: 240, background: sidebarColor, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
-        <div style={{ padding: "0 24px", marginBottom: 40, display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 32, height: 32, background: "white", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-            <svg width="18" height="18" fill="none" stroke={sidebarColor} strokeWidth={3} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1" /></svg>
-          </div>
-          <h1 style={{ color: "white", fontSize: 18, fontWeight: "bold", margin: 0, letterSpacing: -0.5 }}>Appskep</h1>
+    <div style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "'Inter', sans-serif" }}>
+      {/* SIDEBAR KLASIK */}
+      <div style={{ width: 260, background: T.sidebar, borderRight: T.cardBorder, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
+        <div style={{ padding: "0 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 12 }}>
+          <h1 style={{ color: T.primary, fontSize: 22, fontWeight: "800", margin: 0, textTransform: "uppercase", letterSpacing: -0.5 }}>Appskep</h1>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", padding: "0 16px" }}>
+          <MenuItem id="dashboard" label="Dashboard Utama" icon="❖" />
+          <MenuItem id="add_employee" label="Tambah Karyawan" icon="👤" />
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingLeft: 20 }}>
-          <MenuItem id="dashboard" label="Dashboard" icon="❖" isActive={false} />
-          <MenuItem id="leaves" label="Pengajuan Cuti" icon="📑" isActive={false} />
-          <MenuItem id="employees" label="Data Karyawan" icon="👥" isActive={true} />
-        </div>
-
-        <div style={{ marginTop: "auto", padding: "24px", borderTop: "2px solid rgba(255,255,255,0.2)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+        <div style={{ marginTop: "auto", padding: "24px", borderTop: T.cardBorder }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+            <div style={{ width: 36, height: 36, borderRadius: "50%", background: T.primary, color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: "bold" }}>HR</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 13, fontWeight: "bold", color: "white", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
-              <p style={{ fontSize: 11, fontWeight: "bold", color: "white", margin: 0, opacity: 0.9 }}>Portal HRD</p>
+              <p style={{ fontSize: 13, fontWeight: "600", color: T.textDark, margin: "0 0 2px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
+              <p style={{ fontSize: 11, fontWeight: "500", color: T.textGray, margin: 0 }}>Administrator HRD</p>
             </div>
           </div>
-          <Button disableRipple onPress={() => { localStorage.clear(); navigate("/login"); }} style={{ width: "100%", background: "white", border: "none", color: "#000", fontWeight: "bold", fontSize: 13, padding: "16px 0", borderRadius: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-            KELUAR
+          <Button disableRipple onPress={() => { localStorage.clear(); navigate("/login"); }} style={{ width: "100%", background: "transparent", border: "none", color: T.textGray, fontWeight: "600", fontSize: 13, justifyContent: "flex-start", padding: 0 }} onMouseEnter={(e)=>e.currentTarget.style.color=T.red} onMouseLeave={(e)=>e.currentTarget.style.color=T.textGray}>
+            <span style={{ marginRight: 8, fontSize: 16 }}>🚪</span> Keluar
           </Button>
         </div>
       </div>
@@ -102,35 +75,31 @@ export default function AddEmployee() {
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
         {/* TOPBAR */}
-        <div style={{ padding: "32px 40px 24px", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+        <div style={{ padding: "40px 40px 24px", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
           <div>
-            <h2 style={{ fontSize: 24, fontWeight: "bold", color: "#000000", margin: "0 0 6px 0", letterSpacing: -0.5 }}>
-              TAMBAH KARYAWAN
-            </h2>
-            <p style={{ fontSize: 13, fontWeight: "bold", color: "#000000", margin: 0 }}>
-              BUAT AKUN BARU UNTUK KARYAWAN
-            </p>
+            <h2 style={{ fontSize: 24, fontWeight: "700", color: T.textDark, margin: "0 0 8px 0" }}>Tambahkan Karyawan Baru</h2>
+            <p style={{ fontSize: 13, color: T.textGray, margin: 0 }}>Buat data base dan akses login karyawan yang baru masuk.</p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <Button disableRipple onPress={() => navigate("/hrd/dashboard")} style={{ background: "white", border: "2px solid #000", color: "#000", fontWeight: "bold", fontSize: 12, borderRadius: 20, padding: "0 16px", height: 38 }}>
-              KEMBALI KE DASHBOARD
+            <div style={{ fontSize: 13, color: T.textGray }}>📅 &nbsp; {today}</div>
+            <Button disableRipple onPress={() => navigate("/hrd/dashboard")} style={{ background: "white", border: T.cardBorder, color: T.textDark, fontWeight: "600", borderRadius: 8, height: 40, padding: "0 20px" }}>
+              Batal
             </Button>
-            <div style={{ fontSize: 12, fontWeight: "bold", color: "#000000", background: "white", padding: "10px 16px", borderRadius: 20, boxShadow: "0 2px 10px rgba(0,0,0,0.03)" }}>
-              📅 &nbsp; {today.toUpperCase()}
-            </div>
           </div>
         </div>
 
         <div style={{ flex: 1, padding: "0 40px 40px", overflowX: "hidden", overflowY: "auto" }}>
-          <div style={{ maxWidth: 800, background: "white", borderRadius: 20, border: "2px solid #e2e8f0", padding: 32, boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}>
+          <div style={{ maxWidth: 800, background: "white", borderRadius: 12, border: T.cardBorder, padding: 32 }}>
 
-            {error && <div style={{ background: "#fef2f2", border: "2px solid #000", color: "#000", padding: "12px 16px", borderRadius: 12, fontSize: 12, fontWeight: "bold", marginBottom: 20 }}>{error}</div>}
-            {success && <div style={{ background: "#f0fdf4", border: "2px solid #000", color: "#000", padding: "12px 16px", borderRadius: 12, fontSize: 12, fontWeight: "bold", marginBottom: 20 }}>{success}</div>}
+            {error && <div style={{ background: "#fef2f2", color: T.red, padding: "12px 16px", borderRadius: 8, fontSize: 13, fontWeight: "500", marginBottom: 24 }}>{error}</div>}
+            {success && <div style={{ background: "#f0fdf4", color: T.green, padding: "12px 16px", borderRadius: 8, fontSize: 13, fontWeight: "500", marginBottom: 24 }}>{success}</div>}
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 28 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 }}>
               {fields.map(item => (
                 <div key={item.field}>
-                  <p style={{ fontSize: 12, fontWeight: "bold", color: "#000", margin: "0 0 6px 0" }}>{item.label} {item.required && <span style={{ color: "#ef4444" }}>*</span>}</p>
+                  <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
+                    {item.label} {item.required && <span style={{ color: T.red }}>*</span>}
+                  </label>
                   <Input
                     type={item.type}
                     placeholder={item.placeholder}
@@ -139,21 +108,21 @@ export default function AddEmployee() {
                     variant="bordered"
                     size="md"
                     classNames={{
-                      inputWrapper: "border-2 border-slate-300 hover:border-black focus-within:!border-black bg-white rounded-xl shadow-none",
-                      input: "font-bold text-black text-sm"
+                      inputWrapper: "border border-slate-200 bg-slate-50 shadow-none hover:border-slate-300 focus-within:!border-blue-600 focus-within:!bg-white rounded-lg",
+                      input: "text-slate-700 text-sm font-medium"
                     }}
                   />
                 </div>
               ))}
             </div>
 
-            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
-              <Button disableRipple variant="bordered" onPress={() => navigate("/hrd/dashboard")} style={{ fontSize: 13, fontWeight: "bold", borderRadius: 10, border: "2px solid #000", color: "#000", padding: "0 24px", height: 44 }}>
-                BATAL
+            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", borderTop: T.cardBorder, paddingTop: 24 }}>
+              <Button disableRipple variant="bordered" onPress={() => navigate("/hrd/dashboard")} style={{ fontSize: 14, fontWeight: "600", borderRadius: 8, border: T.cardBorder, color: T.textDark, padding: "0 24px", height: 44 }}>
+                Batal
               </Button>
               <Button disableRipple isLoading={loading} onPress={handleSubmit}
-                style={{ background: "#1a73e8", border: "2px solid #000", color: "white", fontWeight: "bold", fontSize: 13, borderRadius: 10, padding: "0 24px", height: 44 }}>
-                SIMPAN KARYAWAN
+                style={{ background: T.primary, border: "none", color: "white", fontWeight: "600", fontSize: 14, borderRadius: 8, padding: "0 24px", height: 44 }}>
+                Simpan Karyawan
               </Button>
             </div>
           </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Textarea, Avatar } from "@heroui/react";
+import { Button, Textarea } from "@heroui/react";
 import { leaveApi } from "../../api/leaveApi";
 import { STORAGE_KEYS } from "../../constants/storage";
 
@@ -13,14 +13,13 @@ export default function NewLeave() {
   const [form, setForm] = useState({ leave_type_id: "", start_date: "", end_date: "", reason: "" });
 
   const name = localStorage.getItem(STORAGE_KEYS.name) || "Karyawan";
-  const mainBgColor = "#eef4fb";
-  const sidebarColor = "#1a73e8";
+  const dept = localStorage.getItem(STORAGE_KEYS.department) || "Grup Umum";
+  const pos = localStorage.getItem(STORAGE_KEYS.position) || "Seksi Staff";
+
+  const T = { bg: "#f8fafc", sidebar: "white", cardBorder: "1px solid #e5e7eb", textDark: "#1f2937", textGray: "#64748b", textLight: "#94a3b8", primary: "#2563eb", red: "#ef4444", green: "#10b981", yellow: "#f59e0b" };
 
   useEffect(() => {
-    leaveApi
-      .getTypes()
-      .then((data) => setLeaveTypes(data || []))
-      .catch(() => {});
+    leaveApi.getTypes().then((data) => setLeaveTypes(data || [])).catch(() => {});
   }, []);
 
   const totalDays = () => {
@@ -31,156 +30,120 @@ export default function NewLeave() {
 
   const handleSubmit = async () => {
     if (!form.leave_type_id || !form.start_date || !form.end_date || !form.reason) {
-      setError("SEMUA FIELD WAJIB DIISI!"); return;
+      setError("Semua field wajib diisi!"); return;
     }
     if (new Date(form.end_date) < new Date(form.start_date)) {
-      setError("TANGGAL SELESAI TIDAK BOLEH SEBELUM TANGGAL MULAI!"); return;
+      setError("Tanggal selesai tidak boleh sebelum tanggal mulai!"); return;
     }
     setLoading(true); setError(""); setSuccess("");
     try {
-      await leaveApi.createRequest({
-        ...form,
-        leave_type_id: parseInt(form.leave_type_id, 10),
-      });
-      setSuccess("PENGAJUAN BERHASIL DIKIRIM! MENUNGGU PERSETUJUAN HRD");
+      await leaveApi.createRequest({ ...form, leave_type_id: parseInt(form.leave_type_id, 10) });
+      setSuccess("Pengajuan berhasil dikirim! Menunggu persetujuan HRD.");
       setTimeout(() => navigate("/dashboard"), 2000);
     } catch (e) {
-      setError(e.response?.data?.error?.toUpperCase() || "GAGAL MENGAJUKAN CUTI");
+      setError(e.response?.data?.error || "Gagal mengajukan cuti");
     } finally { setLoading(false); }
   };
 
-  const today = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+  const today = new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
-  const MenuItem = ({ id, label, icon, isActive }) => {
-    return (
-      <div
-        onClick={() => navigate("/dashboard")}
-        style={{
-          background: isActive ? mainBgColor : "transparent",
-          color: isActive ? "#000000" : "#ffffff",
-          padding: "12px 20px",
-          borderTopLeftRadius: 20,
-          borderBottomLeftRadius: 20,
-          position: "relative",
-          display: "flex", alignItems: "center", gap: 12,
-          cursor: "pointer",
-          fontWeight: "bold",
-          transition: "all 0.2s",
-          marginBottom: 4
-        }}>
-        {isActive && (
-          <>
-            <div style={{ position: "absolute", right: 0, top: -20, width: 20, height: 20, background: "transparent", borderBottomRightRadius: 20, boxShadow: `10px 10px 0 0 ${mainBgColor}` }} />
-            <div style={{ position: "absolute", right: 0, bottom: -20, width: 20, height: 20, background: "transparent", borderTopRightRadius: 20, boxShadow: `10px -10px 0 0 ${mainBgColor}` }} />
-          </>
-        )}
-        <span style={{ fontSize: 16 }}>{icon}</span>
-        <span style={{ fontSize: 13 }}>{label}</span>
-      </div>
-    );
-  };
+  const MenuItem = ({ id, label, icon }) => (
+    <div onClick={() => navigate(id === 'dashboard' ? "/dashboard" : "/leaves/new")} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 8, cursor: "pointer", background: id === "new_leave" ? "#eff6ff" : "transparent", color: id === "new_leave" ? "#1d4ed8" : T.textGray, fontWeight: id === "new_leave" ? "600" : "500", fontSize: 14, transition: "background 0.2s", marginBottom: 4 }}>
+      <span style={{ fontSize: 16 }}>{icon}</span> {label}
+    </div>
+  );
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: mainBgColor, fontFamily: "'Inter', sans-serif" }}>
-      {/* SIDEBAR */}
-      <div style={{ width: 240, background: sidebarColor, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
-        <div style={{ padding: "0 24px", marginBottom: 40, display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 32, height: 32, background: "white", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-            <svg width="18" height="18" fill="none" stroke={sidebarColor} strokeWidth={3} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1" /></svg>
-          </div>
-          <h1 style={{ color: "white", fontSize: 18, fontWeight: "bold", margin: 0, letterSpacing: -0.5 }}>Appskep</h1>
+    <div style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "'Inter', sans-serif" }}>
+      {/* SIDEBAR KLASIK */}
+      <div style={{ width: 260, background: T.sidebar, borderRight: T.cardBorder, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
+        <div style={{ padding: "0 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 12 }}>
+          <h1 style={{ color: T.primary, fontSize: 22, fontWeight: "800", margin: 0, textTransform: "uppercase", letterSpacing: -0.5 }}>Appskep</h1>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", padding: "0 16px" }}>
+          <MenuItem id="dashboard" label="Dashboard Utama" icon="❖" />
+          <MenuItem id="new_leave" label="Ajukan Cuti Baru" icon="➕" />
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingLeft: 20 }}>
-          <MenuItem id="dashboard" label="Dashboard" icon="❖" isActive={false} />
-          <MenuItem id="leaves" label="Riwayat Cuti" icon="📄" isActive={false} />
-          <MenuItem id="new_leave" label="Ajukan Cuti Baru" icon="➕" isActive={true} />
-        </div>
-
-        <div style={{ marginTop: "auto", padding: "24px", borderTop: "2px solid rgba(255,255,255,0.2)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+        <div style={{ marginTop: "auto", padding: "24px", borderTop: T.cardBorder }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+            <div style={{ width: 36, height: 36, borderRadius: "50%", background: T.yellow, color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: "bold" }}>{name.substring(0,2).toUpperCase()}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 13, fontWeight: "bold", color: "white", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
-              <p style={{ fontSize: 11, fontWeight: "bold", color: "white", margin: 0, opacity: 0.9 }}>Portal Karyawan</p>
+              <p style={{ fontSize: 13, fontWeight: "600", color: T.textDark, margin: "0 0 2px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
+              <p style={{ fontSize: 11, fontWeight: "500", color: T.textGray, margin: 0 }}>{pos} · {dept}</p>
             </div>
           </div>
-          <Button disableRipple onPress={() => { localStorage.clear(); navigate("/login"); }} style={{ width: "100%", background: "white", border: "none", color: "#000", fontWeight: "bold", fontSize: 13, padding: "16px 0", borderRadius: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-            KELUAR
+          <Button disableRipple onPress={() => { localStorage.clear(); navigate("/login"); }} style={{ width: "100%", background: "transparent", border: "none", color: T.textGray, fontWeight: "600", fontSize: 13, justifyContent: "flex-start", padding: 0 }} onMouseEnter={(e)=>e.currentTarget.style.color=T.red} onMouseLeave={(e)=>e.currentTarget.style.color=T.textGray}>
+            <span style={{ marginRight: 8, fontSize: 16 }}>🚪</span> Keluar
           </Button>
         </div>
       </div>
 
       {/* Form Area */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-
+        
         {/* TOPBAR */}
-        <div style={{ padding: "32px 40px 24px", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+        <div style={{ padding: "40px 40px 24px", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
           <div>
-            <h2 style={{ fontSize: 24, fontWeight: "bold", color: "#000000", margin: "0 0 6px 0", letterSpacing: -0.5 }}>
-              AJUKAN CUTI BARU
-            </h2>
-            <p style={{ fontSize: 13, fontWeight: "bold", color: "#000000", margin: 0 }}>
-              ISI FORM DI BAWAH UNTUK MENGAJUKAN CUTI
-            </p>
+            <h2 style={{ fontSize: 24, fontWeight: "700", color: T.textDark, margin: "0 0 8px 0" }}>Formulir Pengajuan Cuti</h2>
+            <p style={{ fontSize: 13, color: T.textGray, margin: 0 }}>Isi form di bawah untuk mengajukan cuti baru ke HRD.</p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <Button disableRipple onPress={() => navigate("/dashboard")} style={{ background: "white", border: "2px solid #000", color: "#000", fontWeight: "bold", fontSize: 12, borderRadius: 20, padding: "0 16px", height: 38 }}>
-              KEMBALI KE DASHBOARD
+            <div style={{ fontSize: 13, color: T.textGray }}>📅 &nbsp; {today}</div>
+            <Button disableRipple onPress={() => navigate("/dashboard")} style={{ background: "white", border: T.cardBorder, color: T.textDark, fontWeight: "600", borderRadius: 8, height: 40, padding: "0 20px" }}>
+              Batal
             </Button>
-            <div style={{ fontSize: 12, fontWeight: "bold", color: "#000000", background: "white", padding: "10px 16px", borderRadius: 20, boxShadow: "0 2px 10px rgba(0,0,0,0.03)" }}>
-              📅 &nbsp; {today.toUpperCase()}
-            </div>
           </div>
         </div>
 
         <div style={{ flex: 1, padding: "0 40px 40px", overflowX: "hidden", overflowY: "auto" }}>
-          <div style={{ maxWidth: 700, background: "white", borderRadius: 20, border: "2px solid #e2e8f0", padding: 32, boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}>
+          <div style={{ maxWidth: 700, background: "white", borderRadius: 12, border: T.cardBorder, padding: 32 }}>
 
-            {error && <div style={{ background: "#fef2f2", border: "2px solid #000", color: "#000", padding: "12px 16px", borderRadius: 12, fontSize: 12, fontWeight: "bold", marginBottom: 20 }}>{error}</div>}
-            {success && <div style={{ background: "#f0fdf4", border: "2px solid #000", color: "#000", padding: "12px 16px", borderRadius: 12, fontSize: 12, fontWeight: "bold", marginBottom: 20 }}>{success}</div>}
+            {error && <div style={{ background: "#fef2f2", color: T.red, padding: "12px 16px", borderRadius: 8, fontSize: 13, fontWeight: "500", marginBottom: 24 }}>{error}</div>}
+            {success && <div style={{ background: "#f0fdf4", color: T.green, padding: "12px 16px", borderRadius: 8, fontSize: 13, fontWeight: "500", marginBottom: 24 }}>{success}</div>}
 
             <div style={{ marginBottom: 20 }}>
-              <label style={{ fontSize: 12, fontWeight: "bold", color: "#000", display: "block", marginBottom: 6 }}>
-                JENIS CUTI <span style={{ color: "#ef4444" }}>*</span>
+              <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
+                Jenis Cuti <span style={{ color: T.red }}>*</span>
               </label>
               <select value={form.leave_type_id}
                 onChange={(e) => setForm(prev => ({ ...prev, leave_type_id: e.target.value }))}
-                style={{ width: "100%", border: "2px solid #000", borderRadius: 12, padding: "12px 14px", fontSize: 13, fontWeight: "bold", background: "white", outline: "none", cursor: "pointer", fontFamily: "inherit", color: "#000" }}>
-                <option value="">PILIH JENIS CUTI</option>
+                style={{ width: "100%", border: T.cardBorder, borderRadius: 8, padding: "12px 14px", fontSize: 14, color: T.textDark, background: "#f8fafc", outline: "none", cursor: "pointer", fontFamily: "inherit" }}>
+                <option value="">Pilih Jenis Cuti</option>
                 {leaveTypes.map(type => (
-                  <option key={type.id} value={String(type.id)}>{type.name.toUpperCase()} (MAKS. {type.max_days} HARI)</option>
+                  <option key={type.id} value={String(type.id)}>{type.name} (Maks. {type.max_days} Hari)</option>
                 ))}
               </select>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
               <div>
-                <label style={{ fontSize: 12, fontWeight: "bold", color: "#000", display: "block", marginBottom: 6 }}>
-                  TANGGAL MULAI <span style={{ color: "#ef4444" }}>*</span>
+                <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
+                  Tanggal Mulai <span style={{ color: T.red }}>*</span>
                 </label>
                 <input type="date" value={form.start_date}
                   onChange={(e) => setForm(prev => ({ ...prev, start_date: e.target.value }))}
-                  style={{ width: "100%", border: "2px solid #000", borderRadius: 12, padding: "12px 14px", fontSize: 13, fontWeight: "bold", outline: "none", boxSizing: "border-box", fontFamily: "inherit", color: "#000" }} />
+                  style={{ width: "100%", border: T.cardBorder, borderRadius: 8, padding: "11px 14px", fontSize: 14, color: T.textDark, outline: "none", boxSizing: "border-box", fontFamily: "inherit", background: "#f8fafc" }} />
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: "bold", color: "#000", display: "block", marginBottom: 6 }}>
-                  TANGGAL SELESAI <span style={{ color: "#ef4444" }}>*</span>
+                <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
+                  Tanggal Selesai <span style={{ color: T.red }}>*</span>
                 </label>
                 <input type="date" value={form.end_date}
                   onChange={(e) => setForm(prev => ({ ...prev, end_date: e.target.value }))}
-                  style={{ width: "100%", border: "2px solid #000", borderRadius: 12, padding: "12px 14px", fontSize: 13, fontWeight: "bold", outline: "none", boxSizing: "border-box", fontFamily: "inherit", color: "#000" }} />
+                  style={{ width: "100%", border: T.cardBorder, borderRadius: 8, padding: "11px 14px", fontSize: 14, color: T.textDark, outline: "none", boxSizing: "border-box", fontFamily: "inherit", background: "#f8fafc" }} />
               </div>
             </div>
 
             {totalDays() > 0 && (
-              <div style={{ background: "#eef4fb", border: "2px solid #000", color: "#000", padding: "10px 14px", borderRadius: 12, fontSize: 13, marginBottom: 20, fontWeight: "bold" }}>
-                TOTAL DURASI: {totalDays()} HARI
+              <div style={{ background: "#eef2ff", color: T.primary, padding: "12px 16px", borderRadius: 8, fontSize: 13, marginBottom: 24, fontWeight: "600" }}>
+                Total Durasi: {totalDays()} Hari
               </div>
             )}
 
-            <div style={{ marginBottom: 28 }}>
-              <label style={{ fontSize: 12, fontWeight: "bold", color: "#000", display: "block", marginBottom: 6 }}>
-                ALASAN CUTI <span style={{ color: "#ef4444" }}>*</span>
+            <div style={{ marginBottom: 32 }}>
+              <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
+                Alasan Cuti <span style={{ color: T.red }}>*</span>
               </label>
               <Textarea
                 placeholder="Tulis alasan secara jelas dan detail..."
@@ -189,19 +152,19 @@ export default function NewLeave() {
                 variant="bordered"
                 minRows={4}
                 classNames={{
-                  inputWrapper: "border-2 border-black rounded-xl bg-white focus-within:!border-black",
-                  input: "font-bold text-black text-sm"
+                  inputWrapper: "border border-slate-200 rounded-lg bg-slate-50 shadow-none hover:border-slate-300 focus-within:!border-blue-600 focus-within:!bg-white",
+                  input: "text-slate-700 text-sm font-medium"
                 }}
               />
             </div>
 
-            <div style={{ display: "flex", gap: 12, justifySelf: "flex-end", width: "100%" }}>
-              <Button disableRipple variant="bordered" onPress={() => navigate("/dashboard")} style={{ fontSize: 13, fontWeight: "bold", borderRadius: 10, border: "2px solid #000", color: "#000", padding: "0 24px", height: 44, flex: 1 }}>
-                BATAL
+            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", borderTop: T.cardBorder, paddingTop: 24 }}>
+              <Button disableRipple variant="bordered" onPress={() => navigate("/dashboard")} style={{ fontSize: 14, fontWeight: "600", borderRadius: 8, border: T.cardBorder, color: T.textDark, padding: "0 24px", height: 44 }}>
+                Batal
               </Button>
               <Button disableRipple isLoading={loading} onPress={handleSubmit}
-                style={{ background: "#1a73e8", border: "2px solid #000", color: "white", fontWeight: "bold", fontSize: 13, borderRadius: 10, padding: "0 24px", height: 44, flex: 1 }}>
-                KIRIM PENGAJUAN
+                style={{ background: T.primary, border: "none", color: "white", fontWeight: "600", fontSize: 14, borderRadius: 8, padding: "0 24px", height: 44 }}>
+                Kirim Pengajuan
               </Button>
             </div>
           </div>

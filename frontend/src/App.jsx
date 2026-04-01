@@ -11,6 +11,11 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<Navigate to="/login" replace />} />
+      
+      {/* Redirect untuk memastikan URL lama tetap berfungsi setelah perombakan */}
+      <Route path="/employee/leave/new" element={<Navigate to="/leaves/new" replace />} />
+      <Route path="/hrd/add-employee" element={<Navigate to="/hrd/employees/add" replace />} />
+
 
       <Route
         path="/dashboard"
