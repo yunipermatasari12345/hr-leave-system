@@ -56,90 +56,97 @@ export default function Login() {
    };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 font-['Inter',sans-serif]">
-      {/* KIRI - Panel Branding Akses Eksekutif */}
-      <div className="hidden lg:flex flex-1 relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-700 to-blue-600 flex-col justify-center px-20">
-         {/* Dekorasi Bentuk Abstrak */}
-         <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-white/10 rounded-full blur-[60px]" />
-         <div className="absolute bottom-[-20%] left-[-10%] w-[600px] h-[600px] bg-black/15 rounded-full blur-[80px]" />
-         
-         <div className="relative z-10 max-w-[500px]">
-            <div className="inline-flex items-center bg-white/20 px-5 py-3 rounded-full mb-8 backdrop-blur-md">
-               <span className="text-2xl mr-3">🏢</span>
-               <span className="text-white font-bold tracking-widest text-xs">APPSKEP ENTERPRISE HR</span>
+    <div className="flex min-h-screen bg-[#f8f9fa] items-center justify-center p-4 font-['Inter',sans-serif]">
+      <div className="bg-white rounded-[12px] shadow-[0_4px_24px_rgba(0,0,0,0.06)] w-full max-w-[460px] p-10 relative">
+        
+        {/* Back Arrow */}
+        <button className="absolute top-8 left-8 text-[#0284c7] hover:bg-sky-50 p-2 rounded-full transition-colors cursor-pointer">
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+        </button>
+
+        {/* Logo Placeholder */}
+        <div className="flex justify-center mb-8 mt-10">
+          <img src="/logo.png" alt="Appskep Logo" className="h-[110px] w-auto object-contain" onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
+          {/* Fallback abstrak kalau belum ada logo */}
+          <div className="hidden h-[100px] w-[100px] items-center justify-center bg-[#0284c7] rounded-full text-white font-bold text-3xl shadow-md">
+             Logo
+          </div>
+        </div>
+
+        {/* Titles */}
+        <div className="text-center mb-10">
+          <h2 className="text-[20px] font-bold text-slate-800 tracking-tight leading-snug">Sistem Informasi Pengajuan Cuti<br/>PT APPSKEP</h2>
+        </div>
+
+        {/* Error */}
+        {error && (
+            <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm font-semibold mb-6 text-center">
+               {error}
             </div>
-            <h1 className="text-white text-5xl font-extrabold leading-[1.2] mb-6 tracking-tight">
-              Kelola SDM Lebih Cerdas & Cepat.
-            </h1>
-            <p className="text-blue-100 text-lg leading-relaxed font-medium">
-              Satu portal terpusat untuk memantau kehadiran, pengajuan cuti otomatis, dan data kepegawaian secara komprehensif.
-            </p>
-         </div>
-      </div>
+        )}
 
-      {/* KANAN - Panel Form Autentikasi */}
-      <div className="w-full lg:w-[600px] flex flex-col justify-center px-8 sm:px-16 lg:px-20 bg-white shadow-[-20px_0_40px_rgba(0,0,0,0.05)] relative z-20">
-         
-         <div className="mb-10 lg:hidden">
-            <div className="inline-flex items-center bg-blue-50 px-4 py-2 rounded-full mb-4">
-               <span className="text-lg mr-2">🏢</span>
-               <span className="text-blue-600 font-bold tracking-widest text-[10px]">APPSKEP HR</span>
-            </div>
-         </div>
+        {/* Form */}
+        <div className="flex flex-col gap-5">
+          <Input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onValueChange={setEmail}
+            variant="bordered"
+            radius="sm"
+            classNames={{
+              inputWrapper: "border border-slate-300 hover:border-slate-400 focus-within:!border-[#0284c7] bg-white shadow-none h-[50px]",
+              input: "text-[15px] font-medium text-slate-800 placeholder:text-slate-400 placeholder:font-medium"
+            }}
+          />
 
-         <div className="mb-10">
-            <h2 className="text-3xl font-extrabold text-slate-800 mb-2 tracking-tight">Selamat Datang!</h2>
-            <p className="text-slate-500 font-medium">Silakan masuk menggunakan akun korporat Anda.</p>
-         </div>
+          <Input
+            type={showPass ? "text" : "password"}
+            placeholder="Password"
+            value={password}
+            onValueChange={setPassword}
+            onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+            variant="bordered"
+            radius="sm"
+            classNames={{
+              inputWrapper: "border border-slate-300 hover:border-slate-400 focus-within:!border-[#0284c7] bg-white shadow-none h-[50px]",
+              input: "text-[15px] font-medium text-slate-800 placeholder:text-slate-400 placeholder:font-medium pr-10"
+            }}
+            endContent={
+              <button type="button" onClick={() => setShowPass(!showPass)} className="text-slate-400 hover:text-slate-600 outline-none pr-1 cursor-pointer">
+                {showPass ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                )}
+              </button>
+            }
+          />
 
-         {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm font-semibold mb-6 flex items-start gap-3 animate-pulse">
-               <span className="text-lg leading-none">⚠️</span>
-               <span>{error}</span>
-            </div>
-         )}
+          <div className="flex justify-end mt-[-4px]">
+            <button className="text-[#0ea5e9] text-[15px] font-medium hover:underline cursor-pointer">
+              Lupa password ?
+            </button>
+          </div>
 
-         <div className="flex flex-col gap-6">
-            <div>
-               <label className="block text-xs font-bold text-slate-700 mb-2 tracking-wide">EMAIL LOGIN</label>
-               <Input
-                 type="email" placeholder="contoh@appskep.com" value={email} onValueChange={setEmail}
-                 variant="bordered" radius="md"
-                 classNames={{
-                   inputWrapper: "border-2 border-slate-200 hover:border-slate-300 focus-within:!border-blue-600 focus-within:!bg-white bg-slate-50 shadow-none transition-colors h-[54px]",
-                   input: "font-semibold text-slate-800 text-[15px]"
-                 }}
-               />
-            </div>
-            
-            <div>
-               <label className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-bold text-slate-700 tracking-wide">PASSWORD</span>
-                  <span className="text-xs font-bold text-blue-600 cursor-pointer hover:underline transition-all">Lupa sandi?</span>
-               </label>
-               <Input
-                 type={showPass ? "text" : "password"} placeholder="••••••••" value={password} onValueChange={setPassword}
-                 onKeyDown={(e) => e.key === "Enter" && handleLogin()} variant="bordered" radius="md"
-                 classNames={{
-                   inputWrapper: "border-2 border-slate-200 hover:border-slate-300 focus-within:!border-blue-600 focus-within:!bg-white bg-slate-50 shadow-none transition-colors h-[54px]",
-                   input: "font-semibold text-slate-800 text-[15px] pr-10"
-                 }}
-                 endContent={
-                    <button type="button" onClick={() => setShowPass(!showPass)} className="bg-transparent border-none cursor-pointer text-lg outline-none">
-                       {showPass ? "🕵️" : "👁️"}
-                    </button>
-                 }
-               />
-            </div>
+          <Button
+            disableRipple
+            isLoading={loading}
+            onPress={handleLogin}
+            className="w-full h-[52px] bg-[#0284c7] hover:bg-[#0369a1] text-white text-[16px] font-semibold rounded-[8px] mt-2 transition-all active:scale-[0.98]"
+          >
+            {loading ? "Menghubungkan..." : "Masuk"}
+          </Button>
 
-            <Button disableRipple isLoading={loading} onPress={handleLogin} className="w-full h-[54px] bg-blue-600 hover:bg-blue-700 text-white text-[15px] font-bold rounded-xl mt-4 shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] transition-all active:scale-[0.98]">
-               {loading ? "MENGOTENTIKASI..." : "MASUK SEKARANG"}
-            </Button>
-         </div>
-
-         <p className="mt-16 text-center text-xs text-slate-400 font-semibold tracking-wide">
-            © 2026 Appskep Indonesia. Hak Cipta Dilindungi.
-         </p>
+          <div className="text-center mt-6">
+            <span className="text-slate-400 font-medium text-[15px]">Tidak punya akun? </span>
+            <button className="text-[#0ea5e9] font-medium text-[15px] hover:underline cursor-pointer">
+              Daftar
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
