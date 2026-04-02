@@ -87,6 +87,9 @@ func summaryFromAdvanced(r db.GetAdvancedLeavesRow) leave.RequestSummary {
 		Reason:      r.Reason,
 		Status:      leave.Status(r.Status),
 	}
+	if r.AttachmentUrl.Valid {
+		req.AttachmentURL = r.AttachmentUrl.String
+	}
 	if r.HrdNote.Valid {
 		req.HrdNote = r.HrdNote.String
 	}

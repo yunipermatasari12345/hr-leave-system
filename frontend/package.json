@@ -12,6 +12,7 @@
   "dependencies": {
     "@heroui/react": "^2.8.9",
     "axios": "^1.13.6",
+    "exceljs": "^4.4.0",
     "framer-motion": "^12.34.5",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

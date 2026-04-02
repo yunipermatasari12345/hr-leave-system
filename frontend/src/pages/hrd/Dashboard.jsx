@@ -1,11 +1,13 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Divider } from "@heroui/react";
 import * as XLSX from "xlsx";
+import { exportLeavesWithImages } from "../../utils/excelExport";
 import { leaveApi } from "../../api/leaveApi";
 import { employeeApi } from "../../api/employeeApi";
 import { reportingApi } from "../../api/reportingApi";
 import { STORAGE_KEYS } from "../../constants/storage";
+import { API_BASE_URL } from "../../constants/config";
 
 export default function HrdDashboard() {
   const [leaves, setLeaves] = useState([]);
@@ -14,7 +16,9 @@ export default function HrdDashboard() {
   const [hrdNote, setHrdNote] = useState("");
   const [actionType, setActionType] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editForm, setEditForm] = useState({ id: "", full_name: "", department: "", position: "", phone: "" });
@@ -102,6 +106,11 @@ export default function HrdDashboard() {
       setModalOpen(false); fetchLeaves(); fetchDashboardStats(); fetchEmployees();
     } catch { alert("Gagal update status"); }
   };
+
+  const openPreview = (leave) => {
+    setSelected(leave);
+    setPreviewOpen(true);
+  };
   
   const handleDeleteEmployee = async (id, empName) => {
     if (window.confirm(`Yakin ingin menghapus karyawan ${empName}? Data pengajuan cutinya juga mungkin terhapus atau menjadi yatim.`)) {
@@ -131,14 +140,17 @@ export default function HrdDashboard() {
 
   const handleLogout = () => { localStorage.clear(); navigate("/login"); };
 
-  const exportLeavesToExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(leaves.map(l => ({
-      ID: l.id, Karyawan: l.employee_name, Departemen: l.employee_department,
-      "Tanggal Mulai": l.start_date?.slice(0, 10), "Tanggal Selesai": l.end_date?.slice(0, 10),
-      "Total Hari": l.total_days, Alasan: l.reason, Status: l.status.toUpperCase(), "Catatan HRD": l.hrd_note || "-"
-    })));
-    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Pengajuan Cuti");
-    XLSX.writeFile(wb, "Data_Pengajuan_Cuti.xlsx");
+  const exportLeavesToExcel = async () => {
+    if (isExporting) return;
+    setIsExporting(true);
+    try {
+      await exportLeavesWithImages(leaves, API_BASE_URL);
+    } catch (err) {
+      console.error(err);
+      alert("Gagal mengekspor data dengan gambar. Pastikan koneksi internet stabil.");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const exportReportsToExcel = () => {
@@ -272,6 +284,7 @@ export default function HrdDashboard() {
                   <tr>
                     <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase" }}>Karyawan</th>
                     <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase" }}>Jadwal Cuti</th>
+                    <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Lampiran</th>
                     <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Durasi</th>
                     <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Status</th>
                   </tr>
@@ -279,18 +292,16 @@ export default function HrdDashboard() {
                 <tbody>
                   {pending.map(l => (
                      <tr key={l.id} style={{ borderBottom: T.cardBorder }}>
-                       <td style={{ padding: "16px 24px", fontSize: 13, color: T.textDark, fontWeight: "500" }}>
-                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                           <div>
-                             {l.employee_name}<br/>
-                             <span style={{fontSize: 11, color: T.textLight}}>{l.employee_department}</span>
-                           </div>
-                           {l.attachment_url && (
-                             <span title="Ada lampiran dokumen" style={{ display: "inline-flex", alignItems: "center", gap: 3, background: "#eff6ff", color: T.primary, fontSize: 10, fontWeight: "700", padding: "2px 8px", borderRadius: 20, border: "1px solid #bfdbfe", flexShrink: 0 }}>📎 Lampiran</span>
-                           )}
-                         </div>
-                       </td>
+                       <td style={{ padding: "16px 24px", fontSize: 13, color: T.textDark, fontWeight: "500" }}>{l.employee_name}<br/><span style={{fontSize: 11, color: T.textLight}}>{l.employee_department}</span></td>
                        <td style={{ padding: "16px 24px", fontSize: 13, color: T.textGray }}>{l.start_date.slice(0,10)} - {l.end_date.slice(0,10)}</td>
+                       <td style={{ padding: "16px 24px", textAlign: "center" }}>
+                         {l.attachment_url ? (
+                           <button onClick={() => openPreview(l)}
+                             style={{ color: T.primary, fontSize: 12, fontWeight: "600", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                             📎 Lihat
+                           </button>
+                         ) : <span style={{ fontSize: 11, color: T.textLight }}>-</span>}
+                       </td>
                        <td style={{ padding: "16px 24px", fontSize: 13, color: T.textDark, textAlign: "center", fontWeight: "600" }}>{l.total_days} Hari</td>
                        <td style={{ padding: "16px 24px", display: "flex", gap: 8, justifyContent: "center" }}>
                           <button onClick={() => openAction(l, "detail")} style={{ padding: "0 12px", height: 32, borderRadius: 6, background: T.bg, color: T.textDark, border: T.cardBorder, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "600", fontSize: 12 }}>Detail</button>
@@ -309,8 +320,12 @@ export default function HrdDashboard() {
         {activePage === "leaves" && (
            <div style={{ background: "white", borderRadius: 12, border: T.cardBorder }}>
              <div style={{ padding: "20px 24px", borderBottom: T.cardBorder, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-               <h3 style={{ margin: 0, fontSize: 16, fontWeight: "600", color: T.textDark }}>Semua Pengajuan Cuti</h3>
-               <Button size="sm" onClick={exportLeavesToExcel} style={{ background: "white", border: T.cardBorder, color: T.textDark, fontWeight: "600", borderRadius: 6 }}>Export (XLSX)</Button>
+               <h3 style={{ margin: 0, fontSize: 18, fontWeight: "700", color: T.textDark }}>Semua Pengajuan Cuti</h3>
+               <div style={{ display: "flex", gap: 12 }}>
+                 <Button disableRipple size="sm" onClick={exportLeavesToExcel} isDisabled={isExporting} style={{ background: isExporting ? T.bg : "white", border: T.cardBorder, color: T.textDark, fontWeight: "700", display: "flex", alignItems: "center", gap: 8, height: 38, padding: "0 16px", borderRadius: 10 }}>
+                   {isExporting ? "⏳ Sedang Memproses..." : "📊 Ekspor ke Excel"}
+                 </Button>
+               </div>
              </div>
              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
                <thead>
@@ -329,10 +344,10 @@ export default function HrdDashboard() {
                      <td style={{ padding: "16px 24px", fontSize: 13, color: T.textGray }}>{l.start_date.slice(0,10)} sd {l.end_date.slice(0,10)} <br/><span style={{fontSize: 11, color: T.textLight}}>({l.total_days} Hari)</span></td>
                      <td style={{ padding: "16px 24px", textAlign: "center" }}>
                        {l.attachment_url ? (
-                         <a href={`http://localhost:8080${l.attachment_url}`} target="_blank" rel="noreferrer"
-                           style={{ color: T.primary, fontSize: 12, fontWeight: "600", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                         <button onClick={() => openPreview(l)}
+                           style={{ color: T.primary, fontSize: 12, fontWeight: "600", textDecoration: "none", background: "none", border: "none", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4, padding: 0 }}>
                            📎 Lihat
-                         </a>
+                         </button>
                        ) : <span style={{ fontSize: 11, color: T.textLight }}>-</span>}
                      </td>
                      <td style={{ padding: "16px 24px", textAlign: "center" }}>
@@ -443,6 +458,26 @@ export default function HrdDashboard() {
                    <p style={{ fontSize: 11, fontWeight: "700", color: T.textGray, margin: "0 0 4px 0", textTransform: "uppercase" }}>Alasan Cuti</p>
                    <p style={{ fontSize: 13, fontWeight: "600", color: T.textDark, margin: 0, lineHeight: 1.5 }}>{selected.reason || "-"}</p>
                 </div>
+                {selected.attachment_url && (
+                   <div style={{ marginTop: 16, paddingTop: 16, borderTop: T.cardBorder }}>
+                     <p style={{ fontSize: 11, fontWeight: "700", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Lampiran Pendukung</p>
+                     {selected.attachment_url.match(/\.(jpg|jpeg|png|gif)$/i) ? (
+                       <div style={{ borderRadius: 12, overflow: "hidden", border: T.cardBorder, background: "white", padding: 4 }}>
+                         <img 
+                           src={`${API_BASE_URL}${selected.attachment_url}`} 
+                           alt="Lampiran" 
+                           style={{ width: "100%", maxHeight: 200, objectFit: "contain", cursor: "zoom-in" }}
+                           onClick={() => window.open(`${API_BASE_URL}${selected.attachment_url}`, '_blank')}
+                         />
+                       </div>
+                     ) : (
+                       <a href={`${API_BASE_URL}${selected.attachment_url}`} target="_blank" rel="noreferrer"
+                         style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px", background: "white", borderRadius: 12, border: T.cardBorder, color: T.primary, textDecoration: "none", fontSize: 13, fontWeight: "600" }}>
+                         📄 Lihat Dokumen Pendukung
+                       </a>
+                     )}
+                   </div>
+                )}
              </div>
              {actionType !== "detail" && (
                 <div style={{ marginBottom: 24 }}>
@@ -504,6 +539,51 @@ export default function HrdDashboard() {
              <Button disableRipple onPress={() => setDetailModalOpen(false)} style={{ marginTop: 24, width: "100%", background: T.bg, color: T.textDark, fontWeight: "700", height: 48, borderRadius: 12 }}>Tutup Window</Button>
            </div>
          </div>
+      )}
+
+      {previewOpen && selected && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10000, backdropFilter: "blur(4px)", padding: 20 }}>
+          <div style={{ background: "white", borderRadius: 24, padding: "32px", width: 500, maxWidth: "100%", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+              <div>
+                <h2 style={{ fontSize: 18, fontWeight: "800", color: T.textDark, margin: 0 }}>Pratinjau Lampiran</h2>
+                <p style={{ fontSize: 12, color: T.textGray, margin: 0 }}>Bukti pendukung dari {selected.employee_name}</p>
+              </div>
+              <button onClick={() => setPreviewOpen(false)} style={{ background: T.bg, border: "none", fontSize: 16, width: 32, height: 32, borderRadius: 16, cursor: "pointer"}}>✕</button>
+            </div>
+            
+            <div style={{ background: T.bg, borderRadius: 16, padding: "12px", border: T.cardBorder }}>
+              {selected.attachment_url?.match(/\.(jpg|jpeg|png|gif)$/i) ? (
+                <div style={{ borderRadius: 12, overflow: "hidden", background: "white" }}>
+                  <img 
+                    src={`${API_BASE_URL}${selected.attachment_url}`} 
+                    alt="Lampiran" 
+                    style={{ width: "100%", maxHeight: 400, objectFit: "contain" }}
+                  />
+                </div>
+              ) : (
+                <div style={{ padding: "40px 20px", textAlign: "center" }}>
+                   <span style={{ fontSize: 40, display: "block", marginBottom: 16 }}>📄</span>
+                   <p style={{ fontSize: 14, color: T.textDark, fontWeight: "600", marginBottom: 16 }}>Dokumen File ({selected.attachment_url?.split('.').pop().toUpperCase()})</p>
+                   <a href={`${API_BASE_URL}${selected.attachment_url}`} target="_blank" rel="noreferrer"
+                      style={{ background: T.primary, color: "white", padding: "10px 24px", borderRadius: 8, textDecoration: "none", fontSize: 13, fontWeight: "700", display: "inline-block" }}>
+                      Buka Dokumen di Tab Baru
+                   </a>
+                </div>
+              )}
+            </div>
+
+            <div style={{ marginTop: 24, display: "flex", gap: 12 }}>
+               <a 
+                  href={`${API_BASE_URL}${selected.attachment_url}`} 
+                  download 
+                  style={{ flex: 1, textAlign: "center", background: T.primary, color: "white", padding: "12px", borderRadius: 10, textDecoration: "none", fontSize: 13, fontWeight: "700" }}>
+                  📥 Simpan File Ke Komputer
+               </a>
+               <Button disableRipple onClick={() => setPreviewOpen(false)} style={{ flex: 1, background: T.bg, color: T.textDark, fontWeight: "700", height: 44, borderRadius: 10 }}>Tutup</Button>
+            </div>
+          </div>
+        </div>
       )}
 
     </div>

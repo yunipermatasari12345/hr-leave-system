@@ -18,7 +18,7 @@ ORDER BY 1;
 -- name: GetAdvancedLeaves :many
 SELECT 
   lr.id, lr.employee_id, lr.leave_type_id, lr.start_date, lr.end_date, lr.total_days,
-  lr.reason, lr.status, lr.hrd_note, lr.reviewed_by, lr.created_at,
+  lr.reason, lr.attachment_url, lr.status, lr.hrd_note, lr.reviewed_by, lr.created_at,
   e.full_name as employee_name, e.department as employee_department, e.position as employee_position
 FROM leave_requests lr
 JOIN employees e ON lr.employee_id = e.id
