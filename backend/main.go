@@ -86,6 +86,9 @@ func main() {
 		})
 	})
 
+	// Static file server untuk lampiran cuti
+	r.Handle("/uploads/*", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
+
 	log.Println("Server berjalan di port 8080...")
 	http.ListenAndServe(":8080", r)
-}
+}

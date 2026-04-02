@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Divider } from "@heroui/react";
 import * as XLSX from "xlsx";
@@ -279,7 +279,17 @@ export default function HrdDashboard() {
                 <tbody>
                   {pending.map(l => (
                      <tr key={l.id} style={{ borderBottom: T.cardBorder }}>
-                       <td style={{ padding: "16px 24px", fontSize: 13, color: T.textDark, fontWeight: "500" }}>{l.employee_name}<br/><span style={{fontSize: 11, color: T.textLight}}>{l.employee_department}</span></td>
+                       <td style={{ padding: "16px 24px", fontSize: 13, color: T.textDark, fontWeight: "500" }}>
+                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                           <div>
+                             {l.employee_name}<br/>
+                             <span style={{fontSize: 11, color: T.textLight}}>{l.employee_department}</span>
+                           </div>
+                           {l.attachment_url && (
+                             <span title="Ada lampiran dokumen" style={{ display: "inline-flex", alignItems: "center", gap: 3, background: "#eff6ff", color: T.primary, fontSize: 10, fontWeight: "700", padding: "2px 8px", borderRadius: 20, border: "1px solid #bfdbfe", flexShrink: 0 }}>📎 Lampiran</span>
+                           )}
+                         </div>
+                       </td>
                        <td style={{ padding: "16px 24px", fontSize: 13, color: T.textGray }}>{l.start_date.slice(0,10)} - {l.end_date.slice(0,10)}</td>
                        <td style={{ padding: "16px 24px", fontSize: 13, color: T.textDark, textAlign: "center", fontWeight: "600" }}>{l.total_days} Hari</td>
                        <td style={{ padding: "16px 24px", display: "flex", gap: 8, justifyContent: "center" }}>
@@ -307,6 +317,7 @@ export default function HrdDashboard() {
                  <tr>
                    <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase" }}>Karyawan</th>
                    <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase" }}>Jadwal Cuti</th>
+                   <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Lampiran</th>
                    <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Status</th>
                    <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Aksi</th>
                  </tr>
@@ -316,6 +327,14 @@ export default function HrdDashboard() {
                    <tr key={l.id} style={{ borderBottom: T.cardBorder }}>
                      <td style={{ padding: "16px 24px", fontSize: 13, color: T.textDark, fontWeight: "500" }}>{l.employee_name}<br/><span style={{fontSize: 11, color: T.textLight}}>{l.employee_department}</span></td>
                      <td style={{ padding: "16px 24px", fontSize: 13, color: T.textGray }}>{l.start_date.slice(0,10)} sd {l.end_date.slice(0,10)} <br/><span style={{fontSize: 11, color: T.textLight}}>({l.total_days} Hari)</span></td>
+                     <td style={{ padding: "16px 24px", textAlign: "center" }}>
+                       {l.attachment_url ? (
+                         <a href={`http://localhost:8080${l.attachment_url}`} target="_blank" rel="noreferrer"
+                           style={{ color: T.primary, fontSize: 12, fontWeight: "600", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                           📎 Lihat
+                         </a>
+                       ) : <span style={{ fontSize: 11, color: T.textLight }}>-</span>}
+                     </td>
                      <td style={{ padding: "16px 24px", textAlign: "center" }}>
                         <span style={{ display: "inline-block", background: statusStyle[l.status]?.bg || "#f3f4f6", color: statusStyle[l.status]?.color || "#374151", padding: "6px 12px", borderRadius: 20, fontSize: 11, fontWeight: "600", textTransform: "uppercase" }}>
                           {statusStyle[l.status]?.label || l.status}

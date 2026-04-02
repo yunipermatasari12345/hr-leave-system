@@ -12,18 +12,19 @@ import (
 )
 
 const createLeaveRequest = `-- name: CreateLeaveRequest :one
-INSERT INTO leave_requests (employee_id, leave_type_id, start_date, end_date, total_days, reason)
-VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, employee_id, leave_type_id, start_date, end_date, total_days, reason, status, hrd_note, reviewed_by, created_at
+INSERT INTO leave_requests (employee_id, leave_type_id, start_date, end_date, total_days, reason, attachment_url)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, employee_id, leave_type_id, start_date, end_date, total_days, reason, status, hrd_note, reviewed_by, created_at, attachment_url
 `
 
 type CreateLeaveRequestParams struct {
-	EmployeeID  int32     `json:"employee_id"`
-	LeaveTypeID int32     `json:"leave_type_id"`
-	StartDate   time.Time `json:"start_date"`
-	EndDate     time.Time `json:"end_date"`
-	TotalDays   int32     `json:"total_days"`
-	Reason      string    `json:"reason"`
+	EmployeeID    int32          `json:"employee_id"`
+	LeaveTypeID   int32          `json:"leave_type_id"`
+	StartDate     time.Time      `json:"start_date"`
+	EndDate       time.Time      `json:"end_date"`
+	TotalDays     int32          `json:"total_days"`
+	Reason        string         `json:"reason"`
+	AttachmentUrl sql.NullString `json:"attachment_url"`
 }
 
 func (q *Queries) CreateLeaveRequest(ctx context.Context, arg CreateLeaveRequestParams) (LeaveRequest, error) {
@@ -34,6 +35,7 @@ func (q *Queries) CreateLeaveRequest(ctx context.Context, arg CreateLeaveRequest
 		arg.EndDate,
 		arg.TotalDays,
 		arg.Reason,
+		arg.AttachmentUrl,
 	)
 	var i LeaveRequest
 	err := row.Scan(
@@ -48,6 +50,7 @@ func (q *Queries) CreateLeaveRequest(ctx context.Context, arg CreateLeaveRequest
 		&i.HrdNote,
 		&i.ReviewedBy,
 		&i.CreatedAt,
+		&i.AttachmentUrl,
 	)
 	return i, err
 }
@@ -61,6 +64,7 @@ SELECT
   lr.end_date,
   lr.total_days,
   lr.reason,
+  lr.attachment_url,
   lr.status,
   lr.hrd_note,
   lr.reviewed_by,
@@ -81,6 +85,7 @@ type GetAllLeaveRequestsRow struct {
 	EndDate            time.Time      `json:"end_date"`
 	TotalDays          int32          `json:"total_days"`
 	Reason             string         `json:"reason"`
+	AttachmentUrl      sql.NullString `json:"attachment_url"`
 	Status             string         `json:"status"`
 	HrdNote            sql.NullString `json:"hrd_note"`
 	ReviewedBy         sql.NullInt32  `json:"reviewed_by"`
@@ -107,6 +112,7 @@ func (q *Queries) GetAllLeaveRequests(ctx context.Context) ([]GetAllLeaveRequest
 			&i.EndDate,
 			&i.TotalDays,
 			&i.Reason,
+			&i.AttachmentUrl,
 			&i.Status,
 			&i.HrdNote,
 			&i.ReviewedBy,
@@ -202,7 +208,7 @@ func (q *Queries) GetLeaveBalance(ctx context.Context, arg GetLeaveBalanceParams
 }
 
 const getLeaveRequestByID = `-- name: GetLeaveRequestByID :one
-SELECT id, employee_id, leave_type_id, start_date, end_date, total_days, reason, status, hrd_note, reviewed_by, created_at FROM leave_requests
+SELECT id, employee_id, leave_type_id, start_date, end_date, total_days, reason, status, hrd_note, reviewed_by, created_at, attachment_url FROM leave_requests
 WHERE id = $1 LIMIT 1
 `
 
@@ -221,12 +227,13 @@ func (q *Queries) GetLeaveRequestByID(ctx context.Context, id int32) (LeaveReque
 		&i.HrdNote,
 		&i.ReviewedBy,
 		&i.CreatedAt,
+		&i.AttachmentUrl,
 	)
 	return i, err
 }
 
 const getLeaveRequestsByEmployee = `-- name: GetLeaveRequestsByEmployee :many
-SELECT id, employee_id, leave_type_id, start_date, end_date, total_days, reason, status, hrd_note, reviewed_by, created_at FROM leave_requests
+SELECT id, employee_id, leave_type_id, start_date, end_date, total_days, reason, status, hrd_note, reviewed_by, created_at, attachment_url FROM leave_requests
 WHERE employee_id = $1
 ORDER BY created_at DESC
 `
@@ -252,6 +259,7 @@ func (q *Queries) GetLeaveRequestsByEmployee(ctx context.Context, employeeID int
 			&i.HrdNote,
 			&i.ReviewedBy,
 			&i.CreatedAt,
+			&i.AttachmentUrl,
 		); err != nil {
 			return nil, err
 		}
@@ -305,7 +313,7 @@ const updateLeaveRequestStatus = `-- name: UpdateLeaveRequestStatus :one
 UPDATE leave_requests
 SET status = $2, hrd_note = $3, reviewed_by = $4
 WHERE id = $1
-RETURNING id, employee_id, leave_type_id, start_date, end_date, total_days, reason, status, hrd_note, reviewed_by, created_at
+RETURNING id, employee_id, leave_type_id, start_date, end_date, total_days, reason, status, hrd_note, reviewed_by, created_at, attachment_url
 `
 
 type UpdateLeaveRequestStatusParams struct {
@@ -335,6 +343,7 @@ func (q *Queries) UpdateLeaveRequestStatus(ctx context.Context, arg UpdateLeaveR
 		&i.HrdNote,
 		&i.ReviewedBy,
 		&i.CreatedAt,
+		&i.AttachmentUrl,
 	)
 	return i, err
 }

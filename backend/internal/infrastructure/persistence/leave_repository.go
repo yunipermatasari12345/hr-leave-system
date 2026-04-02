@@ -28,6 +28,9 @@ func leaveFromDB(l db.LeaveRequest) leave.LeaveRequest {
 		Reason:      l.Reason,
 		Status:      leave.Status(l.Status),
 	}
+	if l.AttachmentUrl.Valid {
+		out.AttachmentURL = l.AttachmentUrl.String
+	}
 	if l.HrdNote.Valid {
 		out.HrdNote = l.HrdNote.String
 	}
@@ -51,6 +54,9 @@ func summaryFromAllRow(r db.GetAllLeaveRequestsRow) leave.RequestSummary {
 		TotalDays:   r.TotalDays,
 		Reason:      r.Reason,
 		Status:      leave.Status(r.Status),
+	}
+	if r.AttachmentUrl.Valid {
+		req.AttachmentURL = r.AttachmentUrl.String
 	}
 	if r.HrdNote.Valid {
 		req.HrdNote = r.HrdNote.String
@@ -99,7 +105,7 @@ func summaryFromAdvanced(r db.GetAdvancedLeavesRow) leave.RequestSummary {
 	}
 }
 
-func (r *leaveRepository) Create(ctx context.Context, employeeID, leaveTypeID int32, start, end time.Time, totalDays int32, reason string) (leave.LeaveRequest, error) {
+func (r *leaveRepository) Create(ctx context.Context, employeeID, leaveTypeID int32, start, end time.Time, totalDays int32, reason, attachmentURL string) (leave.LeaveRequest, error) {
 	row, err := r.q.CreateLeaveRequest(ctx, db.CreateLeaveRequestParams{
 		EmployeeID:  employeeID,
 		LeaveTypeID: leaveTypeID,
@@ -107,6 +113,10 @@ func (r *leaveRepository) Create(ctx context.Context, employeeID, leaveTypeID in
 		EndDate:     end,
 		TotalDays:   totalDays,
 		Reason:      reason,
+		AttachmentUrl: sql.NullString{
+			String: attachmentURL,
+			Valid:  attachmentURL != "",
+		},
 	})
 	if err != nil {
 		return leave.LeaveRequest{}, err

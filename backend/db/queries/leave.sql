@@ -1,6 +1,6 @@
 -- name: CreateLeaveRequest :one
-INSERT INTO leave_requests (employee_id, leave_type_id, start_date, end_date, total_days, reason)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO leave_requests (employee_id, leave_type_id, start_date, end_date, total_days, reason, attachment_url)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING *;
 
 -- name: GetLeaveRequestsByEmployee :many
@@ -17,6 +17,7 @@ SELECT
   lr.end_date,
   lr.total_days,
   lr.reason,
+  lr.attachment_url,
   lr.status,
   lr.hrd_note,
   lr.reviewed_by,

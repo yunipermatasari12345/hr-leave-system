@@ -6,7 +6,7 @@ import (
 )
 
 type Repository interface {
-	Create(ctx context.Context, employeeID, leaveTypeID int32, start, end time.Time, totalDays int32, reason string) (LeaveRequest, error)
+	Create(ctx context.Context, employeeID, leaveTypeID int32, start, end time.Time, totalDays int32, reason, attachmentURL string) (LeaveRequest, error)
 	ListByEmployee(ctx context.Context, employeeID int32) ([]LeaveRequest, error)
 	ListAllWithEmployee(ctx context.Context) ([]RequestSummary, error)
 	GetByID(ctx context.Context, id int32) (LeaveRequest, error)

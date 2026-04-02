@@ -10,6 +10,7 @@ export default function NewLeave() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [attachmentFile, setAttachmentFile] = useState(null);
   const [form, setForm] = useState({ leave_type_id: "", start_date: "", end_date: "", reason: "" });
 
   const name = localStorage.getItem(STORAGE_KEYS.name) || "Karyawan";
@@ -22,10 +23,28 @@ export default function NewLeave() {
     leaveApi.getTypes().then((data) => setLeaveTypes(data || [])).catch(() => {});
   }, []);
 
+  const todayIsoStr = new Date().toISOString().split("T")[0];
+
   const totalDays = () => {
     if (!form.start_date || !form.end_date) return 0;
-    const diff = Math.floor((new Date(form.end_date) - new Date(form.start_date)) / 86400000) + 1;
-    return diff > 0 ? diff : 0;
+    const start = new Date(form.start_date);
+    const end = new Date(form.end_date);
+    if (end < start) return 0;
+
+    let count = 0;
+    let current = new Date(start);
+    current.setHours(0,0,0,0);
+    const endZero = new Date(end);
+    endZero.setHours(0,0,0,0);
+
+    while (current <= endZero) {
+      const dayOfWeek = current.getDay();
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) { // 0 = Minggu, 6 = Sabtu
+        count++;
+      }
+      current.setDate(current.getDate() + 1);
+    }
+    return count;
   };
 
   const handleSubmit = async () => {
@@ -37,7 +56,15 @@ export default function NewLeave() {
     }
     setLoading(true); setError(""); setSuccess("");
     try {
-      await leaveApi.createRequest({ ...form, leave_type_id: parseInt(form.leave_type_id, 10) });
+      const formData = new FormData();
+      formData.append("leave_type_id", form.leave_type_id);
+      formData.append("start_date", form.start_date);
+      formData.append("end_date", form.end_date);
+      formData.append("reason", form.reason);
+      if (attachmentFile) {
+        formData.append("attachment", attachmentFile);
+      }
+      await leaveApi.createRequest(formData);
       setSuccess("Pengajuan berhasil dikirim! Menunggu persetujuan HRD.");
       setTimeout(() => navigate("/dashboard"), 2000);
     } catch (e) {
@@ -121,7 +148,7 @@ export default function NewLeave() {
                 <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
                   Tanggal Mulai <span style={{ color: T.red }}>*</span>
                 </label>
-                <input type="date" value={form.start_date}
+                <input type="date" min={todayIsoStr} value={form.start_date}
                   onChange={(e) => setForm(prev => ({ ...prev, start_date: e.target.value }))}
                   style={{ width: "100%", border: T.cardBorder, borderRadius: 8, padding: "11px 14px", fontSize: 14, color: T.textDark, outline: "none", boxSizing: "border-box", fontFamily: "inherit", background: "#f8fafc" }} />
               </div>
@@ -129,7 +156,7 @@ export default function NewLeave() {
                 <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
                   Tanggal Selesai <span style={{ color: T.red }}>*</span>
                 </label>
-                <input type="date" value={form.end_date}
+                <input type="date" min={form.start_date || todayIsoStr} value={form.end_date}
                   onChange={(e) => setForm(prev => ({ ...prev, end_date: e.target.value }))}
                   style={{ width: "100%", border: T.cardBorder, borderRadius: 8, padding: "11px 14px", fontSize: 14, color: T.textDark, outline: "none", boxSizing: "border-box", fontFamily: "inherit", background: "#f8fafc" }} />
               </div>
@@ -137,7 +164,7 @@ export default function NewLeave() {
 
             {totalDays() > 0 && (
               <div style={{ background: "#eef2ff", color: T.primary, padding: "12px 16px", borderRadius: 8, fontSize: 13, marginBottom: 24, fontWeight: "600" }}>
-                Total Durasi: {totalDays()} Hari
+                Total Durasi: {totalDays()} Hari Kerja <span style={{ fontSize: 11, fontWeight: "400", opacity: 0.8 }}>(Sabtu &amp; Minggu libur)</span>
               </div>
             )}
 
@@ -156,6 +183,40 @@ export default function NewLeave() {
                   input: "text-slate-700 text-sm font-medium"
                 }}
               />
+            </div>
+
+            {/* Upload Lampiran (Opsional) */}
+            <div style={{ marginBottom: 32 }}>
+              <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
+                Lampiran Pendukung <span style={{ fontSize: 12, fontWeight: "400", color: T.textGray }}>(Opsional — Foto/Surat dokter, PDF, dll)</span>
+              </label>
+              <div
+                onClick={() => document.getElementById("file-upload-input").click()}
+                style={{ border: `2px dashed ${attachmentFile ? T.primary : "#cbd5e1"}`, borderRadius: 10, padding: "20px 16px", textAlign: "center", cursor: "pointer", background: attachmentFile ? "#eef2ff" : "#f8fafc", transition: "all 0.2s" }}
+              >
+                <input
+                  id="file-upload-input"
+                  type="file"
+                  accept="image/*,.pdf,.doc,.docx"
+                  style={{ display: "none" }}
+                  onChange={(e) => setAttachmentFile(e.target.files[0] || null)}
+                />
+                {attachmentFile ? (
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+                    <span style={{ fontSize: 22 }}>📎</span>
+                    <div style={{ textAlign: "left" }}>
+                      <p style={{ margin: 0, fontSize: 13, fontWeight: "600", color: T.primary }}>{attachmentFile.name}</p>
+                      <p style={{ margin: 0, fontSize: 11, color: T.textGray }}>{(attachmentFile.size / 1024).toFixed(1)} KB</p>
+                    </div>
+                    <button onClick={(e) => { e.stopPropagation(); setAttachmentFile(null); }} style={{ marginLeft: 8, border: "none", background: "transparent", cursor: "pointer", color: T.red, fontSize: 18, lineHeight: 1 }}>✕</button>
+                  </div>
+                ) : (
+                  <div>
+                    <p style={{ margin: "0 0 4px 0", fontSize: 13, color: T.textGray }}>🖼️ &nbsp; Klik untuk pilih file</p>
+                    <p style={{ margin: 0, fontSize: 11, color: T.textLight }}>JPG, PNG, PDF, DOC — Maks. 10MB</p>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", borderTop: T.cardBorder, paddingTop: 24 }}>

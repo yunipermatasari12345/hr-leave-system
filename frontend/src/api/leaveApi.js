@@ -11,7 +11,11 @@ export const leaveApi = {
     return apiClient.get("/api/employee/leave-balances").then((r) => r.data);
   },
   createRequest(payload) {
-    return apiClient.post("/api/employee/leaves", payload).then((r) => r.data);
+    // payload bisa berupa FormData (untuk upload) atau objek biasa
+    const isFormData = payload instanceof FormData;
+    return apiClient.post("/api/employee/leaves", payload, {
+      headers: isFormData ? { "Content-Type": "multipart/form-data" } : {},
+    }).then((r) => r.data);
   },
   getMyNotifications() {
     return apiClient.get("/api/employee/notifications").then((r) => r.data);

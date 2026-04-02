@@ -27,7 +27,7 @@ func NewLeaveService(
 	}
 }
 
-func (s *LeaveService) SubmitRequest(ctx context.Context, userID int32, leaveTypeID int32, startStr, endStr, reason string) (leave.LeaveRequest, error) {
+func (s *LeaveService) SubmitRequest(ctx context.Context, userID int32, leaveTypeID int32, startStr, endStr, reason, attachmentURL string) (leave.LeaveRequest, error) {
 	emp, err := s.employees.GetByUserID(ctx, userID)
 	if err != nil {
 		return leave.LeaveRequest{}, ErrEmployeeNotFound
@@ -47,7 +47,7 @@ func (s *LeaveService) SubmitRequest(ctx context.Context, userID int32, leaveTyp
 	if err != nil {
 		return leave.LeaveRequest{}, err
 	}
-	return s.leaves.Create(ctx, emp.ID, leaveTypeID, start, end, days, reason)
+	return s.leaves.Create(ctx, emp.ID, leaveTypeID, start, end, days, reason, attachmentURL)
 }
 
 func (s *LeaveService) MyRequests(ctx context.Context, userID int32) ([]leave.LeaveRequest, error) {

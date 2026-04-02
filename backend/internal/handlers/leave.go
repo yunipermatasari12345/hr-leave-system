@@ -3,11 +3,16 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"hr-leave-system/internal/application"
 	dleave "hr-leave-system/internal/domain/leave"
 	"hr-leave-system/internal/middleware"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -35,6 +40,7 @@ type LeaveResponse struct {
 	EndDate            string `json:"end_date"`
 	TotalDays          int32  `json:"total_days"`
 	Reason             string `json:"reason"`
+	AttachmentURL      string `json:"attachment_url"`
 	Status             string `json:"status"`
 	HrdNote            string `json:"hrd_note"`
 	ReviewedBy         int32  `json:"reviewed_by"`
@@ -47,17 +53,18 @@ func leaveResponseFromDomain(l dleave.LeaveRequest) LeaveResponse {
 		createdAt = l.CreatedAt.Format("2006-01-02")
 	}
 	return LeaveResponse{
-		ID:          l.ID,
-		EmployeeID:  l.EmployeeID,
-		LeaveTypeID: l.LeaveTypeID,
-		StartDate:   l.StartDate.Format("2006-01-02"),
-		EndDate:     l.EndDate.Format("2006-01-02"),
-		TotalDays:   l.TotalDays,
-		Reason:      l.Reason,
-		Status:      string(l.Status),
-		HrdNote:     l.HrdNote,
-		ReviewedBy:  l.ReviewedBy,
-		CreatedAt:   createdAt,
+		ID:            l.ID,
+		EmployeeID:    l.EmployeeID,
+		LeaveTypeID:   l.LeaveTypeID,
+		StartDate:     l.StartDate.Format("2006-01-02"),
+		EndDate:       l.EndDate.Format("2006-01-02"),
+		TotalDays:     l.TotalDays,
+		Reason:        l.Reason,
+		AttachmentURL: l.AttachmentURL,
+		Status:        string(l.Status),
+		HrdNote:       l.HrdNote,
+		ReviewedBy:    l.ReviewedBy,
+		CreatedAt:     createdAt,
 	}
 }
 
@@ -71,30 +78,52 @@ func leaveResponseFromSummary(s dleave.RequestSummary) LeaveResponse {
 
 func CreateLeaveRequest_(w http.ResponseWriter, r *http.Request) {
 	userID := int32(r.Context().Value(middleware.UserIDKey).(float64))
-	var req CreateLeaveRequest
-	json.NewDecoder(r.Body).Decode(&req)
 
-	created, err := LeaveService.SubmitRequest(r.Context(), userID, req.LeaveTypeID, req.StartDate, req.EndDate, req.Reason)
+	// Parse multipart form (max 10MB)
+	r.ParseMultipartForm(10 << 20)
+
+	leaveTypeIDStr := r.FormValue("leave_type_id")
+	startDate := r.FormValue("start_date")
+	endDate := r.FormValue("end_date")
+	reason := r.FormValue("reason")
+
+	leaveTypeID, _ := strconv.Atoi(leaveTypeIDStr)
+
+	// Handle file upload (opsional)
+	attachmentURL := ""
+	file, header, fileErr := r.FormFile("attachment")
+	if fileErr == nil && file != nil {
+		defer file.Close()
+		// Buat folder uploads jika belum ada
+		os.MkdirAll("uploads", os.ModePerm)
+		ext := filepath.Ext(header.Filename)
+		filename := fmt.Sprintf("uploads/%d_%d%s", userID, time.Now().UnixNano(), ext)
+		dst, err := os.Create(filename)
+		if err == nil {
+			defer dst.Close()
+			io.Copy(dst, file)
+			attachmentURL = "/" + filename
+		}
+	}
+
+	created, err := LeaveService.SubmitRequest(r.Context(), userID, int32(leaveTypeID), startDate, endDate, reason, attachmentURL)
 	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
 		if errors.Is(err, application.ErrEmployeeNotFound) {
-			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(map[string]string{"error": "Data karyawan tidak ditemukan"})
 			return
 		}
 		if errors.Is(err, application.ErrValidation) {
-			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(map[string]string{"error": "Semua field wajib diisi"})
 			return
 		}
 		if errors.Is(err, dleave.ErrInvalidDateRange) {
-			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(map[string]string{"error": "Rentang tanggal tidak valid"})
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Gagal mengajukan cuti"})
 		return

@@ -86,7 +86,7 @@ func (q *Queries) DeleteLeaveType(ctx context.Context, id int32) error {
 const getAdvancedLeaves = `-- name: GetAdvancedLeaves :many
 SELECT 
   lr.id, lr.employee_id, lr.leave_type_id, lr.start_date, lr.end_date, lr.total_days,
-  lr.reason, lr.status, lr.hrd_note, lr.reviewed_by, lr.created_at,
+  lr.reason, lr.attachment_url, lr.status, lr.hrd_note, lr.reviewed_by, lr.created_at,
   e.full_name as employee_name, e.department as employee_department, e.position as employee_position
 FROM leave_requests lr
 JOIN employees e ON lr.employee_id = e.id
@@ -109,6 +109,7 @@ type GetAdvancedLeavesRow struct {
 	EndDate            time.Time      `json:"end_date"`
 	TotalDays          int32          `json:"total_days"`
 	Reason             string         `json:"reason"`
+	AttachmentUrl      sql.NullString `json:"attachment_url"`
 	Status             string         `json:"status"`
 	HrdNote            sql.NullString `json:"hrd_note"`
 	ReviewedBy         sql.NullInt32  `json:"reviewed_by"`
@@ -135,6 +136,7 @@ func (q *Queries) GetAdvancedLeaves(ctx context.Context, arg GetAdvancedLeavesPa
 			&i.EndDate,
 			&i.TotalDays,
 			&i.Reason,
+			&i.AttachmentUrl,
 			&i.Status,
 			&i.HrdNote,
 			&i.ReviewedBy,
