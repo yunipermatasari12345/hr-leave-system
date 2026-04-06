@@ -9,21 +9,24 @@ export default function AddEmployee() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [form, setForm] = useState({ email: "", full_name: "", department: "", position: "", phone: "" });
+  const [form, setForm] = useState({ email: "", full_name: "", department: "", position: "", phone: "", role: "employee" });
+
+  const DEPT_OPTIONS = ["Product", "Bisnis", "Kreatif"];
+  const POS_OPTIONS = ["Coordinator of appsgizi", "Marketing", "Admin Officer", "Co Manager", "Manager"];
 
   const name = localStorage.getItem(STORAGE_KEYS.name) || "HRD Admin";
 
   const T = { bg: "#f8fafc", sidebar: "white", cardBorder: "1px solid #e5e7eb", textDark: "#1f2937", textGray: "#64748b", textLight: "#94a3b8", primary: "#2563eb", red: "#ef4444", green: "#10b981", yellow: "#f59e0b" };
 
   const handleSubmit = async () => {
-    if (!form.email || !form.full_name || !form.department || !form.position) {
+    if (!form.email || !form.full_name || !form.department || !form.position || !form.role) {
       setError("Semua field wajib diisi kecuali nomor HP!"); return;
     }
     setLoading(true); setError(""); setSuccess("");
     try {
       await employeeApi.createForHR(form);
       setSuccess("Karyawan berhasil ditambahkan!");
-      setForm({ email: "", full_name: "", department: "", position: "", phone: "" });
+      setForm({ email: "", full_name: "", department: "", position: "", phone: "", role: "employee" });
     } catch (e) {
       setError(e.response?.data?.error || "Gagal menambahkan karyawan");
     } finally { setLoading(false); }
@@ -100,20 +103,82 @@ export default function AddEmployee() {
                   <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
                     {item.label} {item.required && <span style={{ color: T.red }}>*</span>}
                   </label>
-                  <Input
-                    type={item.type}
-                    placeholder={item.placeholder}
-                    value={form[item.field]}
-                    onValueChange={(val) => setForm(prev => ({ ...prev, [item.field]: val }))}
-                    variant="bordered"
-                    size="md"
-                    classNames={{
-                      inputWrapper: "border border-slate-200 bg-slate-50 shadow-none hover:border-slate-300 focus-within:!border-blue-600 focus-within:!bg-white rounded-lg",
-                      input: "text-slate-700 text-sm font-medium"
-                    }}
-                  />
+                  {item.field === 'department' || item.field === 'position' ? (
+                    <input
+                      type={item.type}
+                      placeholder={item.placeholder}
+                      value={form[item.field]}
+                      onChange={(e) => setForm(prev => ({ ...prev, [item.field]: e.target.value }))}
+                      list={item.field === 'department' ? 'dept-list' : 'pos-list'}
+                      style={{ 
+                        width: "100%", 
+                        padding: "12px 16px", 
+                        borderRadius: 10, 
+                        border: T.cardBorder, 
+                        outline: "none", 
+                        color: T.textDark, 
+                        background: T.bg, 
+                        fontSize: 14,
+                        fontWeight: "500",
+                        transition: "all 0.2s"
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = T.primary}
+                      onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+                    />
+                  ) : (
+                    <Input
+                      type={item.type}
+                      placeholder={item.placeholder}
+                      value={form[item.field]}
+                      onValueChange={(val) => setForm(prev => ({ ...prev, [item.field]: val }))}
+                      variant="bordered"
+                      size="md"
+                      classNames={{
+                        inputWrapper: "border border-slate-200 bg-slate-50 shadow-none hover:border-slate-300 focus-within:!border-blue-600 focus-within:!bg-white rounded-lg",
+                        input: "text-slate-700 text-sm font-medium"
+                      }}
+                    />
+                  )}
                 </div>
               ))}
+            </div>
+
+            {/* Role Selector */}
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
+                Role / Jabatan Sistem <span style={{ color: T.red }}>*</span>
+              </label>
+              <div style={{ display: "flex", gap: 12 }}>
+                <button
+                  type="button"
+                  onClick={() => setForm(prev => ({ ...prev, role: "employee" }))}
+                  style={{
+                    flex: 1, padding: "14px 20px", borderRadius: 10, cursor: "pointer", fontWeight: "600", fontSize: 14,
+                    border: form.role === "employee" ? `2px solid ${T.primary}` : `2px solid #e5e7eb`,
+                    background: form.role === "employee" ? "#eff6ff" : "white",
+                    color: form.role === "employee" ? T.primary : T.textGray,
+                    transition: "all 0.2s"
+                  }}
+                >
+                  👤 Karyawan (Employee)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm(prev => ({ ...prev, role: "hrd" }))}
+                  style={{
+                    flex: 1, padding: "14px 20px", borderRadius: 10, cursor: "pointer", fontWeight: "600", fontSize: 14,
+                    border: form.role === "hrd" ? `2px solid #7c3aed` : `2px solid #e5e7eb`,
+                    background: form.role === "hrd" ? "#f5f3ff" : "white",
+                    color: form.role === "hrd" ? "#7c3aed" : T.textGray,
+                    transition: "all 0.2s"
+                  }}
+                >
+                  🛡️ Staff HRD
+                </button>
+              </div>
+              <p style={{ fontSize: 12, color: T.textLight, marginTop: 8, marginBottom: 0 }}>
+                {form.role === "hrd" ? "⚠️ Staff HRD dapat mengakses dashboard dan mengelola data karyawan." : "✅ Karyawan hanya dapat mengajukan dan melihat cuti mereka sendiri."}
+              </p>
             </div>
 
             <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", borderTop: T.cardBorder, paddingTop: 24 }}>
@@ -128,6 +193,14 @@ export default function AddEmployee() {
           </div>
         </div>
       </div>
+      
+      {/* Datalist Options */}
+      <datalist id="dept-list">
+        {DEPT_OPTIONS.map(opt => <option key={opt} value={opt} />)}
+      </datalist>
+      <datalist id="pos-list">
+        {POS_OPTIONS.map(opt => <option key={opt} value={opt} />)}
+      </datalist>
     </div>
   );
 }

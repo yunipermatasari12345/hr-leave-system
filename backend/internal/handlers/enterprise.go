@@ -75,6 +75,7 @@ type EditEmployeeReq struct {
 	Department string `json:"department"`
 	Position   string `json:"position"`
 	Phone      string `json:"phone"`
+	Role       string `json:"role"`
 }
 
 func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
@@ -87,7 +88,7 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emp, err := EmployeeService.Update(r.Context(), int32(id), req.FullName, req.Department, req.Position, req.Phone)
+	emp, err := EmployeeService.Update(r.Context(), int32(id), req.FullName, req.Department, req.Position, req.Phone, req.Role)
 	if err != nil {
 		sendError(w, 500, "Gagal update karyawan")
 		return

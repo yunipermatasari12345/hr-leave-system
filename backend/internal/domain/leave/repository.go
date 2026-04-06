@@ -11,8 +11,11 @@ type Repository interface {
 	ListAllWithEmployee(ctx context.Context) ([]RequestSummary, error)
 	GetByID(ctx context.Context, id int32) (LeaveRequest, error)
 	UpdateStatus(ctx context.Context, id int32, status Status, hrdNote string, reviewedByEmployeeID int32) (LeaveRequest, error)
+	Delete(ctx context.Context, id int32) error
 	ListLeaveTypes(ctx context.Context) ([]LeaveType, error)
 	ListAdvanced(ctx context.Context, statusFilter, departmentFilter string) ([]RequestSummary, error)
 	GetBalance(ctx context.Context, employeeID int32, year int32) ([]LeaveBalance, error)
+	EnsureBalance(ctx context.Context, employeeID int32, leaveTypeID int32, year int32, totalDays int32) error
 	UpdateBalance(ctx context.Context, employeeID int32, leaveTypeID int32, year int32, daysUsed int32) error
+	CreateHistory(ctx context.Context, leaveRequestID int32, action string, hrdNote string, actorID int32) error
 }

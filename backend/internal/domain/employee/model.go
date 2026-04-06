@@ -7,4 +7,6 @@ type Employee struct {
 	Department string `json:"department"`
 	Position   string `json:"position"`
 	Phone      string `json:"phone"`
+	Email      string `json:"email"`
+	Role       string `json:"role"`
 }

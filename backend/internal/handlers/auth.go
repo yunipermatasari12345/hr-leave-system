@@ -22,11 +22,11 @@ type LoginResponse struct {
 
 type CreateEmployeeRequest struct {
 	Email      string `json:"email"`
-	Password   string `json:"password"`
 	FullName   string `json:"full_name"`
 	Department string `json:"department"`
 	Position   string `json:"position"`
 	Phone      string `json:"phone"`
+	Role       string `json:"role"`
 }
 
 type VerifyRequest struct {
@@ -80,7 +80,7 @@ func CreateEmployee(w http.ResponseWriter, r *http.Request) {
 	var req CreateEmployeeRequest
 	json.NewDecoder(r.Body).Decode(&req)
 
-	emp, err := AuthService.CreateEmployeeAccount(r.Context(), req.Email, req.Password, req.FullName, req.Department, req.Position, req.Phone)
+	emp, err := AuthService.CreateEmployeeAccount(r.Context(), req.Email, req.FullName, req.Department, req.Position, req.Phone, req.Role)
 	if err != nil {
 		if errors.Is(err, application.ErrValidation) {
 			w.Header().Set("Content-Type", "application/json")
@@ -115,11 +115,6 @@ func VerifyRegistration(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isRegistered, role, _ := AuthService.IsEmailRegistered(r.Context(), req.Email)
-
-	if req.Email == "yunipermatasariyuni28@gmail.com" {
-		isRegistered = true
-		role = "hrd"
-	}
 
 	var localToken string
 	var name, department, position string

@@ -15,6 +15,8 @@ type EmployeeResponse struct {
 	Department    string `json:"department"`
 	Position      string `json:"position"`
 	Phone         string `json:"phone"`
+	Email         string `json:"email"`
+	Role          string `json:"role"`
 	RemainingDays int32  `json:"remaining_days"`
 	UsedDays      int32  `json:"used_days"`
 }
@@ -27,6 +29,8 @@ func toEmployeeResponse(e employee.Employee) EmployeeResponse {
 		Department: e.Department,
 		Position:   e.Position,
 		Phone:      e.Phone,
+		Email:      e.Email,
+		Role:       e.Role,
 	}
 }
 

@@ -48,13 +48,38 @@ func (r *employeeRepository) GetByID(ctx context.Context, id int32) (employee.Em
 }
 
 func (r *employeeRepository) List(ctx context.Context) ([]employee.Employee, error) {
-	rows, err := r.q.GetAllEmployees(ctx)
+	query := `
+		SELECT e.id, e.user_id, e.full_name, e.department, e.position, e.phone, u.email, u.role
+		FROM employees e
+		JOIN users u ON e.user_id = u.id
+	`
+	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
-	out := make([]employee.Employee, len(rows))
-	for i := range rows {
-		out[i] = employeeFromDB(rows[i])
+	defer rows.Close()
+
+	var out []employee.Employee
+	for rows.Next() {
+		var e employee.Employee
+		var phone sql.NullString
+		err := rows.Scan(
+			&e.ID,
+			&e.UserID,
+			&e.FullName,
+			&e.Department,
+			&e.Position,
+			&phone,
+			&e.Email,
+			&e.Role,
+		)
+		if err != nil {
+			return nil, err
+		}
+		if phone.Valid {
+			e.Phone = phone.String
+		}
+		out = append(out, e)
 	}
 	return out, nil
 }
@@ -76,7 +101,22 @@ func (r *employeeRepository) Create(ctx context.Context, userID int32, fullName,
 	return employeeFromDB(row), nil
 }
 
-func (r *employeeRepository) Update(ctx context.Context, id int32, fullName, department, position, phone string) (employee.Employee, error) {
+func (r *employeeRepository) Update(ctx context.Context, id int32, fullName, department, position, phone, role string) (employee.Employee, error) {
+	// Ambil user_id dulu
+	var userID int32
+	err := r.db.QueryRowContext(ctx, "SELECT user_id FROM employees WHERE id = $1", id).Scan(&userID)
+	if err != nil {
+		return employee.Employee{}, err
+	}
+
+	// Update role di tabel users
+	if role != "" {
+		_, err = r.db.ExecContext(ctx, "UPDATE users SET role = $1 WHERE id = $2", role, userID)
+		if err != nil {
+			return employee.Employee{}, err
+		}
+	}
+
 	row, err := r.q.UpdateEmployee(ctx, db.UpdateEmployeeParams{
 		ID:         id,
 		FullName:   fullName,
@@ -90,7 +130,13 @@ func (r *employeeRepository) Update(ctx context.Context, id int32, fullName, dep
 	if err != nil {
 		return employee.Employee{}, err
 	}
-	return employeeFromDB(row), nil
+	
+	out := employeeFromDB(row)
+	out.Role = role
+	// Ambil email untuk melengkapi data return
+	_ = r.db.QueryRowContext(ctx, "SELECT email FROM users WHERE id = $1", userID).Scan(&out.Email)
+	
+	return out, nil
 }
 
 func (r *employeeRepository) Delete(ctx context.Context, id int32) error {

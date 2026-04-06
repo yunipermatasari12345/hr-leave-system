@@ -33,6 +33,7 @@ type RequestSummary struct {
 	EmployeeName       string
 	EmployeeDepartment string
 	EmployeePosition   string
+	LeaveTypeName      string
 }
 
 type LeaveType struct {

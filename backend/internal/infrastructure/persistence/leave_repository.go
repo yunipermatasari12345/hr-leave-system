@@ -10,11 +10,12 @@ import (
 )
 
 type leaveRepository struct {
-	q *db.Queries
+	q     *db.Queries
+	rawDB *sql.DB
 }
 
 func NewLeaveRepository(raw *sql.DB) leave.Repository {
-	return &leaveRepository{q: db.New(raw)}
+	return &leaveRepository{q: db.New(raw), rawDB: raw}
 }
 
 func leaveFromDB(l db.LeaveRequest) leave.LeaveRequest {
@@ -210,7 +211,42 @@ func (r *leaveRepository) ListAdvanced(ctx context.Context, statusFilter, depart
 	for i := range rows {
 		out[i] = summaryFromAdvanced(rows[i])
 	}
+
+	// Attach leave type name
+	types, _ := r.ListLeaveTypes(ctx)
+	typeMap := make(map[int32]string)
+	for _, t := range types {
+		typeMap[t.ID] = t.Name
+	}
+	for i := range out {
+		if name, ok := typeMap[out[i].LeaveTypeID]; ok {
+			out[i].LeaveTypeName = name
+		}
+	}
+
 	return out, nil
+}
+
+func (r *leaveRepository) Delete(ctx context.Context, id int32) error {
+	tx, err := r.rawDB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// Hapus history dulu (FK constraint)
+	_, err = tx.ExecContext(ctx, `DELETE FROM leave_histories WHERE leave_request_id = $1`, id)
+	if err != nil {
+		return err
+	}
+
+	// Hapus pengajuan cuti
+	_, err = tx.ExecContext(ctx, `DELETE FROM leave_requests WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func (r *leaveRepository) GetBalance(ctx context.Context, employeeID int32, year int32) ([]leave.LeaveBalance, error) {
@@ -252,6 +288,20 @@ func (r *leaveRepository) GetBalance(ctx context.Context, employeeID int32, year
 	return out, nil
 }
 
+func (r *leaveRepository) EnsureBalance(ctx context.Context, employeeID int32, leaveTypeID int32, year int32, totalDays int32) error {
+	// Query to insert if NOT exists
+	query := `
+		INSERT INTO leave_balances (employee_id, leave_type_id, year, total_days, used_days, remaining_days)
+		SELECT $1, $2, $3, $4, 0, $4
+		WHERE NOT EXISTS (
+			SELECT 1 FROM leave_balances 
+			WHERE employee_id = $1 AND leave_type_id = $2 AND year = $3
+		)
+	`
+	_, err := r.rawDB.ExecContext(ctx, query, employeeID, leaveTypeID, year, totalDays)
+	return err
+}
+
 func (r *leaveRepository) UpdateBalance(ctx context.Context, employeeID int32, leaveTypeID int32, year int32, daysUsed int32) error {
 	_, err := r.q.UpdateLeaveBalance(ctx, db.UpdateLeaveBalanceParams{
 		EmployeeID:  employeeID,
@@ -261,3 +311,17 @@ func (r *leaveRepository) UpdateBalance(ctx context.Context, employeeID int32, l
 	})
 	return err
 }
+
+func (r *leaveRepository) CreateHistory(ctx context.Context, leaveRequestID int32, action string, hrdNote string, actorID int32) error {
+	_, err := r.q.InsertLeaveHistory(ctx, db.InsertLeaveHistoryParams{
+		LeaveRequestID: leaveRequestID,
+		Action:         action,
+		HrdNote: sql.NullString{
+			String: hrdNote,
+			Valid:  hrdNote != "",
+		},
+		ActorID: actorID,
+	})
+	return err
+}
+

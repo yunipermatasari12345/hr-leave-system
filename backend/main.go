@@ -15,7 +15,6 @@ import (
 
 func main() {
 	config.InitDB()
-
 	raw := config.DB
 	leaveRepo := persistence.NewLeaveRepository(raw)
 	employeeRepo := persistence.NewEmployeeRepository(raw)
@@ -71,6 +70,7 @@ func main() {
 			r.Get("/api/hrd/employees", handlers.GetAllEmployees)
 			r.Get("/api/hrd/leaves", handlers.GetAllLeaves)
 			r.Put("/api/hrd/leaves/{id}/status", handlers.UpdateLeaveStatus)
+			r.Delete("/api/hrd/leaves/{id}", handlers.DeleteLeaveRequest)
 
 			// Enterprise Features
 			r.Get("/api/hrd/dashboard/stats", handlers.GetDashboardStats)
@@ -91,4 +91,4 @@ func main() {
 
 	log.Println("Server berjalan di port 8080...")
 	http.ListenAndServe(":8080", r)
-}
+}

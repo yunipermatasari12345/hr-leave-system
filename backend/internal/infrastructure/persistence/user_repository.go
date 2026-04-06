@@ -9,11 +9,12 @@ import (
 )
 
 type userRepository struct {
-	q *db.Queries
+	q  *db.Queries
+	db *sql.DB
 }
 
 func NewUserRepository(raw *sql.DB) user.Repository {
-	return &userRepository{q: db.New(raw)}
+	return &userRepository{q: db.New(raw), db: raw}
 }
 
 func userFromDB(u db.User) user.User {
@@ -51,4 +52,9 @@ func (r *userRepository) Create(ctx context.Context, email, passwordHash, role s
 		return user.User{}, err
 	}
 	return userFromDB(row), nil
+}
+
+func (r *userRepository) UpdateRole(ctx context.Context, userID int32, role string) error {
+	_, err := r.db.ExecContext(ctx, `UPDATE users SET role = $1 WHERE id = $2`, role, userID)
+	return err
 }

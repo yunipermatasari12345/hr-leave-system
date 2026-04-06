@@ -47,7 +47,11 @@ func (s *LeaveService) SubmitRequest(ctx context.Context, userID int32, leaveTyp
 	if err != nil {
 		return leave.LeaveRequest{}, err
 	}
-	return s.leaves.Create(ctx, emp.ID, leaveTypeID, start, end, days, reason, attachmentURL)
+	req, err := s.leaves.Create(ctx, emp.ID, leaveTypeID, start, end, days, reason, attachmentURL)
+	if err == nil {
+		_ = s.leaves.CreateHistory(ctx, req.ID, "SUBMITTED", reason, 0)
+	}
+	return req, err
 }
 
 func (s *LeaveService) MyRequests(ctx context.Context, userID int32) ([]leave.LeaveRequest, error) {
@@ -98,8 +102,11 @@ func (s *LeaveService) SetStatus(ctx context.Context, reviewerUserID int32, leav
 
 	// 2. Jika status berubah dari pending ke approved, kurangi kuota
 	if oldDetail.Status == leave.StatusPending && st == leave.StatusApproved {
-		// Asumsi pemotongan pada tahun yang sama dengan start_date
-		err = s.leaves.UpdateBalance(ctx, oldDetail.EmployeeID, oldDetail.LeaveTypeID, int32(oldDetail.StartDate.Year()), oldDetail.TotalDays)
+		// Sync saldo dulu agar record exist (mengurangi kemungkinan error)
+		year := int32(oldDetail.StartDate.Year())
+		_ = s.SyncBalances(ctx, oldDetail.EmployeeID, year)
+
+		err = s.leaves.UpdateBalance(ctx, oldDetail.EmployeeID, oldDetail.LeaveTypeID, year, oldDetail.TotalDays)
 		if err != nil {
 			// Logika fallback error handling apabila kurang balance, tapi karena sudah di-approve kita biarkan dulu
 		}
@@ -112,10 +119,13 @@ func (s *LeaveService) SetStatus(ctx context.Context, reviewerUserID int32, leav
 	emp, err := s.employees.GetByID(ctx, detail.EmployeeID)
 	if err == nil {
 		statusText := "disetujui"
+		action := "APPROVED"
 		if st == leave.StatusRejected {
 			statusText = "ditolak"
+			action = "REJECTED"
 		}
 		_ = s.notifs.Create(ctx, emp.UserID, "Pengajuan cuti kamu telah "+statusText)
+		_ = s.leaves.CreateHistory(ctx, detail.ID, action, hrdNote, reviewerID)
 	}
 	return updated, nil
 }
@@ -129,6 +139,8 @@ func (s *LeaveService) MyBalances(ctx context.Context, userID int32, year int32)
 	if err != nil {
 		return nil, ErrEmployeeNotFound
 	}
+	// Sync saldo setiap kali cek agar jika ada tipe cuti baru langsung muncul
+	_ = s.SyncBalances(ctx, emp.ID, year)
 	return s.leaves.GetBalance(ctx, emp.ID, year)
 }
 
@@ -138,4 +150,35 @@ func (s *LeaveService) AdvancedFilter(ctx context.Context, statusFilter, departm
 		return []leave.RequestSummary{}, nil
 	}
 	return list, nil
+}
+
+func (s *LeaveService) DeleteRequest(ctx context.Context, id int32) error {
+	// 1. Ambil data sebelum dihapus untuk cek status
+	req, err := s.leaves.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// 2. Jika status approved, kembalikan saldo (Refund)
+	if req.Status == leave.StatusApproved {
+		year := int32(req.StartDate.Year())
+		// Gunakan angka negatif untuk menambah saldo kembali di UpdateBalance
+		_ = s.leaves.UpdateBalance(ctx, req.EmployeeID, req.LeaveTypeID, year, -req.TotalDays)
+	}
+
+	return s.leaves.Delete(ctx, id)
+}
+
+func (s *LeaveService) SyncBalances(ctx context.Context, employeeID int32, year int32) error {
+	// 1. Dapatkan semua tipe cuti
+	types, err := s.leaves.ListLeaveTypes(ctx)
+	if err != nil {
+		return err
+	}
+
+	// 2. Pastikan setiap tipe cuti punya record di leave_balances untuk tahun ini
+	for _, t := range types {
+		_ = s.leaves.EnsureBalance(ctx, employeeID, t.ID, year, t.MaxDays)
+	}
+	return nil
 }

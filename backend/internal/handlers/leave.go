@@ -36,6 +36,7 @@ type LeaveResponse struct {
 	EmployeeDepartment string `json:"employee_department"`
 	EmployeePosition   string `json:"employee_position"`
 	LeaveTypeID        int32  `json:"leave_type_id"`
+	LeaveTypeName      string `json:"leave_type_name"`
 	StartDate          string `json:"start_date"`
 	EndDate            string `json:"end_date"`
 	TotalDays          int32  `json:"total_days"`
@@ -73,6 +74,7 @@ func leaveResponseFromSummary(s dleave.RequestSummary) LeaveResponse {
 	r.EmployeeName = s.EmployeeName
 	r.EmployeeDepartment = s.EmployeeDepartment
 	r.EmployeePosition = s.EmployeePosition
+	r.LeaveTypeName = s.LeaveTypeName
 	return r
 }
 
@@ -226,4 +228,26 @@ func GetLeaveTypes(w http.ResponseWriter, r *http.Request) {
 	types, _ := LeaveService.LeaveTypes(r.Context())
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(types)
+}
+
+func DeleteLeaveRequest(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "ID tidak valid"})
+		return
+	}
+
+	if err := LeaveService.DeleteRequest(r.Context(), int32(id)); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Gagal menghapus pengajuan cuti"})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Pengajuan cuti berhasil dihapus"})
 }

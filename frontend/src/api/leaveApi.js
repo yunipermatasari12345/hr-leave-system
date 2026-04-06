@@ -36,4 +36,7 @@ export const leaveApi = {
       .put(`/api/hrd/leaves/${leaveId}/status`, payload)
       .then((r) => r.data);
   },
+  deleteLeave(leaveId) {
+    return apiClient.delete(`/api/hrd/leaves/${leaveId}`).then((r) => r.data);
+  },
 };
