@@ -51,14 +51,15 @@ func GetAllEmployees(w http.ResponseWriter, r *http.Request) {
 		// Fetch balance for the employee
 		balances, err := LeaveService.MyBalances(r.Context(), e.UserID, year)
 		if err == nil {
-			var totalRemaining int32
-			var totalUsed int32
 			for _, b := range balances {
-				totalRemaining += b.RemainingDays
-				totalUsed += b.UsedDays
+				// We identify the primary "Annual Leave" (Cuti Tahunan) to display in the main list.
+				// This prevents summing irrelevant ones like Maternity leave (90 days).
+				if b.LeaveTypeName == "Cuti Tahunan" {
+					res.RemainingDays = b.RemainingDays
+					res.UsedDays = b.UsedDays
+					break
+				}
 			}
-			res.RemainingDays = totalRemaining
-			res.UsedDays = totalUsed
 		}
 		
 		result[i] = res

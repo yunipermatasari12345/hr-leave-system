@@ -43,9 +43,12 @@ export default function EmployeeDashboard() {
   const statusStyle = { pending: { bg: "#fef3c7", color: "#d97706", label: "Menunggu" }, approved: { bg: "#dcfce7", color: "#166534", label: "Disetujui" }, rejected: { bg: "#fee2e2", color: "#991b1b", label: "Ditolak" }, disetujui: { bg: "#dcfce7", color: "#166534", label: "Disetujui" } };
 
   const today = new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  const sisaCuti = balances?.reduce((acc, curr) => acc + curr.remaining_days, 0) || 0;
-  const totalTerpakai = balances?.reduce((acc, curr) => acc + curr.used_days, 0) || 0;
-  const kuotaTotal = sisaCuti + totalTerpakai;
+  
+  // Find Annual Leave balance specifically for main stats
+  const annualBalance = balances?.find(b => b.leave_type_name === "Cuti Tahunan") || { remaining_days: 0, used_days: 0, total_days: 0 };
+  const sisaCuti = annualBalance.remaining_days;
+  const totalTerpakai = annualBalance.used_days;
+  const kuotaTotal = annualBalance.total_days;
 
   const MenuItem = ({ id, label, icon }) => (
     <div onClick={() => setActivePage(id)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 8, cursor: "pointer", background: activePage === id ? activeTabStyle.bg : "transparent", color: activePage === id ? activeTabStyle.text : T.textGray, fontWeight: activePage === id ? "600" : "500", fontSize: 14, transition: "background 0.2s", marginBottom: 4 }}>
@@ -226,18 +229,24 @@ export default function EmployeeDashboard() {
              <div>
                 <h3 style={{ fontSize: 18, fontWeight: "800", color: T.textDark, margin: "0 0 16px 0" }}>Daftar Hak Cuti Karyawan</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
-                   {leaveTypes.map(type => (
-                      <div key={type.id} style={{ background: "white", borderRadius: 12, border: T.cardBorder, padding: 24, paddingLeft: 20, borderLeft: `6px solid ${T.primary}`, display: "flex", flexDirection: "column", gap: 12, transition: "transform 0.2s", cursor: "default" }} onMouseEnter={(e)=>e.currentTarget.style.transform="translateY(-4px)"} onMouseLeave={(e)=>e.currentTarget.style.transform="translateY(0)"}>
+                   {balances.map(b => (
+                      <div key={b.id} style={{ background: "white", borderRadius: 12, border: T.cardBorder, padding: 24, paddingLeft: 20, borderLeft: `6px solid ${T.primary}`, display: "flex", flexDirection: "column", gap: 12, transition: "transform 0.2s", cursor: "default" }} onMouseEnter={(e)=>e.currentTarget.style.transform="translateY(-4px)"} onMouseLeave={(e)=>e.currentTarget.style.transform="translateY(0)"}>
                          <div>
-                            <p style={{ fontSize: 15, fontWeight: "800", color: T.textDark, margin: "0 0 8px 0" }}>{type.name.toUpperCase()}</p>
-                            <span style={{ display: "inline-block", background: "#eff6ff", color: T.primary, padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: "800", textTransform: "uppercase" }}>Maks. {type.max_days} Hari / Tahun</span>
+                            <p style={{ fontSize: 13, fontWeight: "800", color: T.textDark, margin: "0 0 8px 0" }}>{b.leave_type_name.toUpperCase()}</p>
+                            <div style={{ display: "flex", gap: 8 }}>
+                               <span style={{ display: "inline-block", background: "#f0fdf4", color: T.green, padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: "800", textTransform: "uppercase" }}>Sisa: {b.remaining_days} Hari</span>
+                               <span style={{ display: "inline-block", background: "#fef2f2", color: T.red, padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: "800", textTransform: "uppercase" }}>Pakai: {b.used_days} Hari</span>
+                            </div>
                          </div>
-                         <p style={{ fontSize: 12, color: T.textGray, margin: 0, lineHeight: 1.5, fontWeight: "500" }}>
-                            Jenis cuti ini merupakan hak resmi yang diberikan perusahaan sesuai dengan ketentuan perundang-undangan ketenagakerjaan.
+                         <div style={{ height: 4, background: "#f1f5f9", borderRadius: 2, overflow: "hidden", marginTop: 4 }}>
+                            <div style={{ width: `${(b.used_days / (b.total_days || 1)) * 100}%`, height: "100%", background: T.primary }}></div>
+                         </div>
+                         <p style={{ fontSize: 11, color: T.textGray, margin: 0, lineHeight: 1.5 }}>
+                            Total kuota Anda untuk jenis cuti ini adalah {b.total_days} hari di tahun {b.year}.
                          </p>
                       </div>
                    ))}
-                   {leaveTypes.length === 0 && (
+                   {balances.length === 0 && (
                       <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: 32, background: "white", borderRadius: 12, border: T.cardBorder, color: T.textGray, fontSize: 13 }}>
                          Memuat kebijakan cuti dari server...
                       </div>

@@ -88,17 +88,17 @@ export default function Login() {
         )}
 
         {/* Form */}
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-6">
           <Input
             type="email"
             placeholder="Email"
             value={email}
             onValueChange={setEmail}
             variant="bordered"
-            radius="sm"
+            radius="md"
             classNames={{
-              inputWrapper: "border border-slate-300 hover:border-slate-400 focus-within:!border-[#0284c7] bg-white shadow-none h-[50px]",
-              input: "text-[15px] font-medium text-slate-800 placeholder:text-slate-400 placeholder:font-medium"
+              inputWrapper: "border border-slate-300 hover:border-slate-400 focus-within:!border-[#0284c7] bg-white shadow-none h-[54px] px-4",
+              input: "text-[15px] font-medium text-slate-700 placeholder:text-slate-400 outline-none focus:outline-none"
             }}
           />
 
@@ -109,10 +109,10 @@ export default function Login() {
             onValueChange={setPassword}
             onKeyDown={(e) => e.key === "Enter" && handleLogin()}
             variant="bordered"
-            radius="sm"
+            radius="md"
             classNames={{
-              inputWrapper: "border border-slate-300 hover:border-slate-400 focus-within:!border-[#0284c7] bg-white shadow-none h-[50px]",
-              input: "text-[15px] font-medium text-slate-800 placeholder:text-slate-400 placeholder:font-medium pr-10"
+              inputWrapper: "border border-slate-300 hover:border-slate-400 focus-within:!border-[#0284c7] bg-white shadow-none h-[54px] px-4",
+              input: "text-[15px] font-medium text-slate-700 placeholder:text-slate-400 pr-10 outline-none focus:outline-none"
             }}
             endContent={
               <button type="button" onClick={() => setShowPass(!showPass)} className="text-slate-400 hover:text-slate-600 outline-none pr-1 cursor-pointer">
@@ -125,9 +125,9 @@ export default function Login() {
             }
           />
 
-          <div className="flex justify-end mt-[-4px]">
-            <button className="text-[#0ea5e9] text-[15px] font-medium hover:underline cursor-pointer">
-              Lupa password ?
+          <div className="flex justify-end mt-[-8px]">
+            <button className="text-[#0ea5e9] text-[14px] font-medium hover:underline cursor-pointer">
+              Lupa password?
             </button>
           </div>
 
@@ -135,17 +135,11 @@ export default function Login() {
             disableRipple
             isLoading={loading}
             onPress={handleLogin}
-            className="w-full h-[52px] bg-[#0284c7] hover:bg-[#0369a1] text-white text-[16px] font-semibold rounded-[8px] mt-2 transition-all active:scale-[0.98]"
+            className="w-full h-[54px] bg-[#0284c7] hover:bg-[#0369a1] text-white text-[16px] font-semibold rounded-[10px] mt-4 shadow-sm"
           >
-            {loading ? "Menghubungkan..." : "Masuk"}
+            {loading ? "Sedang Masuk..." : "Masuk Sekarang"}
           </Button>
 
-          <div className="text-center mt-6">
-            <span className="text-slate-400 font-medium text-[15px]">Tidak punya akun? </span>
-            <button className="text-[#0ea5e9] font-medium text-[15px] hover:underline cursor-pointer">
-              Daftar
-            </button>
-          </div>
         </div>
       </div>
     </div>
