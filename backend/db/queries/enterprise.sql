@@ -67,11 +67,11 @@ ORDER BY lh.created_at DESC;
 
 -- name: GetLeaveRecapPerDepartment :many
 SELECT 
-  e.department,
+  d.name AS department,
   COUNT(lr.id) AS total_leaves,
-  SUM(lr.total_days)::int AS total_days
-FROM leave_requests lr
-JOIN employees e ON lr.employee_id = e.id
-WHERE lr.status = 'approved'
-GROUP BY e.department
-ORDER BY total_leaves DESC;
+  COALESCE(SUM(lr.total_days), 0)::int AS total_days
+FROM departments d
+LEFT JOIN employees e ON d.name = e.department
+LEFT JOIN leave_requests lr ON e.id = lr.employee_id AND lr.status = 'approved'
+GROUP BY d.name
+ORDER BY total_leaves DESC, d.name ASC;

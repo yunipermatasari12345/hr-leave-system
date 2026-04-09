@@ -481,7 +481,7 @@ export default function HrdDashboard() {
                <thead>
                  <tr>
                    <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase" }}>Nama & Informasi</th>
-                   <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Jabatan Sistem</th><th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Sisa Cuti</th>
+                   <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Jabatan Sistem</th><th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Penggunaan Cuti</th>
                    <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Aksi</th>
                  </tr>
                </thead>
@@ -494,7 +494,12 @@ export default function HrdDashboard() {
                             {emp.role === "hrd" ? "Staff HRD" : "Karyawan"}
                           </span>
                        </td>
-                       <td style={{ padding: "16px 24px", fontSize: 14, color: T.primary, fontWeight: "700", textAlign: "center" }}>{emp.remaining_days} <span style={{fontSize: 10, color: T.textLight}}>HARI</span></td>
+                       <td style={{ padding: "16px 24px", textAlign: "center" }}>
+                         <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "center" }}>
+                           <span style={{ fontSize: 13, color: T.red, fontWeight: "700" }}>{emp.used_days} Terpakai</span>
+                           <span style={{ fontSize: 11, color: T.textDark, fontWeight: "600" }}>{emp.remaining_days} Tersisa</span>
+                         </div>
+                       </td>
 
                       <td style={{ padding: "16px 24px", display: "flex", gap: 8, justifyContent: "center" }}>
                          <button onClick={(e) => { e.stopPropagation(); openDetail(emp); }} style={{ padding: "0 12px", height: 32, borderRadius: 6, background: T.bg, color: T.textDark, border: T.cardBorder, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "600", fontSize: 12 }}>Detail</button>
@@ -657,7 +662,7 @@ export default function HrdDashboard() {
                    <div><p style={{ fontSize: 11, fontWeight: "700", color: T.textGray, margin: "0 0 4px 0", textTransform: "uppercase" }}>Nomor HP</p><p style={{ fontSize: 14, fontWeight: "600", color: T.textDark, margin: 0 }}>{detailEmp.phone || "-"}</p></div>
                    <div><p style={{ fontSize: 11, fontWeight: "700", color: T.textGray, margin: "0 0 4px 0", textTransform: "uppercase" }}>Departemen</p><p style={{ fontSize: 14, fontWeight: "600", color: T.textDark, margin: 0 }}>{detailEmp.department}</p></div>
                    <div><p style={{ fontSize: 11, fontWeight: "700", color: T.textGray, margin: "0 0 4px 0", textTransform: "uppercase" }}>Jabatan</p><p style={{ fontSize: 14, fontWeight: "600", color: T.textDark, margin: 0 }}>{detailEmp.position}</p></div>
-                   <div><p style={{ fontSize: 11, fontWeight: "700", color: T.textGray, margin: "0 0 4px 0", textTransform: "uppercase" }}>Sisa Cuti Tahunan</p><p style={{ fontSize: 14, fontWeight: "700", color: T.primary, margin: 0 }}>{detailEmp.remaining_days} Hari</p></div>
+                   <div><p style={{ fontSize: 11, fontWeight: "700", color: T.textGray, margin: "0 0 4px 0", textTransform: "uppercase" }}>Penggunaan Cuti</p><p style={{ fontSize: 14, fontWeight: "700", color: T.textDark, margin: 0 }}><span style={{color: T.red}}>{detailEmp.used_days} Terpakai</span> &nbsp;·&nbsp; {detailEmp.remaining_days} Sisa</p></div>
                 </div>
              </div>
              <Button disableRipple onPress={() => setDetailModalOpen(false)} style={{ marginTop: 24, width: "100%", background: T.bg, color: T.textDark, fontWeight: "700", height: 48, borderRadius: 12 }}>Tutup Window</Button>

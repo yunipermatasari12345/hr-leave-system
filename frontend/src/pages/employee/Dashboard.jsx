@@ -44,11 +44,10 @@ export default function EmployeeDashboard() {
 
   const today = new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   
-  // Find Annual Leave balance specifically for main stats
-  const annualBalance = balances?.find(b => b.leave_type_name === "Cuti Tahunan") || { remaining_days: 0, used_days: 0, total_days: 0 };
-  const sisaCuti = annualBalance.remaining_days;
-  const totalTerpakai = annualBalance.used_days;
-  const kuotaTotal = annualBalance.total_days;
+  // Calculate total balance for all leave types combined
+  const sisaCuti = balances?.reduce((sum, b) => sum + (b.remaining_days || 0), 0) || 0;
+  const totalTerpakai = balances?.reduce((sum, b) => sum + (b.used_days || 0), 0) || 0;
+  const kuotaTotal = balances?.reduce((sum, b) => sum + (b.total_days || 0), 0) || 0;
 
   const MenuItem = ({ id, label, icon }) => (
     <div onClick={() => setActivePage(id)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 8, cursor: "pointer", background: activePage === id ? activeTabStyle.bg : "transparent", color: activePage === id ? activeTabStyle.text : T.textGray, fontWeight: activePage === id ? "600" : "500", fontSize: 14, transition: "background 0.2s", marginBottom: 4 }}>
