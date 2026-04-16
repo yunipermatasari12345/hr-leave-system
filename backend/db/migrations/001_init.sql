@@ -66,5 +66,5 @@ INSERT INTO leave_types (name, max_days, description) VALUES
 ('Cuti Tahunan', 12, 'Cuti tahunan reguler'),
 ('Cuti Sakit', 14, 'Cuti karena sakit dengan surat dokter'),
 ('Cuti Melahirkan', 90, 'Cuti untuk karyawan melahirkan'),
-('Cuti Menikah', 3, 'Cuti untuk pernikahan'),
+('Cuti Menikah', 5, 'Cuti untuk pernikahan'),
 ('Cuti Darurat', 3, 'Cuti untuk keperluan darurat');
