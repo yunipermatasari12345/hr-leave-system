@@ -9,6 +9,15 @@ import (
 	"time"
 )
 
+type AuditLog struct {
+	ID        int32          `json:"id"`
+	UserID    sql.NullInt32  `json:"user_id"`
+	Action    string         `json:"action"`
+	Path      string         `json:"path"`
+	IpAddress sql.NullString `json:"ip_address"`
+	CreatedAt sql.NullTime   `json:"created_at"`
+}
+
 type Department struct {
 	ID          int32          `json:"id"`
 	Name        string         `json:"name"`
