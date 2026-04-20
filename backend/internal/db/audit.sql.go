@@ -10,6 +10,66 @@ import (
 	"database/sql"
 )
 
+const getAuditLogs = `-- name: GetAuditLogs :many
+SELECT 
+    al.id, 
+    al.user_id, 
+    COALESCE(e.full_name, 'System/Guest')::TEXT AS full_name,
+    COALESCE(u.email, '-')::TEXT AS email,
+    al.action, 
+    al.path, 
+    al.ip_address, 
+    al.created_at
+FROM audit_logs al
+LEFT JOIN users u ON al.user_id = u.id
+LEFT JOIN employees e ON al.user_id = e.user_id
+ORDER BY al.created_at DESC
+LIMIT 100
+`
+
+type GetAuditLogsRow struct {
+	ID        int32          `json:"id"`
+	UserID    sql.NullInt32  `json:"user_id"`
+	FullName  string         `json:"full_name"`
+	Email     string         `json:"email"`
+	Action    string         `json:"action"`
+	Path      string         `json:"path"`
+	IpAddress sql.NullString `json:"ip_address"`
+	CreatedAt sql.NullTime   `json:"created_at"`
+}
+
+func (q *Queries) GetAuditLogs(ctx context.Context) ([]GetAuditLogsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAuditLogs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAuditLogsRow
+	for rows.Next() {
+		var i GetAuditLogsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.FullName,
+			&i.Email,
+			&i.Action,
+			&i.Path,
+			&i.IpAddress,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const logAudit = `-- name: LogAudit :one
 INSERT INTO audit_logs (
     user_id,

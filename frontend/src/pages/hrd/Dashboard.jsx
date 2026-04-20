@@ -6,6 +6,7 @@ import { exportLeavesWithImages } from "../../utils/excelExport";
 import { leaveApi } from "../../api/leaveApi";
 import { employeeApi } from "../../api/employeeApi";
 import { reportingApi } from "../../api/reportingApi";
+import { auditApi } from "../../api/auditApi";
 import { STORAGE_KEYS } from "../../constants/storage";
 import { API_BASE_URL } from "../../constants/config";
 
@@ -49,6 +50,7 @@ export default function HrdDashboard() {
 
   const [filterStatus, setFilterStatus] = useState("");
   const [filterDept, setFilterDept] = useState("");
+  const [auditLogs, setAuditLogs] = useState([]);
 
   useEffect(() => {
     const fetchData = () => {
@@ -59,10 +61,12 @@ export default function HrdDashboard() {
         fetchMasterData();
         fetchReports();
       }
+      // Selalu ambil data audit terbaru di balik layar
+      fetchAuditLogs();
     };
     
     fetchData();
-    const interval = setInterval(fetchData, 5000);
+    const interval = setInterval(fetchData, 3000);
     return () => clearInterval(interval);
   }, [activePage, filterStatus, filterDept]);
 
@@ -104,6 +108,13 @@ export default function HrdDashboard() {
     try {
       const data = await reportingApi.leaveRecapPerDepartment();
       setReports(data || []);
+    } catch {}
+  };
+
+  const fetchAuditLogs = async () => {
+    try {
+      const data = await auditApi.getAuditLogs();
+      setAuditLogs(data || []);
     } catch {}
   };
 
@@ -215,6 +226,7 @@ export default function HrdDashboard() {
           <MenuItem id="leaves" label="Pengajuan Cuti" icon="📑" />
           <MenuItem id="employees" label="Data Karyawan" icon="👥" />
           <MenuItem id="reports" label="Laporan Ekspor" icon="📊" />
+          <MenuItem id="audit" label="Audit Trail" icon="🛡️" />
         </div>
 
         {/* RINGKASAN PERUSAHAAN (Optional) */}
@@ -539,6 +551,56 @@ export default function HrdDashboard() {
                  {reports.length === 0 && <tr><td colSpan="3" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: T.textGray }}>Tidak ada data.</td></tr>}
                </tbody>
              </table>
+           </div>
+        )}
+
+        {activePage === "audit" && (
+           <div style={{ background: "white", borderRadius: 12, border: T.cardBorder }}>
+             <div style={{ padding: "20px 24px", borderBottom: T.cardBorder, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+               <div>
+                 <h3 style={{ margin: 0, fontSize: 18, fontWeight: "700", color: T.textDark }}>Sistem Audit Trail</h3>
+                 <p style={{ margin: "4px 0 0 0", fontSize: 13, color: T.textGray }}>Memantau riwayat aktivitas semua pengguna di dalam sistem</p>
+               </div>
+               <Button disableRipple size="sm" onClick={fetchAuditLogs} style={{ background: T.bg, border: T.cardBorder, color: T.textDark, fontWeight: "600", borderRadius: 8, height: 38 }}>🔄 Segarkan</Button>
+             </div>
+             <div style={{ overflowX: "auto" }}>
+               <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+                 <thead>
+                   <tr>
+                     <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase" }}>Waktu</th>
+                     <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase" }}>Pengguna</th>
+                     <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Aksi</th>
+                     <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase" }}>Path API</th>
+                     <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase" }}>IP Address</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                   {auditLogs.map((log, idx) => (
+                     <tr key={idx} style={{ borderBottom: T.cardBorder, transition: "background 0.1s" }}
+                         onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"}
+                         onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                     >
+                        <td style={{ padding: "16px 24px", fontSize: 13, color: T.textDark }}>
+                          {new Date(log.created_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
+                        </td>
+                        <td style={{ padding: "16px 24px", fontSize: 13, color: T.textDark, fontWeight: "600" }}>{log.full_name}<br/><span style={{fontSize: 11, color: T.textGray, fontWeight: "normal"}}>{log.email}</span></td>
+                        <td style={{ padding: "16px 24px", textAlign: "center" }}>
+                          <span style={{ 
+                            display: "inline-block", padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: "700",
+                            background: log.action === "GET" ? "#e0f2fe" : log.action === "POST" ? "#dcfce7" : log.action === "PUT" ? "#fef3c7" : log.action === "DELETE" ? "#fee2e2" : "#f1f5f9",
+                            color: log.action === "GET" ? "#0284c7" : log.action === "POST" ? "#16a34a" : log.action === "PUT" ? "#d97706" : log.action === "DELETE" ? "#dc2626" : "#475569"
+                          }}>
+                            {log.action}
+                          </span>
+                        </td>
+                        <td style={{ padding: "16px 24px", fontSize: 13, color: T.textGray, fontFamily: "monospace" }}>{log.path}</td>
+                        <td style={{ padding: "16px 24px", fontSize: 13, color: T.textGray }}>{log.ip_address || "-"}</td>
+                     </tr>
+                   ))}
+                   {auditLogs.length === 0 && <tr><td colSpan="5" style={{ padding: "40px", textAlign: "center", fontSize: 14, color: T.textGray }}>Belum ada rekaman audit.</td></tr>}
+                 </tbody>
+               </table>
+             </div>
            </div>
         )}
 

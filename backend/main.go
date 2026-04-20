@@ -78,6 +78,7 @@ func main() {
 			r.Get("/api/hrd/dashboard/monthly", handlers.GetMonthlyStats)
 			r.Get("/api/hrd/leaves/advanced", handlers.GetAdvancedLeaves)
 			r.Get("/api/hrd/reports/departments", handlers.GetLeaveRecapPerDepartment)
+			r.Get("/api/hrd/audit-logs", handlers.GetAuditLogs)
 			
 			// Master Data
 			r.Get("/api/hrd/departments", handlers.GetDepartments)
