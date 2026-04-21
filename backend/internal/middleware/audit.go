@@ -10,15 +10,35 @@ import (
 	"hr-leave-system/internal/db"
 )
 
+type responseRecorder struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (rec *responseRecorder) WriteHeader(statusCode int) {
+	rec.statusCode = statusCode
+	rec.ResponseWriter.WriteHeader(statusCode)
+}
+
 func AuditLogMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Jalankan request terlebih dahulu (termasuk diproses oleh router/handler selanjutnya)
-		next.ServeHTTP(w, r)
+		rec := &responseRecorder{
+			ResponseWriter: w,
+			statusCode:     http.StatusOK, // default
+		}
+
+		// Jalankan request
+		next.ServeHTTP(rec, r)
 
 		method := r.Method
-		// Sesuai instruksi: catat PUT, GET, DELETE (dan POST sebagai bonus umum)
-		if method == http.MethodGet || method == http.MethodPut || method == http.MethodDelete || method == http.MethodPost {
+		// Catat aksi pembaruan data (POST, PUT, DELETE, PATCH)
+		if method == http.MethodPost || method == http.MethodPut || method == http.MethodDelete || method == http.MethodPatch {
 			
+			// Jika gagal (dibatalkan, validasi error, dsb), JANGAN DITULIS KE LOG
+			if rec.statusCode >= 400 {
+				return
+			}
+
 			var userID sql.NullInt32
 			val := r.Context().Value(UserIDKey)
 			if val != nil {
@@ -32,9 +52,8 @@ func AuditLogMiddleware(next http.Handler) http.Handler {
 				}
 			}
 
-			// Simpan catat aktivitas ke audit log
+			// Simpan ke database asinkron
 			go func(reqMethod, reqPath, reqIP string, uid sql.NullInt32) {
-				// Cegah crash jika config.DB belum inisialisasi sepenuhnya, walau kecil kemungkinannya
 				if config.DB == nil {
 					return
 				}
@@ -49,7 +68,6 @@ func AuditLogMiddleware(next http.Handler) http.Handler {
 					},
 				})
 				if err != nil {
-					// Hanya rekam ke error log, jangan mengganggu flow utama
 					log.Printf("[Audit] Gagal merekam jejak operasi %s di %s: %v\n", reqMethod, reqPath, err)
 				}
 			}(method, r.URL.Path, r.RemoteAddr, userID)
