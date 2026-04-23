@@ -137,6 +137,19 @@ func (r *leaveRepository) ListByEmployee(ctx context.Context, employeeID int32) 
 	for i := range rows {
 		out[i] = leaveFromDB(rows[i])
 	}
+	
+	// Attach leave type name
+	types, _ := r.ListLeaveTypes(ctx)
+	typeMap := make(map[int32]string)
+	for _, t := range types {
+		typeMap[t.ID] = t.Name
+	}
+	for i := range out {
+		if name, ok := typeMap[out[i].LeaveTypeID]; ok {
+			out[i].LeaveTypeName = name
+		}
+	}
+
 	return out, nil
 }
 

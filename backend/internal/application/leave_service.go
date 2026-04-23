@@ -182,3 +182,60 @@ func (s *LeaveService) SyncBalances(ctx context.Context, employeeID int32, year 
 	}
 	return nil
 }
+
+func (s *LeaveService) SubmitManualRequest(ctx context.Context, hrUserID int32, targetEmployeeID int32, leaveTypeID int32, startStr, endStr, reason, attachmentURL string) (leave.LeaveRequest, error) {
+	// HR validation
+	hrEmp, err := s.employees.GetByUserID(ctx, hrUserID)
+	if err != nil {
+		return leave.LeaveRequest{}, ErrEmployeeNotFound
+	}
+
+	// Target employee validation
+	targetEmp, err := s.employees.GetByID(ctx, targetEmployeeID)
+	if err != nil {
+		return leave.LeaveRequest{}, ErrEmployeeNotFound
+	}
+
+	if startStr == "" || endStr == "" || reason == "" {
+		return leave.LeaveRequest{}, ErrValidation
+	}
+	start, err := time.Parse("2006-01-02", startStr)
+	if err != nil {
+		return leave.LeaveRequest{}, ErrValidation
+	}
+	end, err := time.Parse("2006-01-02", endStr)
+	if err != nil {
+		return leave.LeaveRequest{}, ErrValidation
+	}
+	days, err := leave.ComputeTotalDays(start, end)
+	if err != nil {
+		return leave.LeaveRequest{}, err
+	}
+	
+	// Create request
+	req, err := s.leaves.Create(ctx, targetEmp.ID, leaveTypeID, start, end, days, reason, attachmentURL)
+	if err != nil {
+		return leave.LeaveRequest{}, err
+	}
+	
+	_ = s.leaves.CreateHistory(ctx, req.ID, "SUBMITTED", reason, hrEmp.ID)
+
+	// Since this is manually inputted by HRD, we auto-approve it immediately.
+	st := leave.StatusApproved
+	
+	// Fast track SetStatus logic manually reducing balance
+	year := int32(req.StartDate.Year())
+	_ = s.SyncBalances(ctx, req.EmployeeID, year)
+	
+	// Update status
+	_, err = s.leaves.UpdateStatus(ctx, req.ID, st, "Disetujui Otomatis (Input Manual HRD)", hrEmp.ID)
+	if err == nil {
+		// Cut balance
+		_ = s.leaves.UpdateBalance(ctx, req.EmployeeID, req.LeaveTypeID, year, req.TotalDays)
+		_ = s.leaves.CreateHistory(ctx, req.ID, "APPROVED", "Disetujui Otomatis (Input Manual HRD)", hrEmp.ID)
+		_ = s.notifs.Create(ctx, targetEmp.UserID, "HRD telah menginput pengajuan cutimu secara manual dan otomatis disetujui.")
+	}
+
+	return req, nil
+}
+

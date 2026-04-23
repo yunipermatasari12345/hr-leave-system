@@ -26,6 +26,7 @@ type LeaveRequest struct {
 	ReviewedBy    int32
 	CreatedAt     time.Time
 	HasCreatedAt  bool
+	LeaveTypeName string
 }
 
 type RequestSummary struct {

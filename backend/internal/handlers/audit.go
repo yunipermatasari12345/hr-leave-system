@@ -42,7 +42,7 @@ func GetAuditLogs(w http.ResponseWriter, r *http.Request) {
 		
 		createdAt := ""
 		if l.CreatedAt.Valid {
-			createdAt = l.CreatedAt.Time.Format("2006-01-02T15:04:05Z07:00")
+			createdAt = l.CreatedAt.Time.Format("2006-01-02T15:04:05")
 		}
 
 		response = append(response, AuditLogDTO{

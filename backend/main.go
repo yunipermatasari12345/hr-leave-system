@@ -74,6 +74,7 @@ func main() {
 			r.Delete("/api/hrd/leaves/{id}", handlers.DeleteLeaveRequest)
 
 			// Enterprise Features
+			r.Post("/api/hrd/leaves/manual", handlers.CreateManualLeaveHR)
 			r.Get("/api/hrd/dashboard/stats", handlers.GetDashboardStats)
 			r.Get("/api/hrd/dashboard/monthly", handlers.GetMonthlyStats)
 			r.Get("/api/hrd/leaves/advanced", handlers.GetAdvancedLeaves)

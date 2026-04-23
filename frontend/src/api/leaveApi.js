@@ -24,6 +24,12 @@ export const leaveApi = {
     return apiClient.put(`/api/employee/notifications/${id}/read`).then((r) => r.data);
   },
   /** HRD: filter opsional status & department */
+  createManualLeaveHR(payload) {
+    const isFormData = payload instanceof FormData;
+    return apiClient.post("/api/hrd/leaves/manual", payload, {
+      headers: isFormData ? { "Content-Type": "multipart/form-data" } : {},
+    }).then((r) => r.data);
+  },
   getAdvancedForHR({ status = "", department = "" } = {}) {
     return apiClient
       .get("/api/hrd/leaves/advanced", {

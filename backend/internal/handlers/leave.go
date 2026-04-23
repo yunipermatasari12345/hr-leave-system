@@ -57,6 +57,7 @@ func leaveResponseFromDomain(l dleave.LeaveRequest) LeaveResponse {
 		ID:            l.ID,
 		EmployeeID:    l.EmployeeID,
 		LeaveTypeID:   l.LeaveTypeID,
+		LeaveTypeName: l.LeaveTypeName,
 		StartDate:     l.StartDate.Format("2006-01-02"),
 		EndDate:       l.EndDate.Format("2006-01-02"),
 		TotalDays:     l.TotalDays,
@@ -74,7 +75,9 @@ func leaveResponseFromSummary(s dleave.RequestSummary) LeaveResponse {
 	r.EmployeeName = s.EmployeeName
 	r.EmployeeDepartment = s.EmployeeDepartment
 	r.EmployeePosition = s.EmployeePosition
-	r.LeaveTypeName = s.LeaveTypeName
+	if s.LeaveTypeName != "" {
+		r.LeaveTypeName = s.LeaveTypeName
+	}
 	return r
 }
 
@@ -251,3 +254,51 @@ func DeleteLeaveRequest(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Pengajuan cuti berhasil dihapus"})
 }
+
+func CreateManualLeaveHR(w http.ResponseWriter, r *http.Request) {
+	hrUserID := int32(r.Context().Value(middleware.UserIDKey).(float64))
+
+	r.ParseMultipartForm(10 << 20)
+
+	targetEmployeeIDStr := r.FormValue("employee_id")
+	leaveTypeIDStr := r.FormValue("leave_type_id")
+	startDate := r.FormValue("start_date")
+	endDate := r.FormValue("end_date")
+	reason := r.FormValue("reason")
+
+	targetEmployeeID, _ := strconv.Atoi(targetEmployeeIDStr)
+	leaveTypeID, _ := strconv.Atoi(leaveTypeIDStr)
+
+	attachmentURL := ""
+	file, header, fileErr := r.FormFile("attachment")
+	if fileErr == nil && file != nil {
+		defer file.Close()
+		os.MkdirAll("uploads", os.ModePerm)
+		ext := filepath.Ext(header.Filename)
+		filename := fmt.Sprintf("uploads/manual_%d_%d%s", targetEmployeeID, time.Now().UnixNano(), ext)
+		dst, err := os.Create(filename)
+		if err == nil {
+			defer dst.Close()
+			io.Copy(dst, file)
+			attachmentURL = "/" + filename
+		}
+	}
+
+	created, err := LeaveService.SubmitManualRequest(r.Context(), hrUserID, int32(targetEmployeeID), int32(leaveTypeID), startDate, endDate, reason, attachmentURL)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		if errors.Is(err, application.ErrValidation) || errors.Is(err, dleave.ErrInvalidDateRange) {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Data cuti tidak valid"})
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Gagal menyimpan cuti manual"})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(leaveResponseFromDomain(created))
+}
+
