@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"hr-leave-system/config"
-	"hr-leave-system/internal/db"
+	"hr-leave-system/core/db"
 )
 
 func GetAuditLogs(w http.ResponseWriter, r *http.Request) {

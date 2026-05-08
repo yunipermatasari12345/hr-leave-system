@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"time"
 
-	db "hr-leave-system/internal/db"
-	"hr-leave-system/internal/domain/leave"
+	db "hr-leave-system/core/db"
+	"hr-leave-system/core/domain/leave"
 )
 
 type leaveRepository struct {

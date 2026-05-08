@@ -3,7 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"hr-leave-system/internal/application"
+	"hr-leave-system/core/application"
 	"net/http"
 )
 

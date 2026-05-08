@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	db "hr-leave-system/internal/db"
-	"hr-leave-system/internal/domain/notification"
+	db "hr-leave-system/core/db"
+	"hr-leave-system/core/domain/notification"
 )
 
 type notificationRepository struct {

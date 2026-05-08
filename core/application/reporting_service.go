@@ -3,7 +3,7 @@ package application
 import (
 	"context"
 
-	"hr-leave-system/internal/domain/reporting"
+	"hr-leave-system/core/domain/reporting"
 )
 
 type ReportingService struct {

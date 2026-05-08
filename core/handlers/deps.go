@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"hr-leave-system/internal/application"
+	"hr-leave-system/core/application"
 )
 
 var (

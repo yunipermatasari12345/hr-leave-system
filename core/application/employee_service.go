@@ -3,7 +3,7 @@ package application
 import (
 	"context"
 
-	"hr-leave-system/internal/domain/employee"
+	"hr-leave-system/core/domain/employee"
 )
 
 type EmployeeService struct {

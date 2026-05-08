@@ -6,8 +6,8 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"hr-leave-system/internal/domain/notification"
-	"hr-leave-system/internal/middleware"
+	"hr-leave-system/core/domain/notification"
+	"hr-leave-system/core/middleware"
 )
 
 var NotificationRepo notification.Repository

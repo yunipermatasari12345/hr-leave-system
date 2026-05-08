@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"hr-leave-system/internal/domain/employee"
-	"hr-leave-system/internal/domain/user"
+	"hr-leave-system/core/domain/employee"
+	"hr-leave-system/core/domain/user"
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"

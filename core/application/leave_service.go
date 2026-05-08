@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"hr-leave-system/internal/domain/employee"
-	"hr-leave-system/internal/domain/leave"
-	"hr-leave-system/internal/domain/notification"
+	"hr-leave-system/core/domain/employee"
+	"hr-leave-system/core/domain/leave"
+	"hr-leave-system/core/domain/notification"
 )
 
 type LeaveService struct {

@@ -2,10 +2,10 @@ package main
 
 import (
 	"hr-leave-system/config"
-	"hr-leave-system/internal/application"
-	"hr-leave-system/internal/handlers"
-	"hr-leave-system/internal/infrastructure/persistence"
-	mw "hr-leave-system/internal/middleware"
+	"hr-leave-system/core/application"
+	"hr-leave-system/core/handlers"
+	"hr-leave-system/core/infrastructure/persistence"
+	mw "hr-leave-system/core/middleware"
 	"fmt"
 	"log"
 	"net/http"

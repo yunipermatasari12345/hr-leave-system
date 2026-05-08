@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"hr-leave-system/internal/domain/employee"
+	"hr-leave-system/core/domain/employee"
 )
 
 type EmployeeResponse struct {
