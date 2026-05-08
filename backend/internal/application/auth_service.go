@@ -73,28 +73,70 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (AuthOu
 	}
 	defer resp.Body.Close()
 
-	// 2. Cek apakah email terdaftar di sistem HR lokal (Neon)
+	// 2. Ambil data dari response Appskep
+	var appskepResp struct {
+		Success bool `json:"success"`
+		Data    struct {
+			User struct {
+				ID   int    `json:"id"`
+				Name string `json:"name"`
+			} `json:"user"`
+			Employee struct {
+				Position   string `json:"position"`
+				Department string `json:"department"`
+			} `json:"employee"`
+		} `json:"data"`
+	}
+	
+	respBody, _ := io.ReadAll(resp.Body)
+	_ = json.Unmarshal(respBody, &appskepResp)
+
 	normalizedEmail := strings.ToLower(strings.TrimSpace(email))
 	u, err := s.users.GetByEmail(ctx, normalizedEmail)
-	if err != nil {
-		fmt.Printf("[DEBUG] User not found in local DB: %s\n", normalizedEmail)
-		return AuthOutput{}, errors.New("email registered in Appskep but not in HR system")
-	}
-
-	// Baca body untuk debugging jika gagal
-	respBody, _ := io.ReadAll(resp.Body)
-	fmt.Printf("[DEBUG] Appskep Response Status: %d\n", resp.StatusCode)
-	if resp.StatusCode != http.StatusOK {
-		fmt.Printf("[DEBUG] Appskep Rejection Body: %s\n", string(respBody))
-	}
-	// Jika gagal di Appskep, kita coba fallback ke password lokal di DB Neon
-	if resp.StatusCode != http.StatusOK {
-		fmt.Printf("[DEBUG] Appskep rejected. Attempting local DB fallback for: %s\n", normalizedEmail)
-		if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)); err != nil {
-			fmt.Printf("[DEBUG] Local DB fallback also failed (wrong password).\n")
+	
+	// Jika Login Appskep Berhasil (Status 200)
+	if resp.StatusCode == http.StatusOK {
+		fmt.Printf("[DEBUG] Appskep Login SUCCESS for: %s\n", normalizedEmail)
+		
+		// Jika user belum ada di DB lokal, BUAT OTOMATIS
+		if err != nil {
+			fmt.Printf("[DEBUG] Creating new local account for synced user: %s\n", normalizedEmail)
+			
+			// Buat User
+			role := "EMPLOYEE"
+			if strings.Contains(strings.ToLower(appskepResp.Data.Employee.Position), "hrd") || 
+			   strings.Contains(strings.ToLower(appskepResp.Data.Employee.Department), "hrd") {
+				role = "HRD"
+			}
+			
+			newUserID, err := s.users.Create(ctx, normalizedEmail, password, role)
+			if err != nil {
+				return AuthOutput{}, fmt.Errorf("failed to auto-create user: %w", err)
+			}
+			
+			// Buat Employee
+			dept := appskepResp.Data.Employee.Department
+			if dept == "" { dept = "Grup Umum" }
+			pos := appskepResp.Data.Employee.Position
+			if pos == "" { pos = "Staff" }
+			
+			_, err = s.employees.Create(ctx, newUserID, appskepResp.Data.User.Name, dept, pos)
+			if err != nil {
+				return AuthOutput{}, fmt.Errorf("failed to auto-create employee: %w", err)
+			}
+			
+			// Ambil lagi user-nya
+			u, _ = s.users.GetByEmail(ctx, normalizedEmail)
+		}
+	} else {
+		// Jika Gagal di Appskep, coba fallback ke password lokal (untuk akun buatan manual)
+		fmt.Printf("[DEBUG] Appskep rejected (%d). Attempting local fallback.\n", resp.StatusCode)
+		if err != nil {
 			return AuthOutput{}, ErrUnauthorized
 		}
-		fmt.Printf("[DEBUG] Local DB fallback SUCCESS!\n")
+		if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)); err != nil {
+			return AuthOutput{}, ErrUnauthorized
+		}
 	}
 
 	// 3. Generate token lokal kita sendiri
