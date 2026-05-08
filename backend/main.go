@@ -50,7 +50,11 @@ func main() {
 	})
 
 	// Route publik
-	r.Post("/api/auth/login", handlers.Login)
+	r.Post("/api/auth/login", func(w http.ResponseWriter, r *http.Request) {
+		log.Println(">>> REQUEST LOGIN MASUK KE SERVER <<<")
+		fmt.Println(">>> REQUEST LOGIN MASUK KE SERVER <<<")
+		handlers.Login(w, r)
+	})
 	r.Post("/api/auth/verify", handlers.VerifyRegistration)
 	r.Get("/api/leave-types", handlers.GetLeaveTypes)
 
