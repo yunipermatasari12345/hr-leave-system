@@ -16,8 +16,8 @@ COPY backend/go.mod backend/go.sum ./
 RUN go mod download
 # Copy sisa kode backend dan build
 COPY backend/ ./
-# Build binary Go-nya
-RUN go build -o main .
+# Build binary Go-nya dari main.go untuk menghindari error fungsi main yang bentrok
+RUN go build -o main main.go
 
 # Tahap 3: Final Image
 FROM alpine:latest
