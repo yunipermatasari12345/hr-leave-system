@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -49,8 +48,15 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (AuthOu
 		return AuthOutput{}, ErrValidation
 	}
 
-	// 1. Verifikasi ke API Appskep Kantor (External)
-	// Kita lakukan via server-to-server untuk menghindari blokir Cloudflare di browser
+	// 2. Cek apakah email terdaftar di sistem HR lokal (Neon)
+	normalizedEmail := strings.ToLower(strings.TrimSpace(email))
+	u, err := s.users.GetByEmail(ctx, normalizedEmail)
+	if err != nil {
+		fmt.Printf("[DEBUG] User not found in local DB: %s\n", normalizedEmail)
+		return AuthOutput{}, errors.New("email ini belum didaftarkan oleh HRD di sistem cuti")
+	}
+
+	// 3. Verifikasi ke API Appskep Kantor (External) via Server Proxy
 	appskepURL := "https://dev-base.appskep.id/api/login"
 	loginData := map[string]string{
 		"email":    email,
@@ -65,35 +71,17 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (AuthOu
 	req.Header.Set("Origin", "https://dev-base.appskep.id")
 	req.Header.Set("Referer", "https://dev-base.appskep.id/")
 
-	client := &http.Client{Timeout: 15 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Printf("[ERROR] Appskep Connection Error: %v", err)
-		return AuthOutput{}, fmt.Errorf("failed to connect to Appskep API: %w", err)
-	}
-	defer resp.Body.Close()
-
-	// 2. Cek apakah email terdaftar di sistem HR lokal (Neon)
-	normalizedEmail := strings.ToLower(strings.TrimSpace(email))
-	u, err := s.users.GetByEmail(ctx, normalizedEmail)
-	if err != nil {
-		fmt.Printf("[DEBUG] User not found in local DB: %s\n", normalizedEmail)
-		return AuthOutput{}, errors.New("email ini belum didaftarkan oleh HRD di sistem cuti")
-	}
-
-	// 3. Verifikasi ke API Appskep Kantor
-	loginData := map[string]string{"email": email, "password": password}
-	jsonData, _ := json.Marshal(loginData)
-	req, _ := http.NewRequestWithContext(ctx, "POST", "https://dev-base.appskep.id/api/login", bytes.NewBuffer(jsonData))
-	req.Header.Set("Content-Type", "application/json")
-	
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	
-	// Jika Appskep OK (200), berarti login sukses
+	// Jika koneksi sukses dan Appskep OK (200), berarti login sukses
 	if err == nil && resp.StatusCode == http.StatusOK {
 		fmt.Printf("[DEBUG] Appskep Login SUCCESS for: %s\n", normalizedEmail)
+		resp.Body.Close()
 	} else {
+		if resp != nil {
+			resp.Body.Close()
+		}
 		// Fallback ke password lokal di DB Neon (jika Appskep gagal/password beda)
 		fmt.Printf("[DEBUG] Appskep failed/rejected. Trying local fallback.\n")
 		if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)); err != nil {
