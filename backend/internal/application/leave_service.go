@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"hr-leave-system/internal/domain/employee"
