@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -120,7 +119,7 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (AuthOu
 			pos := appskepResp.Data.Employee.Position
 			if pos == "" { pos = "Staff" }
 			
-			_, err = s.employees.Create(ctx, newUserID, appskepResp.Data.User.Name, dept, pos)
+			_, err = s.employees.Create(ctx, int32(newUserID), appskepResp.Data.User.Name, dept, pos, "")
 			if err != nil {
 				return AuthOutput{}, fmt.Errorf("failed to auto-create employee: %w", err)
 			}
