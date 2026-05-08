@@ -72,67 +72,29 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (AuthOu
 	}
 	defer resp.Body.Close()
 
-	// 2. Ambil data dari response Appskep
-	var appskepResp struct {
-		Success bool `json:"success"`
-		Data    struct {
-			User struct {
-				ID   int    `json:"id"`
-				Name string `json:"name"`
-			} `json:"user"`
-			Employee struct {
-				Position   string `json:"position"`
-				Department string `json:"department"`
-			} `json:"employee"`
-		} `json:"data"`
-	}
-	
-	respBody, _ := io.ReadAll(resp.Body)
-	_ = json.Unmarshal(respBody, &appskepResp)
-
+	// 2. Cek apakah email terdaftar di sistem HR lokal (Neon)
 	normalizedEmail := strings.ToLower(strings.TrimSpace(email))
 	u, err := s.users.GetByEmail(ctx, normalizedEmail)
+	if err != nil {
+		fmt.Printf("[DEBUG] User not found in local DB: %s\n", normalizedEmail)
+		return AuthOutput{}, errors.New("email ini belum didaftarkan oleh HRD di sistem cuti")
+	}
+
+	// 3. Verifikasi ke API Appskep Kantor
+	loginData := map[string]string{"email": email, "password": password}
+	jsonData, _ := json.Marshal(loginData)
+	req, _ := http.NewRequestWithContext(ctx, "POST", "https://dev-base.appskep.id/api/login", bytes.NewBuffer(jsonData))
+	req.Header.Set("Content-Type", "application/json")
 	
-	// Jika Login Appskep Berhasil (Status 200)
-	if resp.StatusCode == http.StatusOK {
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	
+	// Jika Appskep OK (200), berarti login sukses
+	if err == nil && resp.StatusCode == http.StatusOK {
 		fmt.Printf("[DEBUG] Appskep Login SUCCESS for: %s\n", normalizedEmail)
-		
-		// Jika user belum ada di DB lokal, BUAT OTOMATIS
-		if err != nil {
-			fmt.Printf("[DEBUG] Creating new local account for synced user: %s\n", normalizedEmail)
-			
-			// Buat User
-			role := "EMPLOYEE"
-			if strings.Contains(strings.ToLower(appskepResp.Data.Employee.Position), "hrd") || 
-			   strings.Contains(strings.ToLower(appskepResp.Data.Employee.Department), "hrd") {
-				role = "HRD"
-			}
-			
-			newUser, err := s.users.Create(ctx, normalizedEmail, password, role)
-			if err != nil {
-				return AuthOutput{}, fmt.Errorf("failed to auto-create user: %w", err)
-			}
-			
-			// Buat Employee
-			dept := appskepResp.Data.Employee.Department
-			if dept == "" { dept = "Grup Umum" }
-			pos := appskepResp.Data.Employee.Position
-			if pos == "" { pos = "Staff" }
-			
-			_, err = s.employees.Create(ctx, newUser.ID, appskepResp.Data.User.Name, dept, pos, "")
-			if err != nil {
-				return AuthOutput{}, fmt.Errorf("failed to auto-create employee: %w", err)
-			}
-			
-			// Ambil lagi user-nya
-			u, _ = s.users.GetByEmail(ctx, normalizedEmail)
-		}
 	} else {
-		// Jika Gagal di Appskep, coba fallback ke password lokal (untuk akun buatan manual)
-		fmt.Printf("[DEBUG] Appskep rejected (%d). Attempting local fallback.\n", resp.StatusCode)
-		if err != nil {
-			return AuthOutput{}, ErrUnauthorized
-		}
+		// Fallback ke password lokal di DB Neon (jika Appskep gagal/password beda)
+		fmt.Printf("[DEBUG] Appskep failed/rejected. Trying local fallback.\n")
 		if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)); err != nil {
 			return AuthOutput{}, ErrUnauthorized
 		}
