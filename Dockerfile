@@ -1,5 +1,5 @@
 # Tahap 1: Build Frontend (React)
-FROM node:18-alpine AS frontend-builder
+FROM node:22-alpine AS frontend-builder
 WORKDIR /app/frontend
 # Copy dependency file
 COPY frontend/package*.json ./
@@ -9,7 +9,7 @@ COPY frontend/ ./
 RUN npm run build
 
 # Tahap 2: Build Backend (Go)
-FROM golang:1.21-alpine AS backend-builder
+FROM golang:alpine AS backend-builder
 WORKDIR /app/backend
 # Copy dependency file
 COPY backend/go.mod backend/go.sum ./
