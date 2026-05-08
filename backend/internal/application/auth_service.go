@@ -43,6 +43,7 @@ type AuthOutput struct {
 
 // Login memverifikasi email & password via Appskep API lalu mengembalikan JWT token lokal
 func (s *AuthService) Login(ctx context.Context, email, password string) (AuthOutput, error) {
+	fmt.Printf("--- MENCOBA LOGIN UNTUK: %s ---\n", email)
 	if email == "" || password == "" {
 		return AuthOutput{}, ErrValidation
 	}
@@ -73,8 +74,10 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (AuthOu
 
 	// Baca body untuk debugging jika gagal
 	respBody, _ := io.ReadAll(resp.Body)
+	fmt.Printf("[DEBUG] Appskep Response Status: %d\n", resp.StatusCode)
 	log.Printf("[DEBUG] Appskep Response Status: %d", resp.StatusCode)
 	if resp.StatusCode != http.StatusOK {
+		fmt.Printf("[DEBUG] Appskep Rejection Body: %s\n", string(respBody))
 		log.Printf("[DEBUG] Appskep Rejection Body: %s", string(respBody))
 		return AuthOutput{}, ErrUnauthorized
 	}
