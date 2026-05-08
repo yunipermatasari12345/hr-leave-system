@@ -49,7 +49,7 @@ func (s *LeaveService) SubmitRequest(ctx context.Context, userID int32, leaveTyp
 	}
 	req, err := s.leaves.Create(ctx, emp.ID, leaveTypeID, start, end, days, reason, attachmentURL)
 	if err == nil {
-		_ = s.leaves.CreateHistory(ctx, req.ID, "SUBMITTED", reason, 0)
+		_ = s.leaves.CreateHistory(ctx, req.ID, "SUBMITTED", reason, emp.ID)
 	}
 	return req, err
 }
