@@ -1,7 +1,12 @@
 package application
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -9,7 +14,6 @@ import (
 	"hr-leave-system/internal/domain/user"
 
 	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
@@ -35,21 +39,47 @@ type AuthOutput struct {
 	Position   string
 }
 
-// Login memverifikasi email & password lalu mengembalikan JWT token
+// Login memverifikasi email & password via Appskep API lalu mengembalikan JWT token lokal
 func (s *AuthService) Login(ctx context.Context, email, password string) (AuthOutput, error) {
 	if email == "" || password == "" {
 		return AuthOutput{}, ErrValidation
 	}
 
-	u, err := s.users.GetByEmail(ctx, strings.ToLower(strings.TrimSpace(email)))
+	// 1. Verifikasi ke API Appskep Kantor (External)
+	// Kita lakukan via server-to-server untuk menghindari blokir Cloudflare di browser
+	appskepURL := "https://dev-base.appskep.id/api/login"
+	loginData := map[string]string{
+		"email":    email,
+		"password": password,
+	}
+	jsonData, _ := json.Marshal(loginData)
+
+	req, _ := http.NewRequestWithContext(ctx, "POST", appskepURL, bytes.NewBuffer(jsonData))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "HR-Leave-System-Server/1.0") // Menghindari deteksi bot sederhana
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
 	if err != nil {
+		return AuthOutput{}, fmt.Errorf("failed to connect to Appskep API: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		// Jika gagal di Appskep, cek apakah ini user lokal (opsional fallback)
+		// Tapi permintaan user adalah WAJIB pakai akun kantor.
 		return AuthOutput{}, ErrUnauthorized
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)); err != nil {
-		return AuthOutput{}, ErrUnauthorized
+	// 2. Jika sukses di Appskep, cek apakah email terdaftar di sistem HR lokal (Neon)
+	normalizedEmail := strings.ToLower(strings.TrimSpace(email))
+	u, err := s.users.GetByEmail(ctx, normalizedEmail)
+	if err != nil {
+		// Email sukses di Appskep tapi belum didaftarkan di sistem HR lokal
+		return AuthOutput{}, errors.New("email registered in Appskep but not in HR system")
 	}
 
+	// 3. Generate token lokal kita sendiri
 	token, err := s.generateToken(u.ID, u.Role)
 	if err != nil {
 		return AuthOutput{}, err
