@@ -16,6 +16,7 @@ import (
 	"hr-leave-system/internal/domain/user"
 
 	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
@@ -72,22 +73,26 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (AuthOu
 	}
 	defer resp.Body.Close()
 
-	// Baca body untuk debugging jika gagal
-	respBody, _ := io.ReadAll(resp.Body)
-	fmt.Printf("[DEBUG] Appskep Response Status: %d\n", resp.StatusCode)
-	log.Printf("[DEBUG] Appskep Response Status: %d", resp.StatusCode)
-	if resp.StatusCode != http.StatusOK {
-		fmt.Printf("[DEBUG] Appskep Rejection Body: %s\n", string(respBody))
-		log.Printf("[DEBUG] Appskep Rejection Body: %s", string(respBody))
-		return AuthOutput{}, ErrUnauthorized
-	}
-
-	// 2. Jika sukses di Appskep, cek apakah email terdaftar di sistem HR lokal (Neon)
+	// 2. Cek apakah email terdaftar di sistem HR lokal (Neon)
 	normalizedEmail := strings.ToLower(strings.TrimSpace(email))
 	u, err := s.users.GetByEmail(ctx, normalizedEmail)
 	if err != nil {
-		// Email sukses di Appskep tapi belum didaftarkan di sistem HR lokal
+		fmt.Printf("[DEBUG] User not found in local DB: %s\n", normalizedEmail)
 		return AuthOutput{}, errors.New("email registered in Appskep but not in HR system")
+	}
+
+	// Baca body untuk debugging jika gagal
+	respBody, _ := io.ReadAll(resp.Body)
+	fmt.Printf("[DEBUG] Appskep Response Status: %d\n", resp.StatusCode)
+	
+	// Jika gagal di Appskep, kita coba fallback ke password lokal di DB Neon
+	if resp.StatusCode != http.StatusOK {
+		fmt.Printf("[DEBUG] Appskep rejected. Attempting local DB fallback for: %s\n", normalizedEmail)
+		if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)); err != nil {
+			fmt.Printf("[DEBUG] Local DB fallback also failed (wrong password).\n")
+			return AuthOutput{}, ErrUnauthorized
+		}
+		fmt.Printf("[DEBUG] Local DB fallback SUCCESS!\n")
 	}
 
 	// 3. Generate token lokal kita sendiri
