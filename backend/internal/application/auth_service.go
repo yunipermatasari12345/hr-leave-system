@@ -17,12 +17,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var (
-	ErrUnauthorized = errors.New("invalid credentials")
-	ErrValidation   = errors.New("validation failed")
-	ErrEmailTaken   = errors.New("email already taken")
-)
-
 type AuthService struct {
 	users     user.Repository
 	employees employee.Repository
