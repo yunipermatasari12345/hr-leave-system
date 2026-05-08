@@ -1,4 +1,5 @@
 # Build Backend (Go)
+# Cache-bust: 2026-05-08T15:40
 FROM golang:alpine AS backend-builder
 WORKDIR /app/backend
 # Copy dependency file
