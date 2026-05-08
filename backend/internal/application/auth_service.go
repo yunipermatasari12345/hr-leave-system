@@ -108,7 +108,7 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (AuthOu
 				role = "HRD"
 			}
 			
-			newUserID, err := s.users.Create(ctx, normalizedEmail, password, role)
+			newUser, err := s.users.Create(ctx, normalizedEmail, password, role)
 			if err != nil {
 				return AuthOutput{}, fmt.Errorf("failed to auto-create user: %w", err)
 			}
@@ -119,7 +119,7 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (AuthOu
 			pos := appskepResp.Data.Employee.Position
 			if pos == "" { pos = "Staff" }
 			
-			_, err = s.employees.Create(ctx, int32(newUserID), appskepResp.Data.User.Name, dept, pos, "")
+			_, err = s.employees.Create(ctx, newUser.ID, appskepResp.Data.User.Name, dept, pos, "")
 			if err != nil {
 				return AuthOutput{}, fmt.Errorf("failed to auto-create employee: %w", err)
 			}
