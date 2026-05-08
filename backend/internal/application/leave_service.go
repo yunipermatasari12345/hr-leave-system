@@ -89,7 +89,6 @@ func (s *LeaveService) SetStatus(ctx context.Context, reviewerUserID int32, leav
 		reviewerID = reviewer.ID
 	}
 
-	// 1. Dapatkan detail lama untuk memastikan status belum approved
 	oldDetail, err := s.leaves.GetByID(ctx, leaveID)
 	if err != nil {
 		return leave.LeaveRequest{}, err
@@ -100,16 +99,11 @@ func (s *LeaveService) SetStatus(ctx context.Context, reviewerUserID int32, leav
 		return leave.LeaveRequest{}, err
 	}
 
-	// 2. Jika status berubah dari pending ke approved, kurangi kuota
 	if oldDetail.Status == leave.StatusPending && st == leave.StatusApproved {
-		// Sync saldo dulu agar record exist (mengurangi kemungkinan error)
 		year := int32(oldDetail.StartDate.Year())
 		_ = s.SyncBalances(ctx, oldDetail.EmployeeID, year)
-
 		err = s.leaves.UpdateBalance(ctx, oldDetail.EmployeeID, oldDetail.LeaveTypeID, year, oldDetail.TotalDays)
-		if err != nil {
-			// Logika fallback error handling apabila kurang balance, tapi karena sudah di-approve kita biarkan dulu
-		}
+		_ = err
 	}
 
 	detail, err := s.leaves.GetByID(ctx, leaveID)
@@ -139,7 +133,6 @@ func (s *LeaveService) MyBalances(ctx context.Context, userID int32, year int32)
 	if err != nil {
 		return nil, ErrEmployeeNotFound
 	}
-	// Sync saldo setiap kali cek agar jika ada tipe cuti baru langsung muncul
 	_ = s.SyncBalances(ctx, emp.ID, year)
 	return s.leaves.GetBalance(ctx, emp.ID, year)
 }
@@ -153,30 +146,22 @@ func (s *LeaveService) AdvancedFilter(ctx context.Context, statusFilter, departm
 }
 
 func (s *LeaveService) DeleteRequest(ctx context.Context, id int32) error {
-	// 1. Ambil data sebelum dihapus untuk cek status
 	req, err := s.leaves.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
-
-	// 2. Jika status approved, kembalikan saldo (Refund)
 	if req.Status == leave.StatusApproved {
 		year := int32(req.StartDate.Year())
-		// Gunakan angka negatif untuk menambah saldo kembali di UpdateBalance
 		_ = s.leaves.UpdateBalance(ctx, req.EmployeeID, req.LeaveTypeID, year, -req.TotalDays)
 	}
-
 	return s.leaves.Delete(ctx, id)
 }
 
 func (s *LeaveService) SyncBalances(ctx context.Context, employeeID int32, year int32) error {
-	// 1. Dapatkan semua tipe cuti
 	types, err := s.leaves.ListLeaveTypes(ctx)
 	if err != nil {
 		return err
 	}
-
-	// 2. Pastikan setiap tipe cuti punya record di leave_balances untuk tahun ini
 	for _, t := range types {
 		_ = s.leaves.EnsureBalance(ctx, employeeID, t.ID, year, t.MaxDays)
 	}
@@ -184,13 +169,11 @@ func (s *LeaveService) SyncBalances(ctx context.Context, employeeID int32, year 
 }
 
 func (s *LeaveService) SubmitManualRequest(ctx context.Context, hrUserID int32, targetEmployeeID int32, leaveTypeID int32, startStr, endStr, reason, attachmentURL string) (leave.LeaveRequest, error) {
-	// HR validation
 	hrEmp, err := s.employees.GetByUserID(ctx, hrUserID)
 	if err != nil {
 		return leave.LeaveRequest{}, ErrEmployeeNotFound
 	}
 
-	// Target employee validation
 	targetEmp, err := s.employees.GetByID(ctx, targetEmployeeID)
 	if err != nil {
 		return leave.LeaveRequest{}, ErrEmployeeNotFound
@@ -211,26 +194,20 @@ func (s *LeaveService) SubmitManualRequest(ctx context.Context, hrUserID int32, 
 	if err != nil {
 		return leave.LeaveRequest{}, err
 	}
-	
-	// Create request
+
 	req, err := s.leaves.Create(ctx, targetEmp.ID, leaveTypeID, start, end, days, reason, attachmentURL)
 	if err != nil {
 		return leave.LeaveRequest{}, err
 	}
-	
+
 	_ = s.leaves.CreateHistory(ctx, req.ID, "SUBMITTED", reason, hrEmp.ID)
 
-	// Since this is manually inputted by HRD, we auto-approve it immediately.
 	st := leave.StatusApproved
-	
-	// Fast track SetStatus logic manually reducing balance
 	year := int32(req.StartDate.Year())
 	_ = s.SyncBalances(ctx, req.EmployeeID, year)
-	
-	// Update status
+
 	_, err = s.leaves.UpdateStatus(ctx, req.ID, st, "Disetujui Otomatis (Input Manual HRD)", hrEmp.ID)
 	if err == nil {
-		// Cut balance
 		_ = s.leaves.UpdateBalance(ctx, req.EmployeeID, req.LeaveTypeID, year, req.TotalDays)
 		_ = s.leaves.CreateHistory(ctx, req.ID, "APPROVED", "Disetujui Otomatis (Input Manual HRD)", hrEmp.ID)
 		_ = s.notifs.Create(ctx, targetEmp.UserID, "HRD telah menginput pengajuan cutimu secara manual dan otomatis disetujui.")
@@ -238,4 +215,3 @@ func (s *LeaveService) SubmitManualRequest(ctx context.Context, hrUserID int32, 
 
 	return req, nil
 }
-
