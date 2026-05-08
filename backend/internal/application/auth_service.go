@@ -84,7 +84,9 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (AuthOu
 	// Baca body untuk debugging jika gagal
 	respBody, _ := io.ReadAll(resp.Body)
 	fmt.Printf("[DEBUG] Appskep Response Status: %d\n", resp.StatusCode)
-	
+	if resp.StatusCode != http.StatusOK {
+		fmt.Printf("[DEBUG] Appskep Rejection Body: %s\n", string(respBody))
+	}
 	// Jika gagal di Appskep, kita coba fallback ke password lokal di DB Neon
 	if resp.StatusCode != http.StatusOK {
 		fmt.Printf("[DEBUG] Appskep rejected. Attempting local DB fallback for: %s\n", normalizedEmail)
