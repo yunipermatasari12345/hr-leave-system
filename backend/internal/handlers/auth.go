@@ -1,10 +1,13 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"hr-leave-system/internal/application"
+	"io"
 	"net/http"
+	"time"
 )
 
 type LoginRequest struct {
@@ -44,32 +47,48 @@ type VerifyResponse struct {
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
-	json.NewDecoder(r.Body).Decode(&req)
+	bodyBytes, _ := io.ReadAll(r.Body)
+	json.Unmarshal(bodyBytes, &req)
 
-	out, err := AuthService.Login(r.Context(), req.Email, req.Password)
+	// Call External Appskep API
+	appskepURL := "https://dev-base.appskep.id/api/login"
+	appskepReq, _ := http.NewRequest("POST", appskepURL, bytes.NewBuffer(bodyBytes))
+	appskepReq.Header.Set("Content-Type", "application/json")
+	
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(appskepReq)
+	
+	// Jika gagal di sisi Appskep, berarti email/password salah
+	if err != nil || resp.StatusCode != http.StatusOK {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Login ke Appskep gagal. Periksa kembali email dan password."})
+		return
+	}
+
+	// Login ke Appskep SUKSES! 
+	// Sekarang kita cek apakah email tersebut terdaftar di database HR lokal kita (Neon)
+	isRegistered, role, _ := AuthService.IsEmailRegistered(r.Context(), req.Email)
+	if !isRegistered {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Akun Appskep valid, tapi belum terdaftar di sistem HR lokal."})
+		return
+	}
+
+	// Email terdaftar! Kita berikan Token Lokal untuk akses aplikasi HR kita
+	out, err := AuthService.GenerateTokenByEmail(r.Context(), req.Email)
 	if err != nil {
-		if errors.Is(err, application.ErrValidation) {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Email dan password wajib diisi"})
-			return
-		}
-		if errors.Is(err, application.ErrUnauthorized) {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Email atau password salah"})
-			return
-		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Gagal membuat token"})
+		json.NewEncoder(w).Encode(map[string]string{"error": "Gagal membuat token lokal"})
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(LoginResponse{
 		Token:      out.Token,
-		Role:       out.Role,
+		Role:       role,
 		Name:       out.Name,
 		Department: out.Department,
 		Position:   out.Position,
