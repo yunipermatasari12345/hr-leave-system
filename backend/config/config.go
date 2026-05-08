@@ -12,16 +12,22 @@ import (
 var DB *sql.DB
 
 func InitDB() {
-	host := getEnv("DB_HOST", "localhost")
-	port := getEnv("DB_PORT", "5432")
-	user := getEnv("DB_USER", "postgres")
-	password := getEnv("DB_PASSWORD", "postgres123")
-	dbname := getEnv("DB_NAME", "hr_leave_db")
+	// Prioritaskan DATABASE_URL jika ada (sangat berguna untuk cloud DB)
+	dsn := os.Getenv("DATABASE_URL")
 
-	dsn := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname,
-	)
+	// Jika tidak ada DATABASE_URL, gunakan parameter terpisah
+	if dsn == "" {
+		host := getEnv("DB_HOST", "localhost")
+		port := getEnv("DB_PORT", "5432")
+		user := getEnv("DB_USER", "postgres")
+		password := getEnv("DB_PASSWORD", "postgres123")
+		dbname := getEnv("DB_NAME", "hr_leave_db")
+
+		dsn = fmt.Sprintf(
+			"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+			host, port, user, password, dbname,
+		)
+	}
 
 	var err error
 	DB, err = sql.Open("postgres", dsn)
