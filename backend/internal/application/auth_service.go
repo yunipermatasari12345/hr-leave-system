@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -56,18 +58,24 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (AuthOu
 
 	req, _ := http.NewRequestWithContext(ctx, "POST", appskepURL, bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "HR-Leave-System-Server/1.0") // Menghindari deteksi bot sederhana
+	req.Header.Set("Accept", "application/json, text/plain, */*")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+	req.Header.Set("Origin", "https://dev-base.appskep.id")
+	req.Header.Set("Referer", "https://dev-base.appskep.id/")
 
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{Timeout: 15 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
+		log.Printf("[ERROR] Appskep Connection Error: %v", err)
 		return AuthOutput{}, fmt.Errorf("failed to connect to Appskep API: %w", err)
 	}
 	defer resp.Body.Close()
 
+	// Baca body untuk debugging jika gagal
+	respBody, _ := io.ReadAll(resp.Body)
+	log.Printf("[DEBUG] Appskep Response Status: %d", resp.StatusCode)
 	if resp.StatusCode != http.StatusOK {
-		// Jika gagal di Appskep, cek apakah ini user lokal (opsional fallback)
-		// Tapi permintaan user adalah WAJIB pakai akun kantor.
+		log.Printf("[DEBUG] Appskep Rejection Body: %s", string(respBody))
 		return AuthOutput{}, ErrUnauthorized
 	}
 
