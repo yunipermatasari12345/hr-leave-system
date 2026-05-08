@@ -49,7 +49,8 @@ func (s *LeaveService) SubmitRequest(ctx context.Context, userID int32, leaveTyp
 	}
 	req, err := s.leaves.Create(ctx, emp.ID, leaveTypeID, start, end, days, reason, attachmentURL)
 	if err == nil {
-		_ = s.leaves.CreateHistory(ctx, req.ID, "SUBMITTED", reason, emp.ID)
+		// actor_id di database leave_histories merujuk ke users.id, jadi pakai emp.UserID
+		_ = s.leaves.CreateHistory(ctx, req.ID, "SUBMITTED", reason, emp.UserID)
 	}
 	return req, err
 }
@@ -118,8 +119,9 @@ func (s *LeaveService) SetStatus(ctx context.Context, reviewerUserID int32, leav
 			statusText = "ditolak"
 			action = "REJECTED"
 		}
+		// actor_id di leave_histories adalah users.id, jadi pakai reviewerUserID
 		_ = s.notifs.Create(ctx, emp.UserID, "Pengajuan cuti kamu telah "+statusText)
-		_ = s.leaves.CreateHistory(ctx, detail.ID, action, hrdNote, reviewerID)
+		_ = s.leaves.CreateHistory(ctx, detail.ID, action, hrdNote, reviewerUserID)
 	}
 	return updated, nil
 }
@@ -208,9 +210,11 @@ func (s *LeaveService) SubmitManualRequest(ctx context.Context, hrUserID int32, 
 
 	_, err = s.leaves.UpdateStatus(ctx, req.ID, st, "Disetujui Otomatis (Input Manual HRD)", hrEmp.ID)
 	if err == nil {
+		// Cut balance
 		_ = s.leaves.UpdateBalance(ctx, req.EmployeeID, req.LeaveTypeID, year, req.TotalDays)
-		_ = s.leaves.CreateHistory(ctx, req.ID, "APPROVED", "Disetujui Otomatis (Input Manual HRD)", hrEmp.ID)
-		_ = s.notifs.Create(ctx, targetEmp.UserID, "HRD telah menginput pengajuan cutimu secara manual dan otomatis disetujui.")
+		// actor_id di leave_histories adalah users.id, jadi pakai hrUserID
+		_ = s.leaves.CreateHistory(ctx, req.ID, "APPROVED", "Disetujui Otomatis (Input Manual HRD)", hrUserID)
+		_ = s.notifs.Create(ctx, targetEmp.UserID, "HRD telah menginput pengajuan cutimu secara manual and otomatis disetujui.")
 	}
 
 	return req, nil
