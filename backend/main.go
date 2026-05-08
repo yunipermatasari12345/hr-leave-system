@@ -99,22 +99,9 @@ func main() {
 	// Static file server untuk lampiran cuti
 	r.Handle("/uploads/*", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 
-	// Konfigurasi SPA React Frontend
-	r.Get("/*", func(w http.ResponseWriter, r *http.Request) {
-		// Dapatkan path absolut dari frontend/dist
-		workDir, _ := os.Getwd()
-		distDir := filepath.Join(workDir, "../frontend/dist")
-		
-		// Cek apakah file ada (contoh: asset JS, CSS, gambar)
-		path := filepath.Join(distDir, r.URL.Path)
-		if _, err := os.Stat(path); os.IsNotExist(err) {
-			// Jika file tidak ada (berarti itu route React), serve index.html
-			http.ServeFile(w, r, filepath.Join(distDir, "index.html"))
-			return
-		}
-		
-		// Serve file statis
-		http.ServeFile(w, r, path)
+	// Root path info
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("HR Leave System API is Running..."))
 	})
 
 	log.Println("Server berjalan di port 8080...")
