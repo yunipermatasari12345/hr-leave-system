@@ -204,7 +204,7 @@ func (s *LeaveService) SubmitManualRequest(ctx context.Context, hrUserID int32, 
 	_ = s.leaves.CreateHistory(ctx, req.ID, "SUBMITTED", reason, hrUserID)
 	
 	st := leave.StatusApproved
-	year := int32(req.StartDate.Year())
+	year = int32(req.StartDate.Year())
 	_ = s.SyncBalances(ctx, req.EmployeeID, year)
 
 	_, err = s.leaves.UpdateStatus(ctx, req.ID, st, "Disetujui Otomatis (Input Manual HRD)", hrUserID)
