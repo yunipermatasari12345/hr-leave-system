@@ -2,6 +2,6 @@
   "name": "hr-leave-system-monorepo",
   "version": "1.0.0",
   "scripts": {
-    "build": "cd frontend && npm install && npm run build && cd .. && cp -rv frontend/dist ./public"
+    "build": "cd frontend && npm install && npm run build && cd .. && rm -rf public && mkdir public && cp -rv frontend/dist/* ./public/"
   }
 }
