@@ -6,6 +6,7 @@ import (
 	"hr-leave-system/core/application"
 	"hr-leave-system/core/middleware"
 	"net/http"
+	"strings"
 )
 
 type LoginRequest struct {
@@ -55,7 +56,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(map[string]string{"error": "Email dan password wajib diisi"})
 			return
 		}
-		if errors.Is(err, application.ErrUnauthorized) || err.Error() == "email registered in Appskep but not in HR system" {
+		if errors.Is(err, application.ErrUnauthorized) ||
+			err.Error() == "email registered in Appskep but not in HR system" ||
+			strings.Contains(strings.ToLower(err.Error()), "belum didaftarkan") ||
+			strings.Contains(strings.ToLower(err.Error()), "login gagal") {
 			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 			return
