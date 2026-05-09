@@ -171,11 +171,6 @@ func (s *LeaveService) SyncBalances(ctx context.Context, employeeID int32, year 
 }
 
 func (s *LeaveService) SubmitManualRequest(ctx context.Context, hrUserID int32, targetEmployeeID int32, leaveTypeID int32, startStr, endStr, reason, attachmentURL string) (leave.LeaveRequest, error) {
-	hrEmp, err := s.employees.GetByUserID(ctx, hrUserID)
-	if err != nil {
-		return leave.LeaveRequest{}, ErrEmployeeNotFound
-	}
-
 	targetEmp, err := s.employees.GetByID(ctx, targetEmployeeID)
 	if err != nil {
 		return leave.LeaveRequest{}, ErrEmployeeNotFound
