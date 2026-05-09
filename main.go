@@ -60,7 +60,7 @@ func main() {
 	// Route butuh login
 	r.Group(func(r chi.Router) {
 		r.Use(mw.JWTMiddleware)
-		// r.Use(mw.AuditLogMiddleware) // Dimatikan sementara karena menyebabkan error 500
+		r.Use(mw.AuditLogMiddleware)
 
 		// Karyawan
 		r.Get("/api/employee/leaves", handlers.GetMyLeaves)
