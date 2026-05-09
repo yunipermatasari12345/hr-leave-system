@@ -72,22 +72,26 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (AuthOu
 
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
-	
+
 	// Jika koneksi sukses dan Appskep OK (200), berarti login sukses
 	if err == nil && resp.StatusCode == http.StatusOK {
 		fmt.Printf("[DEBUG] Appskep Login SUCCESS for: %s\n", normalizedEmail)
 		resp.Body.Close()
 	} else {
+		status := 0
 		if resp != nil {
+			status = resp.StatusCode
 			resp.Body.Close()
 		}
-		// Fallback ke password lokal di DB Neon (jika Appskep gagal/password beda)
-		fmt.Printf("[DEBUG] Appskep failed/rejected. Trying local fallback.\n")
-		
+		fmt.Printf("[DEBUG] Appskep failed/rejected. status=%d err=%v. Trying local fallback.\n", status, err)
+
 		// [DEBUG] Bypass khusus untuk admin123 agar user bisa masuk sekarang
 		if password == "admin123" {
 			fmt.Printf("[DEBUG] Using bypass password admin123 for: %s\n", normalizedEmail)
 		} else {
+			if u.PasswordHash == "EXTERNAL_AUTH_USER" {
+				return AuthOutput{}, errors.New("login gagal: akun ini hanya dapat login menggunakan kata sandi Appskep kantor")
+			}
 			if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)); err != nil {
 				return AuthOutput{}, ErrUnauthorized
 			}
@@ -136,7 +140,7 @@ func (s *AuthService) CreateEmployeeAccount(ctx context.Context, email, fullName
 	}
 
 	// Berikan password default "password123" agar tidak error NOT NULL di database
-	defaultHash := "$2a$10$OIg7q4hv.pAIw1VeQpyYQuoXwYBPAE0.IrAo4RyrsAquc9dum3jfq" 
+	defaultHash := "$2a$10$OIg7q4hv.pAIw1VeQpyYQuoXwYBPAE0.IrAo4RyrsAquc9dum3jfq"
 	u, err := s.users.Create(ctx, normalizedEmail, defaultHash, role)
 	if err != nil {
 		return employee.Employee{}, err

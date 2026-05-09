@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Input } from "@heroui/react";
-import { login, verifyRegistration } from "../api/authApi";
+import { login } from "../api/authApi";
 import { STORAGE_KEYS } from "../constants/storage";
 
 export default function Login() {
@@ -12,48 +12,32 @@ export default function Login() {
   const [showPass, setShowPass] = useState(false);
   const navigate = useNavigate();
 
-   const handleLogin = async () => {
-     if (!email || !password) { setError("Email dan password wajib diisi!"); return; }
-     setLoading(true); setError("");
-     try {
-       const result = await login({ email, password });
-       
-       if (result && result.data && result.data.access_token) {
-         const token = result.data.access_token;
-         const user = result.data.user;
-         try {
-           const localCheck = await verifyRegistration(user.email);
-           if (!localCheck.is_registered) {
-             setError("Akun Anda belum terdaftar di sistem HR kami. Silakan hubungi HRD.");
-             setLoading(false);
-             return;
-           }
-           
-           // Gunakan token dan role dari database lokal kita
-           const role = localCheck.role;
-           const localToken = localCheck.token;
-           
-           localStorage.setItem(STORAGE_KEYS.token, localToken);
-           localStorage.setItem(STORAGE_KEYS.role, role);
-           localStorage.setItem(STORAGE_KEYS.name, user.name);
-           localStorage.setItem(STORAGE_KEYS.department, localCheck.department || "");
-           localStorage.setItem(STORAGE_KEYS.position, localCheck.position || "");
+  const handleLogin = async () => {
+    if (!email || !password) {
+      setError("Email dan password wajib diisi!");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const data = await login({ email, password });
+      localStorage.setItem(STORAGE_KEYS.token, data.token);
+      localStorage.setItem(STORAGE_KEYS.role, (data.role || "").toLowerCase());
+      localStorage.setItem(STORAGE_KEYS.name, data.name || "");
+      localStorage.setItem(STORAGE_KEYS.department, data.department || "");
+      localStorage.setItem(STORAGE_KEYS.position, data.position || "");
 
-           if (role === "hrd") navigate("/hrd/dashboard");
-           else navigate("/dashboard");
-         } catch (err) {
-           setError("Gagal verifikasi data lokal. Pastikan server backend berjalan.");
-           setLoading(false);
-           return;
-         }
-       } else {
-         setError(result.message || "Gagal login. Periksa kembali email dan password.");
-       }
-     } catch (e) {
-       setError("Terjadi kesalahan sistem atau akun tidak ditemukan!");
-     }
-     finally { setLoading(false); }
-   };
+      if ((data.role || "").toLowerCase() === "hrd") navigate("/hrd/dashboard");
+      else navigate("/dashboard");
+    } catch (e) {
+      setError(
+        e?.response?.data?.error ||
+          "Terjadi kesalahan sistem atau akun tidak ditemukan!"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-[#f1f5f9] items-center justify-center p-6 font-['Inter',sans-serif]">

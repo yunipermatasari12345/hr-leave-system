@@ -2,7 +2,7 @@ import axios from "axios";
 import { API_BASE_URL, APPSKEP_API_URL } from "../constants/config";
 import { STORAGE_KEYS } from "../constants/storage";
 
-/** Client HTTP lokal: base URL localhost + token otomatis (kalau sudah login) */
+/** Client HTTP utama: default /api (cocok untuk Vercel satu project) */
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
 });

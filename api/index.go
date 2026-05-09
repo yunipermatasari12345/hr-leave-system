@@ -14,6 +14,44 @@ import (
 
 var r *chi.Mux
 
+func registerAPIRoutes(router chi.Router) {
+	router.Post("/auth/login", handlers.Login)
+	router.Post("/auth/logout", handlers.Logout)
+	router.With(mw.Auth).Get("/auth/me", handlers.Me)
+	router.Post("/auth/verify", handlers.VerifyRegistration)
+
+	router.Get("/leave-types", handlers.GetLeaveTypes)
+
+	router.Route("/employee", func(r chi.Router) {
+		r.Use(mw.Auth)
+		r.Get("/leaves", handlers.GetMyLeaves)
+		r.Post("/leaves", handlers.CreateLeaveRequest_)
+		r.Get("/leave-balances", handlers.GetMyBalances)
+		r.Get("/notifications", handlers.GetMyNotifications)
+		r.Put("/notifications/{id}/read", handlers.MarkNotificationRead)
+	})
+
+	router.Route("/hrd", func(r chi.Router) {
+		r.Use(mw.Auth, mw.Role("HRD"))
+		r.Get("/leaves/advanced", handlers.GetAdvancedLeaves)
+		r.Put("/leaves/{id}/status", handlers.UpdateLeaveStatus)
+		r.Delete("/leaves/{id}", handlers.DeleteLeaveRequest)
+		r.Post("/leaves/manual", handlers.CreateManualLeaveHR)
+
+		r.Get("/employees", handlers.GetAllEmployees)
+		r.Post("/employees", handlers.CreateEmployee)
+		r.Delete("/employees/{id}", handlers.DeleteEmployee)
+
+		r.Get("/dashboard/stats", handlers.GetDashboardStats)
+		r.Get("/dashboard/monthly", handlers.GetMonthlyStats)
+		r.Get("/departments", handlers.GetDepartments)
+		r.Get("/positions", handlers.GetPositions)
+		r.Get("/reports/departments", handlers.GetLeaveRecapPerDepartment)
+
+		r.Get("/audit-logs", handlers.GetAuditLogs)
+	})
+}
+
 func init() {
 	config.InitDB()
 	raw := config.DB
@@ -47,44 +85,11 @@ func init() {
 		})
 	})
 
-	// Routes
-	r.Route("/api", func(r chi.Router) {
-		r.Post("/auth/login", handlers.Login)
-		r.Post("/auth/logout", handlers.Logout)
-		r.With(mw.Auth).Get("/auth/me", handlers.Me)
-		r.Post("/auth/verify", handlers.VerifyRegistration)
-
-		r.Get("/leave-types", handlers.GetLeaveTypes)
-
-		r.Route("/employee", func(r chi.Router) {
-			r.Use(mw.Auth)
-			r.Get("/leaves", handlers.GetMyLeaves)
-			r.Post("/leaves", handlers.CreateLeaveRequest_)
-			r.Get("/leave-balances", handlers.GetMyBalances)
-			r.Get("/notifications", handlers.GetMyNotifications)
-			r.Put("/notifications/{id}/read", handlers.MarkNotificationRead)
-		})
-
-		r.Route("/hrd", func(r chi.Router) {
-			r.Use(mw.Auth, mw.Role("HRD"))
-			r.Get("/leaves/advanced", handlers.GetAdvancedLeaves)
-			r.Put("/leaves/{id}/status", handlers.UpdateLeaveStatus)
-			r.Delete("/leaves/{id}", handlers.DeleteLeaveRequest)
-			r.Post("/leaves/manual", handlers.CreateManualLeaveHR)
-			
-			r.Get("/employees", handlers.GetAllEmployees)
-			r.Post("/employees", handlers.CreateEmployee)
-			r.Delete("/employees/{id}", handlers.DeleteEmployee)
-			
-			r.Get("/dashboard/stats", handlers.GetDashboardStats)
-			r.Get("/dashboard/monthly", handlers.GetMonthlyStats)
-			r.Get("/departments", handlers.GetDepartments)
-			r.Get("/positions", handlers.GetPositions)
-			r.Get("/reports/departments", handlers.GetLeaveRecapPerDepartment)
-			
-			r.Get("/audit-logs", handlers.GetAuditLogs)
-		})
-	})
+	// Route kompatibel untuk Vercel rewrite:
+	// - /api/auth/login (umum)
+	// - /auth/login (jika prefix /api ter-strip oleh rewrite)
+	r.Route("/api", registerAPIRoutes)
+	r.Group(registerAPIRoutes)
 }
 
 func Handler(w http.ResponseWriter, req *http.Request) {

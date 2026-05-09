@@ -57,7 +57,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		}
 		if errors.Is(err, application.ErrUnauthorized) || err.Error() == "email registered in Appskep but not in HR system" {
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Email atau password salah / Belum terdaftar di sistem HR"})
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 			return
 		}
 		w.WriteHeader(http.StatusInternalServerError)
@@ -142,7 +142,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 
 func Me(w http.ResponseWriter, r *http.Request) {
 	userID := int32(r.Context().Value(middleware.UserIDKey).(float64))
-	
+
 	// Get employee details
 	emp, err := EmployeeService.GetByUserID(r.Context(), userID)
 	if err != nil {
