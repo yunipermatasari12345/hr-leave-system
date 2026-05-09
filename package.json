@@ -1,7 +1,7 @@
 {
-  "name": "hr-leave-system-monorepo",
+  "name": "hr-leave-system-backend",
   "version": "1.0.0",
   "scripts": {
-    "build": "cd frontend && npm install && npm run build && cd .. && rm -rf public && mkdir public && cp -rv frontend/dist/* ./public/"
+    "build": "echo 'Backend build complete'"
   }
 }
