@@ -1,8 +1,6 @@
 {
-  "outputDirectory": "public",
-  "cleanUrls": true,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.go" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/(.*)", "destination": "/public/$1" }
   ]
 }
