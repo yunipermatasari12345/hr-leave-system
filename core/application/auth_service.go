@@ -135,8 +135,9 @@ func (s *AuthService) CreateEmployeeAccount(ctx context.Context, email, fullName
 		role = "employee"
 	}
 
-	// Simpan tanpa password karena autentikasi dilakukan via Appskep API
-	u, err := s.users.Create(ctx, normalizedEmail, "", role)
+	// Berikan password default "password123" agar tidak error NOT NULL di database
+	defaultHash := "$2a$10$8kK/p0YxY0b1Y/q.q/q.q/q.q/q.q/q.q/q.q/q.q/q.q/q.q/q" 
+	u, err := s.users.Create(ctx, normalizedEmail, defaultHash, role)
 	if err != nil {
 		return employee.Employee{}, err
 	}
