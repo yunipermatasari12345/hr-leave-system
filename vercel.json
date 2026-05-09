@@ -1,8 +1,8 @@
 {
+  "outputDirectory": "public",
   "cleanUrls": true,
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/index.go" },
-    { "src": "/(.*)", "dest": "/public/$1", "continue": true },
-    { "src": "/(.*)", "status": 404, "dest": "/public/index.html" }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.go" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
