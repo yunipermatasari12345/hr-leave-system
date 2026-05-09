@@ -99,15 +99,19 @@ func CreateLeaveRequest_(w http.ResponseWriter, r *http.Request) {
 	file, header, fileErr := r.FormFile("attachment")
 	if fileErr == nil && file != nil {
 		defer file.Close()
-		// Buat folder uploads jika belum ada
-		os.MkdirAll("uploads", os.ModePerm)
+		// Gunakan /tmp untuk Vercel (read-only filesystem)
+		uploadDir := "/tmp"
+		os.MkdirAll(uploadDir, os.ModePerm)
 		ext := filepath.Ext(header.Filename)
-		filename := fmt.Sprintf("uploads/%d_%d%s", userID, time.Now().UnixNano(), ext)
-		dst, err := os.Create(filename)
+		filename := fmt.Sprintf("%d_%d%s", userID, time.Now().UnixNano(), ext)
+		fullPath := filepath.Join(uploadDir, filename)
+		
+		dst, err := os.Create(fullPath)
 		if err == nil {
 			defer dst.Close()
 			io.Copy(dst, file)
-			attachmentURL = "/" + filename
+			// Simpan path relatif atau dummy URL karena Vercel akan menghapus /tmp setelah execution
+			attachmentURL = "/api/uploads/" + filename
 		}
 	}
 
@@ -273,14 +277,19 @@ func CreateManualLeaveHR(w http.ResponseWriter, r *http.Request) {
 	file, header, fileErr := r.FormFile("attachment")
 	if fileErr == nil && file != nil {
 		defer file.Close()
-		os.MkdirAll("uploads", os.ModePerm)
+		// Gunakan /tmp untuk Vercel (read-only filesystem)
+		uploadDir := "/tmp"
+		os.MkdirAll(uploadDir, os.ModePerm)
 		ext := filepath.Ext(header.Filename)
-		filename := fmt.Sprintf("uploads/manual_%d_%d%s", targetEmployeeID, time.Now().UnixNano(), ext)
-		dst, err := os.Create(filename)
+		filename := fmt.Sprintf("manual_%d_%d%s", targetEmployeeID, time.Now().UnixNano(), ext)
+		fullPath := filepath.Join(uploadDir, filename)
+		
+		dst, err := os.Create(fullPath)
 		if err == nil {
 			defer dst.Close()
 			io.Copy(dst, file)
-			attachmentURL = "/" + filename
+			// Simpan path relatif atau dummy URL karena Vercel akan menghapus /tmp setelah execution
+			attachmentURL = "/api/uploads/" + filename
 		}
 	}
 
