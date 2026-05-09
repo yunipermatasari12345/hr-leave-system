@@ -29,3 +29,6 @@ func (s *EmployeeService) Update(ctx context.Context, id int32, fullName, depart
 func (s *EmployeeService) Delete(ctx context.Context, id int32) error {
 	return s.employees.Delete(ctx, id)
 }
+func (s *EmployeeService) GetByUserID(ctx context.Context, userID int32) (employee.Employee, error) {
+	return s.employees.GetByUserID(ctx, userID)
+}

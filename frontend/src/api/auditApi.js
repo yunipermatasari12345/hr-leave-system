@@ -2,7 +2,7 @@ import { apiClient } from "./client";
 
 export const auditApi = {
   getAuditLogs: async () => {
-    const { data } = await apiClient.get("/api/hrd/audit-logs");
+    const { data } = await apiClient.get("/hrd/audit-logs");
     return data;
   },
 };

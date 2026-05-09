@@ -134,3 +134,23 @@ func VerifyRegistration(w http.ResponseWriter, r *http.Request) {
 		Position:     position,
 	})
 }
+func Logout(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "Logged out successfully"})
+}
+
+func Me(w http.ResponseWriter, r *http.Request) {
+	userID := int32(r.Context().Value(middleware.UserIDKey).(float64))
+	
+	// Get employee details
+	emp, err := EmployeeService.GetByUserID(r.Context(), userID)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]string{"error": "User data not found"})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(emp)
+}

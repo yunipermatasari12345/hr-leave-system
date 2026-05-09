@@ -52,29 +52,37 @@ func init() {
 		r.Post("/auth/login", handlers.Login)
 		r.Post("/auth/logout", handlers.Logout)
 		r.Get("/auth/me", mw.Auth(handlers.Me))
+		r.Post("/auth/verify", handlers.VerifyRegistration)
+
+		r.Get("/leave-types", handlers.GetLeaveTypes)
 
 		r.Route("/employee", func(r chi.Router) {
 			r.Use(mw.Auth)
 			r.Get("/leaves", handlers.GetMyLeaves)
-			r.Post("/leaves", handlers.SubmitLeave)
-			r.Get("/balances", handlers.GetMyBalances)
+			r.Post("/leaves", handlers.CreateLeaveRequest_)
+			r.Get("/leave-balances", handlers.GetMyBalances)
+			r.Get("/notifications", handlers.GetMyNotifications)
+			r.Put("/notifications/{id}/read", handlers.MarkNotificationRead)
 		})
 
-		r.Route("/hr", func(r chi.Router) {
+		r.Route("/hrd", func(r chi.Router) {
 			r.Use(mw.Auth, mw.Role("HRD"))
-			r.Get("/leaves", handlers.GetHRLeaves)
-			r.Post("/leaves/{id}/status", handlers.SetLeaveStatus)
-			r.Get("/employees", handlers.ListEmployees)
+			r.Get("/leaves/advanced", handlers.GetAdvancedLeaves)
+			r.Put("/leaves/{id}/status", handlers.UpdateLeaveStatus)
+			r.Delete("/leaves/{id}", handlers.DeleteLeaveRequest)
+			r.Post("/leaves/manual", handlers.CreateManualLeaveHR)
+			
+			r.Get("/employees", handlers.GetAllEmployees)
 			r.Post("/employees", handlers.CreateEmployee)
 			r.Delete("/employees/{id}", handlers.DeleteEmployee)
-			r.Post("/manual-leave", handlers.SubmitManualLeave)
-			r.Get("/reports", handlers.GetLeaveReport)
-		})
-
-		r.Route("/notifications", func(r chi.Router) {
-			r.Use(mw.Auth)
-			r.Get("/", handlers.GetMyNotifications)
-			r.Post("/{id}/read", handlers.MarkNotificationRead)
+			
+			r.Get("/dashboard/stats", handlers.GetDashboardStats)
+			r.Get("/dashboard/monthly", handlers.GetMonthlyStats)
+			r.Get("/departments", handlers.GetDepartments)
+			r.Get("/positions", handlers.GetPositions)
+			r.Get("/reports/departments", handlers.GetLeaveRecapPerDepartment)
+			
+			r.Get("/audit-logs", handlers.GetAuditLogs)
 		})
 	})
 }
