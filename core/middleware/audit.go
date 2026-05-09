@@ -51,6 +51,7 @@ func AuditLogMiddleware(next http.Handler) http.Handler {
 					userID = sql.NullInt32{Int32: int32(v), Valid: true}
 				}
 			}
+			log.Printf("[Audit-Debug] UserID found in context: %v\n", userID)
 
 			// Simpan ke database secara langsung (Sync) agar tidak hilang di Vercel
 			if config.DB != nil {
