@@ -1,8 +1,8 @@
 {
-  "outputDirectory": "public",
   "cleanUrls": true,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.go" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/assets/(.*)", "destination": "/public/assets/$1" },
+    { "source": "/((?!api/).*)", "destination": "/public/index.html" }
   ]
 }
