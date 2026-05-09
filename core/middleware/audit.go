@@ -52,25 +52,22 @@ func AuditLogMiddleware(next http.Handler) http.Handler {
 				}
 			}
 
-			// Simpan ke database asinkron
-			go func(reqMethod, reqPath, reqIP string, uid sql.NullInt32) {
-				if config.DB == nil {
-					return
-				}
+			// Simpan ke database secara langsung (Sync) agar tidak hilang di Vercel
+			if config.DB != nil {
 				q := db.New(config.DB)
 				_, err := q.LogAudit(context.Background(), db.LogAuditParams{
-					UserID: uid,
-					Action: reqMethod,
-					Path:   reqPath,
+					UserID: userID,
+					Action: method,
+					Path:   r.URL.Path,
 					IpAddress: sql.NullString{
-						String: reqIP,
-						Valid:  reqIP != "",
+						String: r.RemoteAddr,
+						Valid:  r.RemoteAddr != "",
 					},
 				})
 				if err != nil {
-					log.Printf("[Audit] Gagal merekam jejak operasi %s di %s: %v\n", reqMethod, reqPath, err)
+					log.Printf("[Audit] Gagal merekam jejak: %v\n", err)
 				}
-			}(method, r.URL.Path, r.RemoteAddr, userID)
+			}
 		}
 	})
 }
