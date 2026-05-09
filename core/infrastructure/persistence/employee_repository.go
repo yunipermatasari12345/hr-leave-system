@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	db "hr-leave-system/core/db"
 	"hr-leave-system/core/domain/employee"
@@ -96,6 +97,7 @@ func (r *employeeRepository) Create(ctx context.Context, userID int32, fullName,
 		},
 	})
 	if err != nil {
+		fmt.Printf("[DATABASE ERROR] Gagal simpan karyawan: %v\n", err)
 		return employee.Employee{}, err
 	}
 	return employeeFromDB(row), nil
