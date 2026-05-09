@@ -136,7 +136,7 @@ func (s *AuthService) CreateEmployeeAccount(ctx context.Context, email, fullName
 	}
 
 	// Berikan password default "password123" agar tidak error NOT NULL di database
-	defaultHash := "$2a$10$8kK/p0YxY0b1Y/q.q/q.q/q.q/q.q/q.q/q.q/q.q/q.q/q.q/q" 
+	defaultHash := "$2a$10$OIg7q4hv.pAIw1VeQpyYQuoXwYBPAE0.IrAo4RyrsAquc9dum3jfq" 
 	u, err := s.users.Create(ctx, normalizedEmail, defaultHash, role)
 	if err != nil {
 		return employee.Employee{}, err
