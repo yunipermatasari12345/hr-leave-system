@@ -1,6 +1,8 @@
+{
   "cleanUrls": true,
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/index.go" },
     { "src": "/(.*)", "dest": "/public/$1", "continue": true },
     { "src": "/(.*)", "status": 404, "dest": "/public/index.html" }
   ]
+}
