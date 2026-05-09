@@ -196,6 +196,9 @@ func (s *LeaveService) SubmitManualRequest(ctx context.Context, hrUserID int32, 
 	year := int32(time.Now().Year())
 	_ = s.SyncBalances(ctx, targetEmp.ID, year)
 
+	// Pastikan saldo cukup (untuk input manual HRD, kita tambahkan kuotanya jika kurang)
+	_ = s.leaves.EnsureBalance(ctx, targetEmp.ID, leaveTypeID, year, days)
+
 	req, err := s.leaves.Create(ctx, targetEmp.ID, leaveTypeID, start, end, days, reason, attachmentURL)
 	if err != nil {
 		return leave.LeaveRequest{}, err
@@ -205,7 +208,6 @@ func (s *LeaveService) SubmitManualRequest(ctx context.Context, hrUserID int32, 
 	
 	st := leave.StatusApproved
 	year = int32(req.StartDate.Year())
-	_ = s.SyncBalances(ctx, req.EmployeeID, year)
 
 	_, err = s.leaves.UpdateStatus(ctx, req.ID, st, "Disetujui Otomatis (Input Manual HRD)", hrUserID)
 	if err == nil {
@@ -213,7 +215,7 @@ func (s *LeaveService) SubmitManualRequest(ctx context.Context, hrUserID int32, 
 		_ = s.leaves.UpdateBalance(ctx, req.EmployeeID, req.LeaveTypeID, year, req.TotalDays)
 		// Record approval history
 		_ = s.leaves.CreateHistory(ctx, req.ID, "APPROVED", "Disetujui Otomatis (Input Manual HRD)", hrUserID)
-		_ = s.notifs.Create(ctx, targetEmp.UserID, "HRD telah menginput pengajuan cutimu secara manual and otomatis disetujui.")
+		_ = s.notifs.Create(ctx, targetEmp.UserID, "HRD telah menginput pengajuan cutimu secara manual dan otomatis disetujui.")
 	}
 
 	return req, nil
