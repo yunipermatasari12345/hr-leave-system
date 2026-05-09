@@ -2,7 +2,6 @@
   "cleanUrls": true,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.go" },
-    { "source": "/(.*)", "destination": "/public/$1", "continue": true },
-    { "source": "/(.*)", "destination": "/public/index.html" }
+    { "source": "/((?!api/).*)", "destination": "/public/index.html" }
   ]
 }
