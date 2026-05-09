@@ -192,6 +192,10 @@ func (s *LeaveService) SubmitManualRequest(ctx context.Context, hrUserID int32, 
 		return leave.LeaveRequest{}, err
 	}
 
+	// Pastikan saldo ada sebelum membuat pengajuan
+	year := int32(time.Now().Year())
+	_ = s.SyncBalances(ctx, targetEmp.ID, year)
+
 	req, err := s.leaves.Create(ctx, targetEmp.ID, leaveTypeID, start, end, days, reason, attachmentURL)
 	if err != nil {
 		return leave.LeaveRequest{}, err
