@@ -51,7 +51,7 @@ func init() {
 	r.Route("/api", func(r chi.Router) {
 		r.Post("/auth/login", handlers.Login)
 		r.Post("/auth/logout", handlers.Logout)
-		r.Get("/auth/me", mw.Auth(handlers.Me))
+		r.With(mw.Auth).Get("/auth/me", handlers.Me)
 		r.Post("/auth/verify", handlers.VerifyRegistration)
 
 		r.Get("/leave-types", handlers.GetLeaveTypes)
