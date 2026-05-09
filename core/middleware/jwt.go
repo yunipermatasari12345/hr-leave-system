@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -58,14 +59,23 @@ func JWTMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// Middleware khusus HRD saja
-func HRDOnly(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		role := r.Context().Value(UserRoleKey)
-		if role != "hrd" {
-			http.Error(w, `{"error":"Akses ditolak, hanya HRD"}`, http.StatusForbidden)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
+// Auth adalah alias untuk JWTMiddleware agar lebih pendek di router
+func Auth(next http.Handler) http.Handler {
+	return JWTMiddleware(next)
+}
+
+// Role adalah middleware dinamis untuk mengecek role tertentu
+func Role(requiredRole string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			role := r.Context().Value(UserRoleKey)
+			
+			// Normalisasi role (biasanya case-insensitive di sistem kita)
+			if role == nil || strings.ToLower(fmt.Sprintf("%v", role)) != strings.ToLower(requiredRole) {
+				http.Error(w, `{"error":"Akses ditolak, butuh role `+requiredRole+`"}`, http.StatusForbidden)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
 }
