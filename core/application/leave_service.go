@@ -202,17 +202,17 @@ func (s *LeaveService) SubmitManualRequest(ctx context.Context, hrUserID int32, 
 		return leave.LeaveRequest{}, err
 	}
 
-	_ = s.leaves.CreateHistory(ctx, req.ID, "SUBMITTED", reason, hrEmp.ID)
-
+	_ = s.leaves.CreateHistory(ctx, req.ID, "SUBMITTED", reason, hrUserID)
+	
 	st := leave.StatusApproved
 	year := int32(req.StartDate.Year())
 	_ = s.SyncBalances(ctx, req.EmployeeID, year)
 
-	_, err = s.leaves.UpdateStatus(ctx, req.ID, st, "Disetujui Otomatis (Input Manual HRD)", hrEmp.ID)
+	_, err = s.leaves.UpdateStatus(ctx, req.ID, st, "Disetujui Otomatis (Input Manual HRD)", hrUserID)
 	if err == nil {
 		// Cut balance
 		_ = s.leaves.UpdateBalance(ctx, req.EmployeeID, req.LeaveTypeID, year, req.TotalDays)
-		// actor_id di leave_histories adalah users.id, jadi pakai hrUserID
+		// Record approval history
 		_ = s.leaves.CreateHistory(ctx, req.ID, "APPROVED", "Disetujui Otomatis (Input Manual HRD)", hrUserID)
 		_ = s.notifs.Create(ctx, targetEmp.UserID, "HRD telah menginput pengajuan cutimu secara manual and otomatis disetujui.")
 	}
