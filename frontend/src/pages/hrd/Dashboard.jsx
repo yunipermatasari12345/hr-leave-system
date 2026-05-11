@@ -488,22 +488,22 @@ export default function HrdDashboard() {
 
         {/* WELCOME BANNER (Hanya tampil di Dashboard) */}
         {activePage === "dashboard" && (
-          <div style={{ background: isDarkMode ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)" : "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)", borderRadius: 16, padding: "32px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32, position: "relative", overflow: "hidden", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)", flexWrap: "wrap", gap: 20 }}>
+          <div style={{ background: "linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%)", borderRadius: 16, padding: "32px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32, position: "relative", overflow: "hidden", boxShadow: "0 10px 15px -3px rgba(14,165,233,0.2)", flexWrap: "wrap", gap: 20 }}>
              {/* Dekorasi */}
-             <div style={{ position: "absolute", right: -30, top: -50, opacity: 0.05, fontSize: 250, transform: "rotate(-15deg)", pointerEvents: "none" }}>✨</div>
+             <div style={{ position: "absolute", right: -30, top: -50, opacity: 0.1, fontSize: 250, transform: "rotate(-15deg)", pointerEvents: "none" }}>✨</div>
              
              <div style={{ zIndex: 1, flex: "1 1 300px" }}>
-                <p style={{ margin: "0 0 8px 0", color: "#94a3b8", fontSize: 13, fontWeight: "700", textTransform: "uppercase", letterSpacing: 1.5 }}>{todayStr}</p>
+                <p style={{ margin: "0 0 8px 0", color: "#e0f2fe", fontSize: 13, fontWeight: "700", textTransform: "uppercase", letterSpacing: 1.5 }}>{todayStr}</p>
                 <h2 style={{ margin: "0 0 12px 0", color: "white", fontSize: 28, fontWeight: "800", letterSpacing: -0.5 }}>
                   Selamat datang kembali, {name.split(' ')[0]}! 👋
                 </h2>
-                <p style={{ margin: 0, color: "#cbd5e1", fontSize: 15, maxWidth: 500, lineHeight: 1.6 }}>
+                <p style={{ margin: 0, color: "#f0f9ff", fontSize: 15, maxWidth: 500, lineHeight: 1.6 }}>
                   Pantau terus performa dan kehadiran tim. Ada <strong style={{ color: "white" }}>{stats.pending_today || 0} pengajuan cuti baru</strong> yang menunggu peninjauan Anda hari ini.
                 </p>
              </div>
              
              <div style={{ zIndex: 1 }}>
-                <Button disableRipple onPress={() => setAddModalOpen(true)} style={{ background: T.primary, color: "white", fontWeight: "700", borderRadius: 12, height: 48, padding: "0 24px", fontSize: 14, boxShadow: "0 4px 6px -1px rgba(37,99,235,0.3)" }}>
+                <Button disableRipple onPress={() => setAddModalOpen(true)} style={{ background: "white", color: "#0369a1", fontWeight: "800", borderRadius: 12, height: 48, padding: "0 24px", fontSize: 14, boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)" }}>
                   + Tambahkan Karyawan
                 </Button>
              </div>
@@ -523,9 +523,6 @@ export default function HrdDashboard() {
                  <div style={{ position: "absolute", right: 10, top: 10, fontSize: 60, opacity: 0.2, zIndex: 1, lineHeight: 1 }}>
                    👥
                  </div>
-                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.1)", padding: "4px 0", textAlign: "center", fontSize: 12, cursor: "pointer", zIndex: 2 }}>
-                   More info ➔
-                 </div>
               </div>
 
               <div style={{ background: "#00a65a", color: "white", padding: "20px 20px", borderRadius: 4, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
@@ -536,9 +533,6 @@ export default function HrdDashboard() {
                  <div style={{ position: "absolute", right: 10, top: 10, fontSize: 60, opacity: 0.2, zIndex: 1, lineHeight: 1 }}>
                    📊
                  </div>
-                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.1)", padding: "4px 0", textAlign: "center", fontSize: 12, cursor: "pointer", zIndex: 2 }}>
-                   More info ➔
-                 </div>
               </div>
 
               <div style={{ background: "#f39c12", color: "white", padding: "20px 20px", borderRadius: 4, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
@@ -547,10 +541,7 @@ export default function HrdDashboard() {
                    <p style={{ fontSize: 15, margin: 0 }}>Menunggu</p>
                  </div>
                  <div style={{ position: "absolute", right: 10, top: 10, fontSize: 60, opacity: 0.2, zIndex: 1, lineHeight: 1 }}>
-                   🎓
-                 </div>
-                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.1)", padding: "4px 0", textAlign: "center", fontSize: 12, cursor: "pointer", zIndex: 2 }}>
-                   More info ➔
+                   ⏳
                  </div>
               </div>
 
@@ -561,9 +552,6 @@ export default function HrdDashboard() {
                  </div>
                  <div style={{ position: "absolute", right: 10, top: 10, fontSize: 60, opacity: 0.2, zIndex: 1, lineHeight: 1 }}>
                    👤
-                 </div>
-                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.1)", padding: "4px 0", textAlign: "center", fontSize: 12, cursor: "pointer", zIndex: 2 }}>
-                   More info ➔
                  </div>
               </div>
 

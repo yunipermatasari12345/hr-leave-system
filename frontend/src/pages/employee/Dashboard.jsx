@@ -285,9 +285,6 @@ export default function EmployeeDashboard() {
                  <div style={{ position: "absolute", right: 10, top: 10, fontSize: 60, opacity: 0.2, zIndex: 1, lineHeight: 1 }}>
                    🏖️
                  </div>
-                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.1)", padding: "4px 0", textAlign: "center", fontSize: 12, cursor: "pointer", zIndex: 2 }}>
-                   More info ➔
-                 </div>
               </div>
 
               <div style={{ background: "#00a65a", color: "white", padding: "20px 20px", borderRadius: 4, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
@@ -298,9 +295,6 @@ export default function EmployeeDashboard() {
                  <div style={{ position: "absolute", right: 10, top: 10, fontSize: 60, opacity: 0.2, zIndex: 1, lineHeight: 1 }}>
                    📊
                  </div>
-                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.1)", padding: "4px 0", textAlign: "center", fontSize: 12, cursor: "pointer", zIndex: 2 }}>
-                   More info ➔
-                 </div>
               </div>
 
               <div style={{ background: "#f39c12", color: "white", padding: "20px 20px", borderRadius: 4, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
@@ -310,9 +304,6 @@ export default function EmployeeDashboard() {
                  </div>
                  <div style={{ position: "absolute", right: 10, top: 10, fontSize: 60, opacity: 0.2, zIndex: 1, lineHeight: 1 }}>
                    📅
-                 </div>
-                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.1)", padding: "4px 0", textAlign: "center", fontSize: 12, cursor: "pointer", zIndex: 2 }}>
-                   More info ➔
                  </div>
               </div>
 
