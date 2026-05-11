@@ -1081,7 +1081,13 @@ export default function HrdDashboard() {
                   style={{ flex: 1, textAlign: "center", background: T.primary, color: "white", padding: "12px", borderRadius: 10, textDecoration: "none", fontSize: 13, fontWeight: "700", pointerEvents: previewAttachmentUrl ? "auto" : "none", opacity: previewAttachmentUrl ? 1 : 0.6 }}>
                   📥 Simpan File Ke Komputer
                </a>
-               <Button disableRipple onClick={() => setPreviewOpen(false)} style={{ flex: 1, background: T.bg, colo      {manualModalOpen && (
+               <Button disableRipple onClick={() => setPreviewOpen(false)} style={{ flex: 1, background: T.bg, color: T.textDark, fontWeight: "700", height: 44, borderRadius: 10 }}>Tutup</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {manualModalOpen && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, backdropFilter: "blur(4px)", padding: 20 }}>
           <div style={{ background: T.cardBg, borderRadius: 24, padding: "32px", width: 500, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
