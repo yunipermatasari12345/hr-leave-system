@@ -461,28 +461,54 @@ export default function HrdDashboard() {
       {/* MAIN CONTENT KLASIK (Layout Kanan) */}
       <div className="resp-content" style={{ flex: 1, padding: "40px", overflowY: "auto" }}>
         
-        {/* HEADER KLASIK */}
-        <div className="resp-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
-           <div>
-             <h2 style={{ fontSize: 24, fontWeight: "700", color: T.textDark, margin: "0 0 8px 0" }}>Halo HRD, {name.split(' ')[0]}!</h2>
-             <p style={{ fontSize: 13, color: T.textGray, margin: 0 }}>📅 &nbsp; {todayStr}</p>
-           </div>
+        {/* TOP NAVBAR */}
+        <div className="resp-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+           <h2 style={{ fontSize: 24, fontWeight: "800", color: T.textDark, margin: 0, letterSpacing: -0.5 }}>
+             {activePage === "dashboard" && "Dashboard Overview"}
+             {activePage === "leaves" && "Manajemen Cuti"}
+             {activePage === "calendar" && "Kalender Cuti"}
+             {activePage === "employees" && "Data Karyawan"}
+             {activePage === "reports" && "Laporan Ekspor"}
+             {activePage === "audit" && "Audit Trail"}
+           </h2>
            
-           <div className="resp-header-right" style={{ display: "flex", alignItems: "center", gap: 16 }}>
+           <div className="resp-header-right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
              {/* THEME TOGGLE BUTTON */}
-             <button onClick={toggleTheme} style={{ background: T.cardBg, border: T.cardBorder, padding: "8px 16px", borderRadius: 20, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, color: T.textDark, fontWeight: "600", fontSize: 13, boxShadow: "0 2px 4px rgba(0,0,0,0.02)", transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"} onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
-               <span style={{ fontSize: 16 }}>{isDarkMode ? "☀️" : "🌙"}</span>
-               {isDarkMode ? "Mode Terang" : "Mode Gelap"}
+             <button onClick={toggleTheme} style={{ width: 44, height: 44, borderRadius: "50%", background: T.cardBg, border: T.cardBorder, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.textDark, fontSize: 18, boxShadow: "0 2px 4px rgba(0,0,0,0.02)", transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"} onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"} title="Ganti Tema">
+               {isDarkMode ? "☀️" : "🌙"}
              </button>
 
-             {/* ADD EMPLOYEE BUTTON */}
-             {activePage === "dashboard" && (
-                <Button disableRipple onPress={() => setAddModalOpen(true)} style={{ background: T.primary, color: "white", fontWeight: "600", borderRadius: 8, height: 40, padding: "0 20px" }}>
-                  + Tambahkan Karyawan Baru
-                </Button>
-             )}
+             {/* NOTIF BUTTON (DUMMY) */}
+             <button style={{ width: 44, height: 44, borderRadius: "50%", background: T.cardBg, border: T.cardBorder, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.textDark, fontSize: 18, boxShadow: "0 2px 4px rgba(0,0,0,0.02)", position: "relative", transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"} onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
+               🔔
+               <span style={{ position: "absolute", top: 12, right: 12, width: 8, height: 8, background: T.red, borderRadius: "50%", border: `2px solid ${T.cardBg}` }}></span>
+             </button>
            </div>
         </div>
+
+        {/* WELCOME BANNER (Hanya tampil di Dashboard) */}
+        {activePage === "dashboard" && (
+          <div style={{ background: isDarkMode ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)" : "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)", borderRadius: 16, padding: "32px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32, position: "relative", overflow: "hidden", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)", flexWrap: "wrap", gap: 20 }}>
+             {/* Dekorasi */}
+             <div style={{ position: "absolute", right: -30, top: -50, opacity: 0.05, fontSize: 250, transform: "rotate(-15deg)", pointerEvents: "none" }}>✨</div>
+             
+             <div style={{ zIndex: 1, flex: "1 1 300px" }}>
+                <p style={{ margin: "0 0 8px 0", color: "#94a3b8", fontSize: 13, fontWeight: "700", textTransform: "uppercase", letterSpacing: 1.5 }}>{todayStr}</p>
+                <h2 style={{ margin: "0 0 12px 0", color: "white", fontSize: 28, fontWeight: "800", letterSpacing: -0.5 }}>
+                  Selamat datang kembali, {name.split(' ')[0]}! 👋
+                </h2>
+                <p style={{ margin: 0, color: "#cbd5e1", fontSize: 15, maxWidth: 500, lineHeight: 1.6 }}>
+                  Pantau terus performa dan kehadiran tim. Ada <strong style={{ color: "white" }}>{stats.pending_today || 0} pengajuan cuti baru</strong> yang menunggu peninjauan Anda hari ini.
+                </p>
+             </div>
+             
+             <div style={{ zIndex: 1 }}>
+                <Button disableRipple onPress={() => setAddModalOpen(true)} style={{ background: T.primary, color: "white", fontWeight: "700", borderRadius: 12, height: 48, padding: "0 24px", fontSize: 14, boxShadow: "0 4px 6px -1px rgba(37,99,235,0.3)" }}>
+                  + Tambahkan Karyawan
+                </Button>
+             </div>
+          </div>
+        )}
 
         {activePage === "dashboard" && (
           <>
