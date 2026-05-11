@@ -42,6 +42,12 @@ export default function HrdDashboard() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editForm, setEditForm] = useState({ id: "", full_name: "", department: "", position: "", phone: "", role: "" });
 
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [addForm, setAddForm] = useState({ email: "", full_name: "", department: "", position: "", phone: "", role: "employee" });
+  const [addLoading, setAddLoading] = useState(false);
+  const [addError, setAddError] = useState("");
+  const [addSuccess, setAddSuccess] = useState("");
+
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailEmp, setDetailEmp] = useState(null);
 
@@ -374,6 +380,25 @@ export default function HrdDashboard() {
     </div>
   );
 
+  const handleAddSubmit = async () => {
+    if (!addForm.email || !addForm.full_name || !addForm.department || !addForm.position || !addForm.role) {
+      setAddError("Semua field wajib diisi kecuali nomor HP!"); return;
+    }
+    setAddLoading(true); setAddError(""); setAddSuccess("");
+    try {
+      await employeeApi.createForHR(addForm);
+      setAddSuccess("Karyawan berhasil ditambahkan!");
+      fetchEmployees();
+      setTimeout(() => {
+        setAddModalOpen(false);
+        setAddSuccess("");
+        setAddForm({ email: "", full_name: "", department: "", position: "", phone: "", role: "employee" });
+      }, 1500);
+    } catch (e) {
+      setAddError(e.response?.data?.error || "Gagal menambahkan karyawan");
+    } finally { setAddLoading(false); }
+  };
+
   return (
     <div className="resp-layout" style={{ display: "flex", minHeight: "100vh", background: T.bg }}>
       
@@ -452,7 +477,7 @@ export default function HrdDashboard() {
 
              {/* ADD EMPLOYEE BUTTON */}
              {activePage === "dashboard" && (
-                <Button disableRipple onPress={() => navigate("/hrd/employees/add")} style={{ background: T.primary, color: "white", fontWeight: "600", borderRadius: 8, height: 40, padding: "0 20px" }}>
+                <Button disableRipple onPress={() => setAddModalOpen(true)} style={{ background: T.primary, color: "white", fontWeight: "600", borderRadius: 8, height: 40, padding: "0 20px" }}>
                   + Tambahkan Karyawan Baru
                 </Button>
              )}
@@ -732,7 +757,7 @@ export default function HrdDashboard() {
                
                {/* Tambah Button */}
                <div style={{ marginBottom: 20 }}>
-                 <button onClick={() => navigate("/hrd/employees/add")} style={{ background: "#3b82f6", color: "white", border: "none", padding: "8px 16px", borderRadius: 4, cursor: "pointer", fontSize: 14, fontWeight: "500" }}>Tambah</button>
+                 <button onClick={() => setAddModalOpen(true)} style={{ background: "#3b82f6", color: "white", border: "none", padding: "8px 16px", borderRadius: 4, cursor: "pointer", fontSize: 14, fontWeight: "500" }}>Tambah</button>
                </div>
 
                {/* Controls */}
@@ -1056,13 +1081,7 @@ export default function HrdDashboard() {
                   style={{ flex: 1, textAlign: "center", background: T.primary, color: "white", padding: "12px", borderRadius: 10, textDecoration: "none", fontSize: 13, fontWeight: "700", pointerEvents: previewAttachmentUrl ? "auto" : "none", opacity: previewAttachmentUrl ? 1 : 0.6 }}>
                   📥 Simpan File Ke Komputer
                </a>
-               <Button disableRipple onClick={() => setPreviewOpen(false)} style={{ flex: 1, background: T.bg, color: T.textDark, fontWeight: "700", height: 44, borderRadius: 10 }}>Tutup</Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {manualModalOpen && (
+               <Button disableRipple onClick={() => setPreviewOpen(false)} style={{ flex: 1, background: T.bg, colo      {manualModalOpen && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, backdropFilter: "blur(4px)", padding: 20 }}>
           <div style={{ background: T.cardBg, borderRadius: 24, padding: "32px", width: 500, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
@@ -1134,6 +1153,72 @@ export default function HrdDashboard() {
             <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
               <Button disableRipple onClick={() => setManualModalOpen(false)} style={{ flex: 1, background: T.cardBg, border: T.cardBorder, color: T.textGray, height: 48, borderRadius: 12, fontWeight: "600" }}>Batal</Button>
               <Button disableRipple onPress={handleManualSubmit} isLoading={manualLoading} style={{ flex: 1, background: T.primary, color: "white", height: 48, borderRadius: 12, fontWeight: "600" }}>Simpan & Setujui Otomatis</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL TAMBAH KARYAWAN */}
+      {addModalOpen && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, backdropFilter: "blur(4px)", padding: 20 }}>
+          <div style={{ background: T.cardBg, borderRadius: 24, padding: "32px", width: 500, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <div>
+                <h2 style={{ fontSize: 20, fontWeight: "800", color: T.textDark, margin: 0 }}>Tambah Data Karyawan</h2>
+                <p style={{ margin: "4px 0 0 0", fontSize: 12, color: T.textGray }}>Silakan isi informasi karyawan baru di bawah ini.</p>
+              </div>
+              <button onClick={() => setAddModalOpen(false)} style={{ background: T.bg, border: "none", fontSize: 16, width: 32, height: 32, borderRadius: 16, cursor: "pointer", color: T.textDark}}>✕</button>
+            </div>
+            
+            {addError && <div style={{ background: "#fef2f2", color: T.red, padding: "12px 16px", borderRadius: 8, fontSize: 13, fontWeight: "500", marginBottom: 20 }}>{addError}</div>}
+            {addSuccess && <div style={{ background: "#f0fdf4", color: T.green, padding: "12px 16px", borderRadius: 8, fontSize: 13, fontWeight: "500", marginBottom: 20 }}>{addSuccess}</div>}
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div>
+                <p style={{ fontSize: 12, fontWeight: "700", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Nama Lengkap <span style={{ color: T.red }}>*</span></p>
+                <input type="text" value={addForm.full_name} onChange={e => setAddForm({...addForm, full_name: e.target.value})} style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: T.cardBorder, outline: "none", color: T.textDark, background: T.bg, boxSizing: "border-box" }} placeholder="Contoh: Budi Santoso" />
+              </div>
+              <div>
+                <p style={{ fontSize: 12, fontWeight: "700", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Email Login <span style={{ color: T.red }}>*</span></p>
+                <input type="email" value={addForm.email} onChange={e => setAddForm({...addForm, email: e.target.value})} style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: T.cardBorder, outline: "none", color: T.textDark, background: T.bg, boxSizing: "border-box" }} placeholder="Contoh: budi@appskep.com" />
+              </div>
+              <div>
+                <p style={{ fontSize: 12, fontWeight: "700", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Nomor HP</p>
+                <input type="text" value={addForm.phone} onChange={e => setAddForm({...addForm, phone: e.target.value})} style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: T.cardBorder, outline: "none", color: T.textDark, background: T.bg, boxSizing: "border-box" }} placeholder="Contoh: 08123456789" />
+              </div>
+              <div>
+                <p style={{ fontSize: 12, fontWeight: "700", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Departemen <span style={{ color: T.red }}>*</span></p>
+                <select value={addForm.department} onChange={e => setAddForm({...addForm, department: e.target.value})} style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: T.cardBorder, outline: "none", color: T.textDark, background: T.bg, boxSizing: "border-box" }}>
+                  <option value="">Pilih Departemen</option>
+                  {DEPT_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </div>
+              <div>
+                <p style={{ fontSize: 12, fontWeight: "700", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Jabatan <span style={{ color: T.red }}>*</span></p>
+                <select value={addForm.position} onChange={e => setAddForm({...addForm, position: e.target.value})} style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: T.cardBorder, outline: "none", color: T.textDark, background: T.bg, boxSizing: "border-box" }}>
+                  <option value="">Pilih Jabatan</option>
+                  {POS_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+              <div>
+                <p style={{ fontSize: 12, fontWeight: "700", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Hak Akses Sistem <span style={{ color: T.red }}>*</span></p>
+                <select value={addForm.role} onChange={e => setAddForm({...addForm, role: e.target.value})} style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: T.cardBorder, outline: "none", color: T.textDark, background: T.bg, boxSizing: "border-box" }}>
+                  <option value="employee">Karyawan Biasa</option>
+                  <option value="hrd">HRD / Admin</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
+              <Button disableRipple onClick={() => setAddModalOpen(false)} style={{ flex: 1, background: T.cardBg, border: T.cardBorder, color: T.textGray, height: 48, borderRadius: 12, fontWeight: "600" }}>Batal</Button>
+              <Button disableRipple onPress={handleAddSubmit} isLoading={addLoading} style={{ flex: 1, background: T.primary, color: "white", height: 48, borderRadius: 12, fontWeight: "600" }}>Simpan Data Karyawan</Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}borderRadius: 12, fontWeight: "600" }}>Simpan & Setujui Otomatis</Button>
             </div>
           </div>
         </div>

@@ -318,79 +318,49 @@ export default function EmployeeDashboard() {
 
             </div>
 
-            {/* TWO COLUMN CONTENT AREA (PROFIL SAYA) */}
-            <div className="resp-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 2.5fr", gap: 24 }}>
+            {/* TWO COLUMN CONTENT AREA */}
+            <div className="resp-grid-2" style={{ display: "grid", gridTemplateColumns: "2.5fr 1.5fr", gap: 24 }}>
               
-              {/* KOLOM KIRI: Foto Profil */}
-              <div style={{ background: "white", borderRadius: 4, border: "1px solid #0073b7", borderTopWidth: 3, overflow: "hidden", boxShadow: "0 1px 1px rgba(0,0,0,0.1)", display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 0" }}>
-                <div style={{ width: 100, height: 100, borderRadius: "50%", background: "#f3f4f6", border: "3px solid #e5e7eb", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40 }}>
-                   👨‍💼
+              {/* KOLOM KIRI: Pengajuan Terakhir */}
+              <div style={{ background: "white", borderRadius: 4, border: "1px solid #d2d6de", overflow: "hidden", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
+                <div style={{ padding: "12px 16px", borderBottom: "1px solid #f4f4f4", background: "white", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <h3 style={{ margin: 0, fontSize: 16, color: "#333", fontWeight: "normal" }}>⏳ Pengajuan Terakhir Anda</h3>
+                  <span onClick={() => setActivePage("leaves")} style={{ fontSize: 13, color: "#00c0ef", cursor: "pointer", fontWeight: "600" }}>Lihat Semua &rarr;</span>
                 </div>
-                <h3 style={{ margin: "0 0 4px 0", fontSize: 18, color: "#333", fontWeight: "normal" }}>{name}</h3>
-                <p style={{ margin: "0 0 16px 0", fontSize: 13, color: "#777" }}>1234567890</p>
-                
-                <div style={{ width: "100%", padding: "0 16px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderTop: "1px solid #f4f4f4", borderBottom: "1px solid #f4f4f4" }}>
-                    <strong style={{ fontSize: 13, color: "#333" }}>Devisi</strong>
-                    <span style={{ fontSize: 13, color: "#777", textTransform: "uppercase" }}>{dept}</span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid #f4f4f4", marginBottom: 16 }}>
-                    <strong style={{ fontSize: 13, color: "#333" }}>Kontak</strong>
-                    <span style={{ fontSize: 13, color: "#777" }}>6282272216125</span>
-                  </div>
-                  <button style={{ width: "100%", background: "#0073b7", color: "white", border: "none", padding: "8px", borderRadius: 2, cursor: "pointer", fontWeight: "bold", fontSize: 13 }}>EDIT</button>
+                <div style={{ padding: "8px 16px 16px", display: "flex", flexDirection: "column" }}>
+                  {leaves.length > 0 ? leaves.slice(0, 3).map(l => (
+                    <div key={l.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 16, paddingBottom: 16, borderBottom: "1px solid #f4f4f4" }}>
+                      <div>
+                        <p style={{ margin: "0 0 6px 0", fontSize: 13, fontWeight: "700", color: "#333" }}>{l.leave_type_name || "Cuti Tahunan"} <span style={{ color: "#777", fontWeight: "normal" }}>({l.total_days} Hari)</span></p>
+                        <p style={{ margin: 0, fontSize: 12, color: "#777" }}>{l.start_date.slice(0,10)} s/d {l.end_date.slice(0,10)}</p>
+                      </div>
+                      <span style={{ background: statusStyle[l.status]?.bg || "#f3f4f6", color: statusStyle[l.status]?.color || "#374151", padding: "4px 10px", borderRadius: 4, fontSize: 11, fontWeight: "bold", textTransform: "uppercase" }}>
+                        {statusStyle[l.status]?.label || l.status}
+                      </span>
+                    </div>
+                  )) : (
+                    <div style={{ textAlign: "center", padding: "32px 0", color: "#777", fontSize: 13 }}>Belum ada riwayat pengajuan cuti.</div>
+                  )}
                 </div>
               </div>
 
-              {/* KOLOM KANAN: Detail Profil */}
-              <div style={{ background: "white", borderRadius: 4, border: "1px solid #d2d6de", overflow: "hidden", boxShadow: "0 1px 1px rgba(0,0,0,0.1)", display: "flex", flexDirection: "column" }}>
-                <div style={{ padding: "12px 16px", borderBottom: "1px solid #f4f4f4", background: "white" }}>
-                  <h3 style={{ margin: 0, fontSize: 16, color: "#333", fontWeight: "normal" }}>Profil Saya</h3>
+              {/* KOLOM KANAN: Widget Info */}
+              <div style={{ background: "#0073b7", borderRadius: 4, border: "none", color: "white", padding: 24, display: "flex", flexDirection: "column", position: "relative", overflow: "hidden", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
+                <div style={{ position: "absolute", right: -20, top: -20, fontSize: 100, opacity: 0.1, transform: "rotate(15deg)" }}>🏖️</div>
+                <div style={{ zIndex: 1, flex: 1 }}>
+                  <h3 style={{ margin: "0 0 12px 0", fontSize: 18, fontWeight: "normal", display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 20 }}>{sisaCuti > 5 ? "✨" : "⚠️"}</span> {sisaCuti > 5 ? "Waktunya Liburan!" : "Kuota Menipis!"}
+                  </h3>
+                  <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, opacity: 0.9 }}>
+                    {sisaCuti > 5 
+                      ? `Anda masih memiliki ${sisaCuti} hari cuti tahun ini. Jangan lupakan keseimbangan kerja dan istirahat Anda.` 
+                      : `Sisa cuti Anda tinggal ${sisaCuti} hari. Gunakan sisa kuota tersebut dengan bijak.`}
+                  </p>
                 </div>
-                <div style={{ flex: 1, padding: 16, overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, color: "#333" }}>
-                    <tbody>
-                      <tr style={{ background: "#f9f9f9" }}>
-                        <td style={{ padding: 12, width: "30%", fontWeight: "bold", border: "1px solid #f4f4f4" }}>Nama</td>
-                        <td style={{ padding: 12, width: "5%", border: "1px solid #f4f4f4" }}>:</td>
-                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>{name}</td>
-                      </tr>
-                      <tr style={{ background: "white" }}>
-                        <td style={{ padding: 12, fontWeight: "bold", border: "1px solid #f4f4f4" }}>NIK/NIP</td>
-                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>:</td>
-                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>1234567890</td>
-                      </tr>
-                      <tr style={{ background: "#f9f9f9" }}>
-                        <td style={{ padding: 12, fontWeight: "bold", border: "1px solid #f4f4f4" }}>Jenis Kelamin</td>
-                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>:</td>
-                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>Laki-Laki</td>
-                      </tr>
-                      <tr style={{ background: "white" }}>
-                        <td style={{ padding: 12, fontWeight: "bold", border: "1px solid #f4f4f4" }}>Kontak</td>
-                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>:</td>
-                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>6282272216125</td>
-                      </tr>
-                      <tr style={{ background: "#f9f9f9" }}>
-                        <td style={{ padding: 12, fontWeight: "bold", border: "1px solid #f4f4f4" }}>Alamat</td>
-                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>:</td>
-                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>Culpa quis sequi mag</td>
-                      </tr>
-                      <tr style={{ background: "white" }}>
-                        <td style={{ padding: 12, fontWeight: "bold", border: "1px solid #f4f4f4" }}>Username</td>
-                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>:</td>
-                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>{name.split(' ')[0].toLowerCase()}</td>
-                      </tr>
-                      <tr style={{ background: "#f9f9f9" }}>
-                        <td style={{ padding: 12, fontWeight: "bold", verticalAlign: "top", border: "1px solid #f4f4f4" }}>Tanda Tangan</td>
-                        <td style={{ padding: 12, verticalAlign: "top", border: "1px solid #f4f4f4" }}>:</td>
-                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>
-                           <div style={{ width: 60, height: 40, borderBottom: "1px solid #333", position: "relative" }}>
-                             <span style={{ position: "absolute", bottom: 0, left: 10, fontFamily: "cursive", color: "#333", fontSize: 24, transform: "rotate(-10deg)" }}>&sim;</span>
-                           </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                <div style={{ zIndex: 1, marginTop: 24 }}>
+                  <Button disableRipple onPress={() => setActivePage("new_leave")} style={{ background: "rgba(255,255,255,0.2)", color: "white", border: "1px solid rgba(255,255,255,0.4)", fontWeight: "bold", width: "100%", borderRadius: 4, height: 36, fontSize: 13 }}>
+                    Ambil Cuti Sekarang
+                  </Button>
                 </div>
               </div>
 
