@@ -2,12 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  box-sizing: border-box;
+.resp-layout {
+  display: flex;
+  min-height: 100vh;
 }
 
 body {
-  font-family: inherit;
+  font-family: 'Inter', sans-serif;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
@@ -180,13 +181,28 @@ body {
   .resp-header-right {
     width: 100% !important;
     flex-wrap: wrap !important;
-    justify-content: flex-start !important;
-    gap: 12px !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
   }
   .resp-header-right button {
     flex: 1;
-    min-width: 140px;
+    min-width: 40px;
+    height: 40px !important;
     justify-content: center;
+  }
+  .resp-welcome-banner {
+    padding: 20px !important;
+    margin-bottom: 20px !important;
+  }
+  .resp-welcome-banner h2 {
+    font-size: 20px !important;
+  }
+  .resp-welcome-banner p {
+    font-size: 13px !important;
+  }
+  .resp-welcome-banner button {
+    width: 100% !important;
+    margin-top: 10px !important;
   }
   .resp-grid-4 {
     grid-template-columns: repeat(2, 1fr) !important;

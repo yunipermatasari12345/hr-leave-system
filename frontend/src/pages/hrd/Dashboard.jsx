@@ -400,10 +400,10 @@ export default function HrdDashboard() {
   };
 
   return (
-    <div className="resp-layout" style={{ display: "flex", minHeight: "100vh", background: T.bg }}>
+    <div className="resp-layout" style={{ background: T.bg }}>
       
       {/* SIDEBAR KLASIK */}
-      <div className="resp-sidebar" style={{ width: 260, background: T.sidebar, borderRight: T.cardBorder, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
+      <div className="resp-sidebar" style={{ width: 260, background: T.sidebar, borderRight: T.cardBorder, display: "flex", flexDirection: "column", flexShrink: 0 }}>
         <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 1, justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 1 }}>
             <img src="/logo.png" alt="Logo" style={{ height: 80, width: "auto", objectFit: "contain" }} onError={(e) => { e.target.style.display='none'; }} />
@@ -459,7 +459,7 @@ export default function HrdDashboard() {
       </div>
 
       {/* MAIN CONTENT KLASIK (Layout Kanan) */}
-      <div className="resp-content" style={{ flex: 1, padding: "40px", overflowY: "auto" }}>
+      <div className="resp-content" style={{ flex: 1, overflowY: "auto" }}>
         
         {/* TOP NAVBAR */}
         <div className="resp-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
@@ -488,7 +488,7 @@ export default function HrdDashboard() {
 
         {/* WELCOME BANNER (Hanya tampil di Dashboard) */}
         {activePage === "dashboard" && (
-          <div style={{ background: "linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%)", borderRadius: 16, padding: "32px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32, position: "relative", overflow: "hidden", boxShadow: "0 10px 15px -3px rgba(14,165,233,0.2)", flexWrap: "wrap", gap: 20 }}>
+          <div className="resp-welcome-banner" style={{ background: "linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%)", borderRadius: 16, padding: "32px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32, position: "relative", overflow: "hidden", boxShadow: "0 10px 15px -3px rgba(14,165,233,0.2)", flexWrap: "wrap", gap: 20 }}>
              {/* Dekorasi */}
              <div style={{ position: "absolute", right: -30, top: -50, opacity: 0.1, fontSize: 250, transform: "rotate(-15deg)", pointerEvents: "none" }}>✨</div>
              
@@ -633,7 +633,7 @@ export default function HrdDashboard() {
         {activePage === "leaves" && (
            <div style={{ background: T.cardBg, borderRadius: 12, border: T.cardBorder }}>
              <div style={{ padding: "20px 24px", borderBottom: T.cardBorder, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-               <h3 style={{ margin: 0, fontSize: 18, fontWeight: "700", color: T.textDark }}>Semua Pengajuan Cuti</h3>
+               <div style={{ flex: 1 }}></div>
                <div style={{ display: "flex", gap: 12 }}>
                  <Button disableRipple size="sm" onPress={() => setManualModalOpen(true)} style={{ background: T.primary, color: "white", fontWeight: "700", height: 38, padding: "0 16px", borderRadius: 10 }}>
                    + Input Cuti Manual
@@ -694,10 +694,7 @@ export default function HrdDashboard() {
         {activePage === "calendar" && (
            <div style={{ background: T.cardBg, borderRadius: 16, border: T.cardBorder, minHeight: 600, display: "flex", flexDirection: "column", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" }}>
              <div style={{ padding: "24px 32px", borderBottom: T.cardBorder, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-               <div>
-                  <h3 style={{ margin: 0, fontSize: 20, fontWeight: "800", color: T.textDark }}>Kalender Cuti Perusahaan</h3>
-                  <p style={{ margin: "4px 0 0 0", fontSize: 14, color: T.textGray }}>Visualisasi jadwal karyawan yang sedang libur / cuti</p>
-               </div>
+                <div></div>
                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                  <button onClick={() => setCurrentMonthDate(new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() - 1, 1))} style={{ width: 40, height: 40, borderRadius: 12, border: T.cardBorder, background: T.cardBg, cursor: "pointer", fontWeight: "bold" }}>←</button>
                  <span style={{ fontSize: 16, fontWeight: "700", width: 140, textAlign: "center" }}>
@@ -766,7 +763,7 @@ export default function HrdDashboard() {
 
         {activePage === "employees" && (
            <div style={{ padding: "0 8px" }}>
-             <h2 style={{ margin: "0 0 24px 0", fontSize: 24, fontWeight: "600", color: "#334155" }}>Data Karyawan</h2>
+
              <div style={{ background: "white", borderRadius: 8, border: "1px solid #e2e8f0", padding: 20 }}>
                
                {/* Tambah Button */}
@@ -845,7 +842,7 @@ export default function HrdDashboard() {
         {activePage === "reports" && (
            <div style={{ background: T.cardBg, borderRadius: 12, border: T.cardBorder }}>
              <div style={{ padding: "20px 24px", borderBottom: T.cardBorder, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-               <h3 style={{ margin: 0, fontSize: 16, fontWeight: "600", color: T.textDark }}>Analisis Rekapitulasi</h3>
+               <div></div>
                <Button size="sm" onClick={exportReportsToExcel} style={{ background: T.cardBg, border: T.cardBorder, color: T.textDark, fontWeight: "600", borderRadius: 6 }}>Export (XLSX)</Button>
              </div>
              <div className="resp-table-wrapper">
@@ -875,10 +872,7 @@ export default function HrdDashboard() {
         {activePage === "audit" && (
            <div style={{ background: T.cardBg, borderRadius: 12, border: T.cardBorder }}>
              <div style={{ padding: "20px 24px", borderBottom: T.cardBorder, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-               <div>
-                 <h3 style={{ margin: 0, fontSize: 18, fontWeight: "700", color: T.textDark }}>Sistem Audit Trail</h3>
-                 <p style={{ margin: "4px 0 0 0", fontSize: 13, color: T.textGray }}>Memantau riwayat aktivitas semua pengguna di dalam sistem</p>
-               </div>
+               <div></div>
                <Button disableRipple size="sm" onClick={fetchAuditLogs} style={{ background: T.bg, border: T.cardBorder, color: T.textDark, fontWeight: "600", borderRadius: 8, height: 38 }}>🔄 Segarkan</Button>
              </div>
              <div className="resp-table-wrapper" style={{ overflowX: "auto" }}>

@@ -228,7 +228,7 @@ export default function EmployeeDashboard() {
       </div>
 
       {/* MAIN CONTENT KLASIK (Layout Kanan) */}
-      <div className="resp-content" style={{ flex: 1, padding: "40px", overflowY: "auto" }}>
+      <div className="resp-content" style={{ flex: 1, overflowY: "auto" }}>
         
         {/* HEADER KLASIK */}
         <div className="resp-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
