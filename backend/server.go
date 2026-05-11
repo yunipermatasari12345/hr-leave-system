@@ -64,6 +64,7 @@ func main() {
 
 		// Karyawan
 		r.Get("/api/employee/leaves", handlers.GetMyLeaves)
+		r.Get("/api/employee/leaves/{id}/attachment", handlers.GetLeaveAttachmentEmployee)
 		r.Get("/api/employee/leave-balances", handlers.GetMyBalances)
 		r.Post("/api/employee/leaves", handlers.CreateLeaveRequest_)
 		r.Get("/api/employee/notifications", handlers.GetMyNotifications)
@@ -75,6 +76,7 @@ func main() {
 			r.Post("/api/hrd/employees", handlers.CreateEmployee)
 			r.Get("/api/hrd/employees", handlers.GetAllEmployees)
 			r.Get("/api/hrd/leaves", handlers.GetAllLeaves)
+			r.Get("/api/hrd/leaves/{id}/attachment", handlers.GetLeaveAttachmentHR)
 			r.Put("/api/hrd/leaves/{id}/status", handlers.UpdateLeaveStatus)
 			r.Delete("/api/hrd/leaves/{id}", handlers.DeleteLeaveRequest)
 

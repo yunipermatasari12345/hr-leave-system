@@ -64,6 +64,11 @@ func Auth(next http.Handler) http.Handler {
 	return JWTMiddleware(next)
 }
 
+// HRDOnly memaksa JWT + role hrd (untuk backend/server standalone).
+func HRDOnly(next http.Handler) http.Handler {
+	return Role("hrd")(next)
+}
+
 // Role adalah middleware dinamis untuk mengecek role tertentu
 func Role(requiredRole string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {

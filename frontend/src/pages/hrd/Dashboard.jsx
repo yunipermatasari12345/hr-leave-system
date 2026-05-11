@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { useNavigate } from "react-router-dom";
 import { Button, Divider } from "@heroui/react";
@@ -10,6 +10,12 @@ import { reportingApi } from "../../api/reportingApi";
 import { auditApi } from "../../api/auditApi";
 import { STORAGE_KEYS } from "../../constants/storage";
 import { API_BASE_URL } from "../../constants/config";
+import {
+  leaveRowHasAttachment,
+  legacyAttachmentHref,
+  fetchLeaveAttachmentWithMeta,
+  isImageAttachmentHint,
+} from "../../utils/leaveAttachmentFetch";
 
 export default function HrdDashboard() {
   const [leaves, setLeaves] = useState([]);
@@ -37,6 +43,13 @@ export default function HrdDashboard() {
 
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailEmp, setDetailEmp] = useState(null);
+
+  const [modalAttachmentUrl, setModalAttachmentUrl] = useState(null);
+  const [modalAttachmentMime, setModalAttachmentMime] = useState("");
+  const [previewAttachmentUrl, setPreviewAttachmentUrl] = useState(null);
+  const [previewAttachmentMime, setPreviewAttachmentMime] = useState("");
+  const modalAttachCleanupRef = useRef(null);
+  const previewAttachCleanupRef = useRef(null);
 
   const [activePage, setActivePage] = useState("dashboard");
   const navigate = useNavigate();
@@ -129,6 +142,8 @@ export default function HrdDashboard() {
   };
 
   const openAction = (leave, type) => {
+    setModalAttachmentUrl(null);
+    setModalAttachmentMime("");
     setSelected(leave); setActionType(type); setHrdNote(leave.hrd_note || ""); setModalOpen(true);
   };
   const handleAction = async () => {
@@ -153,9 +168,97 @@ export default function HrdDashboard() {
   };
 
   const openPreview = (leave) => {
+    setPreviewAttachmentUrl(null);
+    setPreviewAttachmentMime("");
     setSelected(leave);
     setPreviewOpen(true);
   };
+
+  useEffect(() => {
+    modalAttachCleanupRef.current?.();
+    modalAttachCleanupRef.current = null;
+    let cancelled = false;
+    let objectURL = null;
+    setModalAttachmentUrl(null);
+    setModalAttachmentMime("");
+    if (!modalOpen || !selected || !leaveRowHasAttachment(selected)) {
+      return undefined;
+    }
+    (async () => {
+      try {
+        if (selected.has_attachment) {
+          const { objectURL: u, contentType } = await fetchLeaveAttachmentWithMeta(
+            API_BASE_URL,
+            "hrd",
+            selected.id,
+          );
+          objectURL = u;
+          modalAttachCleanupRef.current = () => URL.revokeObjectURL(u);
+          if (!cancelled) {
+            setModalAttachmentUrl(u);
+            setModalAttachmentMime(contentType || "");
+          }
+        } else {
+          const href = legacyAttachmentHref(API_BASE_URL, selected);
+          if (!cancelled) {
+            setModalAttachmentUrl(href);
+            setModalAttachmentMime("");
+          }
+        }
+      } catch {
+        if (!cancelled) setModalAttachmentUrl(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (objectURL) URL.revokeObjectURL(objectURL);
+      modalAttachCleanupRef.current?.();
+      modalAttachCleanupRef.current = null;
+    };
+  }, [modalOpen, selected?.id, selected?.has_attachment, selected?.attachment_url]);
+
+  useEffect(() => {
+    previewAttachCleanupRef.current?.();
+    previewAttachCleanupRef.current = null;
+    let cancelled = false;
+    let objectURL = null;
+    setPreviewAttachmentUrl(null);
+    setPreviewAttachmentMime("");
+    if (!previewOpen || !selected || !leaveRowHasAttachment(selected)) {
+      return undefined;
+    }
+    (async () => {
+      try {
+        if (selected.has_attachment) {
+          const { objectURL: u, contentType } = await fetchLeaveAttachmentWithMeta(
+            API_BASE_URL,
+            "hrd",
+            selected.id,
+          );
+          objectURL = u;
+          previewAttachCleanupRef.current = () => URL.revokeObjectURL(u);
+          if (!cancelled) {
+            setPreviewAttachmentUrl(u);
+            setPreviewAttachmentMime(contentType || "");
+          }
+        } else {
+          const href = legacyAttachmentHref(API_BASE_URL, selected);
+          if (!cancelled) {
+            setPreviewAttachmentUrl(href);
+            setPreviewAttachmentMime("");
+          }
+        }
+      } catch {
+        if (!cancelled) setPreviewAttachmentUrl(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (objectURL) URL.revokeObjectURL(objectURL);
+      previewAttachCleanupRef.current?.();
+      previewAttachCleanupRef.current = null;
+    };
+  }, [previewOpen, selected?.id, selected?.has_attachment, selected?.attachment_url]);
   
   const handleDeleteEmployee = async (id, empName) => {
     if (window.confirm(`Yakin ingin menghapus karyawan ${empName}? Data pengajuan cutinya juga mungkin terhapus atau menjadi yatim.`)) {
@@ -492,7 +595,7 @@ export default function HrdDashboard() {
                      <td style={{ padding: "16px 24px", fontSize: 13, color: T.textDark, fontWeight: "500" }}>{l.employee_name}<br/><span style={{fontSize: 11, color: T.textLight}}>{l.employee_department}</span></td>
                      <td style={{ padding: "16px 24px", fontSize: 13, color: T.textGray }}>{l.start_date.slice(0,10)} sd {l.end_date.slice(0,10)} <br/><span style={{fontSize: 11, color: T.textLight}}>({l.total_days} Hari)</span></td>
                      <td style={{ padding: "16px 24px", textAlign: "center" }}>
-                       {l.attachment_url ? (
+                       {leaveRowHasAttachment(l) ? (
                          <button onClick={() => openPreview(l)}
                            style={{ color: T.primary, fontSize: 12, fontWeight: "600", textDecoration: "none", background: "none", border: "none", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4, padding: 0 }}>
                            📎 Lihat
@@ -516,7 +619,7 @@ export default function HrdDashboard() {
                      </td>
                    </tr>
                  ))}
-                 {leaves.length === 0 && <tr><td colSpan="4" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: T.textGray }}>Belum ada data.</td></tr>}
+                 {leaves.length === 0 && <tr><td colSpan="5" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: T.textGray }}>Belum ada data.</td></tr>}
                </tbody>
              </table>
            </div>
@@ -747,26 +850,28 @@ export default function HrdDashboard() {
                     <p style={{ fontSize: 11, fontWeight: "700", color: T.textGray, margin: "0 0 4px 0", textTransform: "uppercase" }}>Alasan Cuti</p>
                     <p style={{ fontSize: 13, fontWeight: "600", color: T.textDark, margin: 0, lineHeight: 1.5 }}>{selected.reason || "-"}</p>
                  </div>
-                 {selected.attachment_url && (
-                    <div style={{ marginTop: 16, paddingTop: 16, borderTop: T.cardBorder }}>
+                {leaveRowHasAttachment(selected) && (
+                   <div style={{ marginTop: 16, paddingTop: 16, borderTop: T.cardBorder }}>
                       <p style={{ fontSize: 11, fontWeight: "700", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Lampiran Pendukung</p>
-                      {selected.attachment_url.match(/\.(jpg|jpeg|png|gif)$/i) ? (
+                      {modalAttachmentUrl && isImageAttachmentHint({ row: selected, fetchedContentType: modalAttachmentMime }) ? (
                         <div style={{ borderRadius: 12, overflow: "hidden", border: T.cardBorder, background: T.cardBg, padding: 4 }}>
                           <img
-                            src={`${API_BASE_URL}${selected.attachment_url}`}
+                            src={modalAttachmentUrl}
                             alt="Lampiran"
                             style={{ width: "100%", maxHeight: 280, objectFit: "contain", cursor: "zoom-in" }}
-                            onClick={() => window.open(`${API_BASE_URL}${selected.attachment_url}`, '_blank')}
+                            onClick={() => window.open(modalAttachmentUrl, "_blank")}
                           />
                         </div>
-                      ) : (
-                        <a href={`${API_BASE_URL}${selected.attachment_url}`} target="_blank" rel="noreferrer"
+                      ) : modalAttachmentUrl ? (
+                        <a href={modalAttachmentUrl} target="_blank" rel="noreferrer"
                           style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px", background: T.cardBg, borderRadius: 12, border: T.cardBorder, color: T.primary, textDecoration: "none", fontSize: 13, fontWeight: "600" }}>
                           📄 Lihat Dokumen Pendukung
                         </a>
+                      ) : (
+                        <p style={{ margin: 0, fontSize: 12, color: T.textGray }}>Memuat lampiran...</p>
                       )}
-                    </div>
-                 )}
+                   </div>
+                )}
                </div>
                {actionType !== "detail" && (
                  <div>
@@ -855,10 +960,12 @@ export default function HrdDashboard() {
             </div>
             
             <div style={{ background: T.bg, borderRadius: 16, padding: "12px", border: T.cardBorder }}>
-              {selected.attachment_url?.match(/\.(jpg|jpeg|png|gif)$/i) ? (
+              {!previewAttachmentUrl ? (
+                <div style={{ padding: "40px 20px", textAlign: "center", fontSize: 13, color: T.textGray }}>Memuat lampiran...</div>
+              ) : isImageAttachmentHint({ row: selected, fetchedContentType: previewAttachmentMime }) ? (
                 <div style={{ borderRadius: 12, overflow: "hidden", background: T.cardBg }}>
                   <img 
-                    src={`${API_BASE_URL}${selected.attachment_url}`} 
+                    src={previewAttachmentUrl} 
                     alt="Lampiran" 
                     style={{ width: "100%", maxHeight: 400, objectFit: "contain" }}
                   />
@@ -866,8 +973,10 @@ export default function HrdDashboard() {
               ) : (
                 <div style={{ padding: "40px 20px", textAlign: "center" }}>
                    <span style={{ fontSize: 40, display: "block", marginBottom: 16 }}>📄</span>
-                   <p style={{ fontSize: 14, color: T.textDark, fontWeight: "600", marginBottom: 16 }}>Dokumen File ({selected.attachment_url?.split('.').pop().toUpperCase()})</p>
-                   <a href={`${API_BASE_URL}${selected.attachment_url}`} target="_blank" rel="noreferrer"
+                   <p style={{ fontSize: 14, color: T.textDark, fontWeight: "600", marginBottom: 16 }}>
+                     Dokumen {(selected.attachment_filename || selected.attachment_url || "").split(".").pop()?.toUpperCase() || "FILE"}
+                   </p>
+                   <a href={previewAttachmentUrl} target="_blank" rel="noreferrer"
                       style={{ background: T.primary, color: "white", padding: "10px 24px", borderRadius: 8, textDecoration: "none", fontSize: 13, fontWeight: "700", display: "inline-block" }}>
                       Buka Dokumen di Tab Baru
                    </a>
@@ -877,9 +986,9 @@ export default function HrdDashboard() {
 
             <div style={{ marginTop: 24, display: "flex", gap: 12 }}>
                <a 
-                  href={`${API_BASE_URL}${selected.attachment_url}`} 
-                  download 
-                  style={{ flex: 1, textAlign: "center", background: T.primary, color: "white", padding: "12px", borderRadius: 10, textDecoration: "none", fontSize: 13, fontWeight: "700" }}>
+                  href={previewAttachmentUrl || "#"}
+                  download={selected.attachment_filename || "lampiran-cuti"}
+                  style={{ flex: 1, textAlign: "center", background: T.primary, color: "white", padding: "12px", borderRadius: 10, textDecoration: "none", fontSize: 13, fontWeight: "700", pointerEvents: previewAttachmentUrl ? "auto" : "none", opacity: previewAttachmentUrl ? 1 : 0.6 }}>
                   📥 Simpan File Ke Komputer
                </a>
                <Button disableRipple onClick={() => setPreviewOpen(false)} style={{ flex: 1, background: T.bg, color: T.textDark, fontWeight: "700", height: 44, borderRadius: 10 }}>Tutup</Button>

@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	db "hr-leave-system/core/db"
@@ -29,8 +30,17 @@ func leaveFromDB(l db.LeaveRequest) leave.LeaveRequest {
 		Reason:      l.Reason,
 		Status:      leave.Status(l.Status),
 	}
+	if len(l.AttachmentData) > 0 {
+		out.HasBinaryAttachment = true
+	}
 	if l.AttachmentUrl.Valid {
 		out.AttachmentURL = l.AttachmentUrl.String
+	}
+	if l.AttachmentFilename.Valid {
+		out.AttachmentFilename = l.AttachmentFilename.String
+	}
+	if l.AttachmentContentType.Valid {
+		out.AttachmentContentType = l.AttachmentContentType.String
 	}
 	if l.HrdNote.Valid {
 		out.HrdNote = l.HrdNote.String
@@ -43,6 +53,46 @@ func leaveFromDB(l db.LeaveRequest) leave.LeaveRequest {
 		out.HasCreatedAt = true
 	}
 	return out
+}
+
+func leaveFromEmployeeRow(r db.GetLeaveRequestsByEmployeeRow) leave.LeaveRequest {
+	out := leave.LeaveRequest{
+		ID:          r.ID,
+		EmployeeID:  r.EmployeeID,
+		LeaveTypeID: r.LeaveTypeID,
+		StartDate:   r.StartDate,
+		EndDate:     r.EndDate,
+		TotalDays:   r.TotalDays,
+		Reason:      r.Reason,
+		Status:      leave.Status(r.Status),
+	}
+	if r.HasBinaryAttachment.Valid && r.HasBinaryAttachment.Bool {
+		out.HasBinaryAttachment = true
+	}
+	if r.AttachmentUrl.Valid {
+		out.AttachmentURL = r.AttachmentUrl.String
+	}
+	if r.AttachmentFilename.Valid {
+		out.AttachmentFilename = r.AttachmentFilename.String
+	}
+	if r.AttachmentContentType.Valid {
+		out.AttachmentContentType = r.AttachmentContentType.String
+	}
+	if r.HrdNote.Valid {
+		out.HrdNote = r.HrdNote.String
+	}
+	if r.ReviewedBy.Valid {
+		out.ReviewedBy = r.ReviewedBy.Int32
+	}
+	if r.CreatedAt.Valid {
+		out.CreatedAt = r.CreatedAt.Time
+		out.HasCreatedAt = true
+	}
+	return out
+}
+
+func attachHasBinary(nb sql.NullBool) bool {
+	return nb.Valid && nb.Bool
 }
 
 func summaryFromAllRow(r db.GetAllLeaveRequestsRow) leave.RequestSummary {
@@ -58,6 +108,9 @@ func summaryFromAllRow(r db.GetAllLeaveRequestsRow) leave.RequestSummary {
 	}
 	if r.AttachmentUrl.Valid {
 		req.AttachmentURL = r.AttachmentUrl.String
+	}
+	if attachHasBinary(r.HasBinaryAttachment) {
+		req.HasBinaryAttachment = true
 	}
 	if r.HrdNote.Valid {
 		req.HrdNote = r.HrdNote.String
@@ -91,6 +144,9 @@ func summaryFromAdvanced(r db.GetAdvancedLeavesRow) leave.RequestSummary {
 	if r.AttachmentUrl.Valid {
 		req.AttachmentURL = r.AttachmentUrl.String
 	}
+	if attachHasBinary(r.HasBinaryAttachment) {
+		req.HasBinaryAttachment = true
+	}
 	if r.HrdNote.Valid {
 		req.HrdNote = r.HrdNote.String
 	}
@@ -109,8 +165,8 @@ func summaryFromAdvanced(r db.GetAdvancedLeavesRow) leave.RequestSummary {
 	}
 }
 
-func (r *leaveRepository) Create(ctx context.Context, employeeID, leaveTypeID int32, start, end time.Time, totalDays int32, reason, attachmentURL string) (leave.LeaveRequest, error) {
-	row, err := r.q.CreateLeaveRequest(ctx, db.CreateLeaveRequestParams{
+func (r *leaveRepository) Create(ctx context.Context, employeeID, leaveTypeID int32, start, end time.Time, totalDays int32, reason, attachmentURL string, attachment *leave.AttachmentInput) (leave.LeaveRequest, error) {
+	params := db.CreateLeaveRequestParams{
 		EmployeeID:  employeeID,
 		LeaveTypeID: leaveTypeID,
 		StartDate:   start,
@@ -121,11 +177,39 @@ func (r *leaveRepository) Create(ctx context.Context, employeeID, leaveTypeID in
 			String: attachmentURL,
 			Valid:  attachmentURL != "",
 		},
-	})
+	}
+	if attachment != nil && len(attachment.Data) > 0 {
+		params.AttachmentData = attachment.Data
+		params.AttachmentContentType = sql.NullString{String: attachment.ContentType, Valid: attachment.ContentType != ""}
+		params.AttachmentFilename = sql.NullString{String: attachment.Filename, Valid: attachment.Filename != ""}
+	}
+	row, err := r.q.CreateLeaveRequest(ctx, params)
 	if err != nil {
 		return leave.LeaveRequest{}, err
 	}
 	return leaveFromDB(row), nil
+}
+
+func (r *leaveRepository) GetAttachment(ctx context.Context, leaveID int32) ([]byte, string, string, int32, error) {
+	row, err := r.q.GetLeaveAttachmentByID(ctx, leaveID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, "", "", 0, leave.ErrAttachmentNotFound
+		}
+		return nil, "", "", 0, err
+	}
+	if len(row.AttachmentData) == 0 {
+		return nil, "", "", row.EmployeeID, leave.ErrAttachmentNotFound
+	}
+	ctype := "application/octet-stream"
+	if row.AttachmentContentType.Valid && row.AttachmentContentType.String != "" {
+		ctype = row.AttachmentContentType.String
+	}
+	fname := "lampiran"
+	if row.AttachmentFilename.Valid && row.AttachmentFilename.String != "" {
+		fname = row.AttachmentFilename.String
+	}
+	return row.AttachmentData, ctype, fname, row.EmployeeID, nil
 }
 
 func (r *leaveRepository) ListByEmployee(ctx context.Context, employeeID int32) ([]leave.LeaveRequest, error) {
@@ -135,7 +219,7 @@ func (r *leaveRepository) ListByEmployee(ctx context.Context, employeeID int32) 
 	}
 	out := make([]leave.LeaveRequest, len(rows))
 	for i := range rows {
-		out[i] = leaveFromDB(rows[i])
+		out[i] = leaveFromEmployeeRow(rows[i])
 	}
 	
 	// Attach leave type name

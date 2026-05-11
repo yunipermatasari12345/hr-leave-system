@@ -9,20 +9,13 @@ import (
 	"hr-leave-system/core/middleware"
 	"io"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strconv"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 )
 
-type CreateLeaveRequest struct {
-	LeaveTypeID int32  `json:"leave_type_id"`
-	StartDate   string `json:"start_date"`
-	EndDate     string `json:"end_date"`
-	Reason      string `json:"reason"`
-}
+const maxAttachmentBytes = 10 << 20
 
 type UpdateLeaveStatusRequest struct {
 	Status  string `json:"status"`
@@ -30,22 +23,25 @@ type UpdateLeaveStatusRequest struct {
 }
 
 type LeaveResponse struct {
-	ID                 int32  `json:"id"`
-	EmployeeID         int32  `json:"employee_id"`
-	EmployeeName       string `json:"employee_name"`
-	EmployeeDepartment string `json:"employee_department"`
-	EmployeePosition   string `json:"employee_position"`
-	LeaveTypeID        int32  `json:"leave_type_id"`
-	LeaveTypeName      string `json:"leave_type_name"`
-	StartDate          string `json:"start_date"`
-	EndDate            string `json:"end_date"`
-	TotalDays          int32  `json:"total_days"`
-	Reason             string `json:"reason"`
-	AttachmentURL      string `json:"attachment_url"`
-	Status             string `json:"status"`
-	HrdNote            string `json:"hrd_note"`
-	ReviewedBy         int32  `json:"reviewed_by"`
-	CreatedAt          string `json:"created_at"`
+	ID                    int32  `json:"id"`
+	EmployeeID            int32  `json:"employee_id"`
+	EmployeeName          string `json:"employee_name"`
+	EmployeeDepartment    string `json:"employee_department"`
+	EmployeePosition      string `json:"employee_position"`
+	LeaveTypeID           int32  `json:"leave_type_id"`
+	LeaveTypeName         string `json:"leave_type_name"`
+	StartDate             string `json:"start_date"`
+	EndDate               string `json:"end_date"`
+	TotalDays             int32  `json:"total_days"`
+	Reason                string `json:"reason"`
+	AttachmentURL         string `json:"attachment_url"`
+	HasAttachment         bool   `json:"has_attachment"`
+	AttachmentFilename    string `json:"attachment_filename"`
+	AttachmentContentType string `json:"attachment_content_type,omitempty"`
+	Status                string `json:"status"`
+	HrdNote               string `json:"hrd_note"`
+	ReviewedBy            int32  `json:"reviewed_by"`
+	CreatedAt             string `json:"created_at"`
 }
 
 func leaveResponseFromDomain(l dleave.LeaveRequest) LeaveResponse {
@@ -53,20 +49,24 @@ func leaveResponseFromDomain(l dleave.LeaveRequest) LeaveResponse {
 	if l.HasCreatedAt {
 		createdAt = l.CreatedAt.Format("2006-01-02")
 	}
+	hasAtt := l.HasBinaryAttachment || l.AttachmentURL != ""
 	return LeaveResponse{
-		ID:            l.ID,
-		EmployeeID:    l.EmployeeID,
-		LeaveTypeID:   l.LeaveTypeID,
-		LeaveTypeName: l.LeaveTypeName,
-		StartDate:     l.StartDate.Format("2006-01-02"),
-		EndDate:       l.EndDate.Format("2006-01-02"),
-		TotalDays:     l.TotalDays,
-		Reason:        l.Reason,
-		AttachmentURL: l.AttachmentURL,
-		Status:        string(l.Status),
-		HrdNote:       l.HrdNote,
-		ReviewedBy:    l.ReviewedBy,
-		CreatedAt:     createdAt,
+		ID:                    l.ID,
+		EmployeeID:            l.EmployeeID,
+		LeaveTypeID:           l.LeaveTypeID,
+		LeaveTypeName:         l.LeaveTypeName,
+		StartDate:             l.StartDate.Format("2006-01-02"),
+		EndDate:               l.EndDate.Format("2006-01-02"),
+		TotalDays:             l.TotalDays,
+		Reason:                l.Reason,
+		AttachmentURL:         l.AttachmentURL,
+		HasAttachment:         hasAtt,
+		AttachmentFilename:    l.AttachmentFilename,
+		AttachmentContentType: l.AttachmentContentType,
+		Status:                string(l.Status),
+		HrdNote:               l.HrdNote,
+		ReviewedBy:            l.ReviewedBy,
+		CreatedAt:             createdAt,
 	}
 }
 
@@ -81,11 +81,42 @@ func leaveResponseFromSummary(s dleave.RequestSummary) LeaveResponse {
 	return r
 }
 
+func parseMultipartAttachment(r *http.Request, field string) (*dleave.AttachmentInput, error) {
+	file, header, ferr := r.FormFile(field)
+	if ferr != nil || file == nil {
+		return nil, nil
+	}
+	defer file.Close()
+	raw, err := io.ReadAll(io.LimitReader(file, maxAttachmentBytes+1))
+	if err != nil {
+		return nil, err
+	}
+	if len(raw) > maxAttachmentBytes {
+		return nil, errors.New("file terlalu besar")
+	}
+	if len(raw) == 0 {
+		return nil, nil
+	}
+	ctype := header.Header.Get("Content-Type")
+	if ctype == "" {
+		n := 512
+		if len(raw) < n {
+			n = len(raw)
+		}
+		ctype = http.DetectContentType(raw[:n])
+	}
+	fname := header.Filename
+	if fname == "" {
+		fname = "lampiran"
+	}
+	return &dleave.AttachmentInput{Data: raw, ContentType: ctype, Filename: filepath.Base(fname)}, nil
+}
+
 func CreateLeaveRequest_(w http.ResponseWriter, r *http.Request) {
 	userID := int32(r.Context().Value(middleware.UserIDKey).(float64))
 
 	// Parse multipart form (max 10MB)
-	r.ParseMultipartForm(10 << 20)
+	r.ParseMultipartForm(maxAttachmentBytes)
 
 	leaveTypeIDStr := r.FormValue("leave_type_id")
 	startDate := r.FormValue("start_date")
@@ -94,28 +125,22 @@ func CreateLeaveRequest_(w http.ResponseWriter, r *http.Request) {
 
 	leaveTypeID, _ := strconv.Atoi(leaveTypeIDStr)
 
-	// Handle file upload (opsional)
+	var att *dleave.AttachmentInput
+	a, formErr := parseMultipartAttachment(r, "attachment")
+	if formErr != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "File lampiran tidak valid atau terlalu besar"})
+		return
+	}
+	att = a
+
 	attachmentURL := ""
-	file, header, fileErr := r.FormFile("attachment")
-	if fileErr == nil && file != nil {
-		defer file.Close()
-		// Gunakan /tmp untuk Vercel (read-only filesystem)
-		uploadDir := "/tmp"
-		os.MkdirAll(uploadDir, os.ModePerm)
-		ext := filepath.Ext(header.Filename)
-		filename := fmt.Sprintf("%d_%d%s", userID, time.Now().UnixNano(), ext)
-		fullPath := filepath.Join(uploadDir, filename)
-		
-		dst, err := os.Create(fullPath)
-		if err == nil {
-			defer dst.Close()
-			io.Copy(dst, file)
-			// Simpan path relatif atau dummy URL karena Vercel akan menghapus /tmp setelah execution
-			attachmentURL = "/api/uploads/" + filename
-		}
+	if att == nil || len(att.Data) == 0 {
+		att = nil
 	}
 
-	created, err := LeaveService.SubmitRequest(r.Context(), userID, int32(leaveTypeID), startDate, endDate, reason, attachmentURL)
+	created, err := LeaveService.SubmitRequest(r.Context(), userID, int32(leaveTypeID), startDate, endDate, reason, attachmentURL, att)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		if errors.Is(err, application.ErrEmployeeNotFound) {
@@ -141,6 +166,61 @@ func CreateLeaveRequest_(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(leaveResponseFromDomain(created))
+}
+
+func GetLeaveAttachmentEmployee(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, convErr := strconv.Atoi(idStr)
+	if convErr != nil || id <= 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "ID tidak valid"})
+		return
+	}
+	userID := int32(r.Context().Value(middleware.UserIDKey).(float64))
+	data, ctype, fname, err := LeaveService.GetAttachment(r.Context(), userID, int32(id), false)
+	writeAttachment(w, err, ctype, fname, data)
+}
+
+func GetLeaveAttachmentHR(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, convErr := strconv.Atoi(idStr)
+	if convErr != nil || id <= 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "ID tidak valid"})
+		return
+	}
+	userID := int32(r.Context().Value(middleware.UserIDKey).(float64))
+	data, ctype, fname, err := LeaveService.GetAttachment(r.Context(), userID, int32(id), true)
+	writeAttachment(w, err, ctype, fname, data)
+}
+
+func writeAttachment(w http.ResponseWriter, err error, ctype, fname string, data []byte) {
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		switch {
+		case errors.Is(err, dleave.ErrAttachmentNotFound):
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Lampiran tidak ada atau kedaluwarsa"})
+		case errors.Is(err, application.ErrUnauthorized):
+			w.WriteHeader(http.StatusForbidden)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Tidak diizinkan melihat lampiran ini"})
+		case errors.Is(err, application.ErrEmployeeNotFound):
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Data karyawan tidak ditemukan"})
+		default:
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Gagal mengambil lampiran"})
+		}
+		return
+	}
+
+	w.Header().Del("Content-Type")
+	w.Header().Set("Content-Type", ctype)
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`inline; filename=%q`, filepath.Base(fname)))
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(data)
 }
 
 func GetMyLeaves(w http.ResponseWriter, r *http.Request) {
@@ -169,9 +249,9 @@ func GetMyLeaves(w http.ResponseWriter, r *http.Request) {
 
 func GetMyBalances(w http.ResponseWriter, r *http.Request) {
 	userID := int32(r.Context().Value(middleware.UserIDKey).(float64))
-	
+
 	// Gunakan tahun ini sebagai default
-	balances, err := LeaveService.MyBalances(r.Context(), userID, 2024) 
+	balances, err := LeaveService.MyBalances(r.Context(), userID, 2024)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -262,7 +342,7 @@ func DeleteLeaveRequest(w http.ResponseWriter, r *http.Request) {
 func CreateManualLeaveHR(w http.ResponseWriter, r *http.Request) {
 	hrUserID := int32(r.Context().Value(middleware.UserIDKey).(float64))
 
-	r.ParseMultipartForm(10 << 20)
+	r.ParseMultipartForm(maxAttachmentBytes)
 
 	targetEmployeeIDStr := r.FormValue("employee_id")
 	leaveTypeIDStr := r.FormValue("leave_type_id")
@@ -273,27 +353,20 @@ func CreateManualLeaveHR(w http.ResponseWriter, r *http.Request) {
 	targetEmployeeID, _ := strconv.Atoi(targetEmployeeIDStr)
 	leaveTypeID, _ := strconv.Atoi(leaveTypeIDStr)
 
-	attachmentURL := ""
-	file, header, fileErr := r.FormFile("attachment")
-	if fileErr == nil && file != nil {
-		defer file.Close()
-		// Gunakan /tmp untuk Vercel (read-only filesystem)
-		uploadDir := "/tmp"
-		os.MkdirAll(uploadDir, os.ModePerm)
-		ext := filepath.Ext(header.Filename)
-		filename := fmt.Sprintf("manual_%d_%d%s", targetEmployeeID, time.Now().UnixNano(), ext)
-		fullPath := filepath.Join(uploadDir, filename)
-		
-		dst, err := os.Create(fullPath)
-		if err == nil {
-			defer dst.Close()
-			io.Copy(dst, file)
-			// Simpan path relatif atau dummy URL karena Vercel akan menghapus /tmp setelah execution
-			attachmentURL = "/api/uploads/" + filename
-		}
+	a, formErr := parseMultipartAttachment(r, "attachment")
+	if formErr != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "File lampiran tidak valid atau terlalu besar"})
+		return
+	}
+	att := a
+	if att == nil || len(att.Data) == 0 {
+		att = nil
 	}
 
-	created, err := LeaveService.SubmitManualRequest(r.Context(), hrUserID, int32(targetEmployeeID), int32(leaveTypeID), startDate, endDate, reason, attachmentURL)
+	attachmentURL := ""
+	created, err := LeaveService.SubmitManualRequest(r.Context(), hrUserID, int32(targetEmployeeID), int32(leaveTypeID), startDate, endDate, reason, attachmentURL, att)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		if errors.Is(err, application.ErrValidation) || errors.Is(err, dleave.ErrInvalidDateRange) {
@@ -310,4 +383,3 @@ func CreateManualLeaveHR(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(leaveResponseFromDomain(created))
 }
-

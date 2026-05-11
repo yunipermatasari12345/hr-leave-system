@@ -38,6 +38,15 @@ export const exportLeavesWithImages = async (leaves, apiBaseUrl) => {
   // 3. Tambahkan Data
   for (let i = 0; i < leaves.length; i++) {
     const l = leaves[i];
+    let linkDisplay = '-';
+    if (l.attachment_url) {
+      linkDisplay = l.attachment_url.startsWith('http')
+        ? l.attachment_url
+        : `${apiBaseUrl.replace(/\/$/, '')}${l.attachment_url.startsWith('/') ? '' : '/'}${l.attachment_url}`;
+    } else if (l.has_attachment) {
+      linkDisplay = `Buka di aplikasi HRD (menu Pengajuan) — Lampiran ID #${l.id} (perlu login)`;
+    }
+
     const row = worksheet.addRow({
       id:     l.id,
       name:   l.employee_name,
@@ -49,7 +58,7 @@ export const exportLeavesWithImages = async (leaves, apiBaseUrl) => {
       reason: l.reason || '-',
       status: l.status?.toUpperCase(),
       note:   l.hrd_note || '-',
-      link:   l.attachment_url ? `${apiBaseUrl}${l.attachment_url}` : '-',
+      link:   linkDisplay,
     });
 
     // Styling baris data
@@ -68,8 +77,12 @@ export const exportLeavesWithImages = async (leaves, apiBaseUrl) => {
 
     // Jadikan link lampiran bisa diklik
     const linkCell = row.getCell('link');
-    if (l.attachment_url) {
-      const fullUrl = `${apiBaseUrl}${l.attachment_url}`;
+    if (l.attachment_url && !String(l.attachment_url).startsWith('/api/uploads/')) {
+      const base = apiBaseUrl.replace(/\/$/, '');
+      const path = l.attachment_url.startsWith('/') ? l.attachment_url : `/${l.attachment_url}`;
+      const fullUrl = l.attachment_url.startsWith('http')
+        ? l.attachment_url
+        : `${base}${path}`;
       linkCell.value = { text: 'Buka Lampiran', hyperlink: fullUrl };
       linkCell.font = { color: { argb: 'FF2563EB' }, underline: true };
     }

@@ -27,7 +27,7 @@ func NewLeaveService(
 	}
 }
 
-func (s *LeaveService) SubmitRequest(ctx context.Context, userID int32, leaveTypeID int32, startStr, endStr, reason, attachmentURL string) (leave.LeaveRequest, error) {
+func (s *LeaveService) SubmitRequest(ctx context.Context, userID int32, leaveTypeID int32, startStr, endStr, reason, attachmentURL string, attachment *leave.AttachmentInput) (leave.LeaveRequest, error) {
 	emp, err := s.employees.GetByUserID(ctx, userID)
 	if err != nil {
 		return leave.LeaveRequest{}, ErrEmployeeNotFound
@@ -49,7 +49,7 @@ func (s *LeaveService) SubmitRequest(ctx context.Context, userID int32, leaveTyp
 	year := int32(time.Now().Year())
 	_ = s.SyncBalances(ctx, emp.ID, year)
 
-	req, err := s.leaves.Create(ctx, emp.ID, leaveTypeID, start, end, days, reason, attachmentURL)
+	req, err := s.leaves.Create(ctx, emp.ID, leaveTypeID, start, end, days, reason, attachmentURL, attachment)
 	if err == nil {
 		// actor_id di database leave_histories merujuk ke users.id, jadi pakai emp.UserID
 		_ = s.leaves.CreateHistory(ctx, req.ID, "SUBMITTED", reason, emp.UserID)
@@ -172,7 +172,7 @@ func (s *LeaveService) SyncBalances(ctx context.Context, employeeID int32, year 
 	return nil
 }
 
-func (s *LeaveService) SubmitManualRequest(ctx context.Context, hrUserID int32, targetEmployeeID int32, leaveTypeID int32, startStr, endStr, reason, attachmentURL string) (leave.LeaveRequest, error) {
+func (s *LeaveService) SubmitManualRequest(ctx context.Context, hrUserID int32, targetEmployeeID int32, leaveTypeID int32, startStr, endStr, reason, attachmentURL string, attachment *leave.AttachmentInput) (leave.LeaveRequest, error) {
 	targetEmp, err := s.employees.GetByID(ctx, targetEmployeeID)
 	if err != nil {
 		return leave.LeaveRequest{}, ErrEmployeeNotFound
@@ -201,7 +201,7 @@ func (s *LeaveService) SubmitManualRequest(ctx context.Context, hrUserID int32, 
 	// Pastikan saldo cukup (untuk input manual HRD, kita tambahkan kuotanya jika kurang)
 	_ = s.leaves.EnsureBalance(ctx, targetEmp.ID, leaveTypeID, year, days)
 
-	req, err := s.leaves.Create(ctx, targetEmp.ID, leaveTypeID, start, end, days, reason, attachmentURL)
+	req, err := s.leaves.Create(ctx, targetEmp.ID, leaveTypeID, start, end, days, reason, attachmentURL, attachment)
 	if err != nil {
 		return leave.LeaveRequest{}, err
 	}
@@ -221,4 +221,22 @@ func (s *LeaveService) SubmitManualRequest(ctx context.Context, hrUserID int32, 
 	}
 
 	return req, nil
+}
+
+func (s *LeaveService) GetAttachment(ctx context.Context, userID int32, leaveID int32, viewerIsHR bool) ([]byte, string, string, error) {
+	data, ctype, fname, ownerEmployeeID, err := s.leaves.GetAttachment(ctx, leaveID)
+	if err != nil {
+		return nil, "", "", err
+	}
+	if viewerIsHR {
+		return data, ctype, fname, nil
+	}
+	emp, err := s.employees.GetByUserID(ctx, userID)
+	if err != nil {
+		return nil, "", "", ErrEmployeeNotFound
+	}
+	if emp.ID != ownerEmployeeID {
+		return nil, "", "", ErrUnauthorized
+	}
+	return data, ctype, fname, nil
 }

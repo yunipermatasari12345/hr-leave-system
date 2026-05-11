@@ -86,7 +86,9 @@ func (q *Queries) DeleteLeaveType(ctx context.Context, id int32) error {
 const getAdvancedLeaves = `-- name: GetAdvancedLeaves :many
 SELECT 
   lr.id, lr.employee_id, lr.leave_type_id, lr.start_date, lr.end_date, lr.total_days,
-  lr.reason, lr.attachment_url, lr.status, lr.hrd_note, lr.reviewed_by, lr.created_at,
+  lr.reason, lr.attachment_url,
+  (lr.attachment_data IS NOT NULL AND octet_length(lr.attachment_data) > 0) AS has_binary_attachment,
+  lr.status, lr.hrd_note, lr.reviewed_by, lr.created_at,
   e.full_name as employee_name, e.department as employee_department, e.position as employee_position
 FROM leave_requests lr
 JOIN employees e ON lr.employee_id = e.id
@@ -102,21 +104,22 @@ type GetAdvancedLeavesParams struct {
 }
 
 type GetAdvancedLeavesRow struct {
-	ID                 int32          `json:"id"`
-	EmployeeID         int32          `json:"employee_id"`
-	LeaveTypeID        int32          `json:"leave_type_id"`
-	StartDate          time.Time      `json:"start_date"`
-	EndDate            time.Time      `json:"end_date"`
-	TotalDays          int32          `json:"total_days"`
-	Reason             string         `json:"reason"`
-	AttachmentUrl      sql.NullString `json:"attachment_url"`
-	Status             string         `json:"status"`
-	HrdNote            sql.NullString `json:"hrd_note"`
-	ReviewedBy         sql.NullInt32  `json:"reviewed_by"`
-	CreatedAt          sql.NullTime   `json:"created_at"`
-	EmployeeName       string         `json:"employee_name"`
-	EmployeeDepartment string         `json:"employee_department"`
-	EmployeePosition   string         `json:"employee_position"`
+	ID                  int32          `json:"id"`
+	EmployeeID          int32          `json:"employee_id"`
+	LeaveTypeID         int32          `json:"leave_type_id"`
+	StartDate           time.Time      `json:"start_date"`
+	EndDate             time.Time      `json:"end_date"`
+	TotalDays           int32          `json:"total_days"`
+	Reason              string         `json:"reason"`
+	AttachmentUrl       sql.NullString `json:"attachment_url"`
+	HasBinaryAttachment sql.NullBool   `json:"has_binary_attachment"`
+	Status              string         `json:"status"`
+	HrdNote             sql.NullString `json:"hrd_note"`
+	ReviewedBy          sql.NullInt32  `json:"reviewed_by"`
+	CreatedAt           sql.NullTime   `json:"created_at"`
+	EmployeeName        string         `json:"employee_name"`
+	EmployeeDepartment  string         `json:"employee_department"`
+	EmployeePosition    string         `json:"employee_position"`
 }
 
 func (q *Queries) GetAdvancedLeaves(ctx context.Context, arg GetAdvancedLeavesParams) ([]GetAdvancedLeavesRow, error) {
@@ -137,6 +140,7 @@ func (q *Queries) GetAdvancedLeaves(ctx context.Context, arg GetAdvancedLeavesPa
 			&i.TotalDays,
 			&i.Reason,
 			&i.AttachmentUrl,
+			&i.HasBinaryAttachment,
 			&i.Status,
 			&i.HrdNote,
 			&i.ReviewedBy,

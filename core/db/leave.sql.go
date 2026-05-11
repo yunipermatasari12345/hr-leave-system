@@ -12,19 +12,25 @@ import (
 )
 
 const createLeaveRequest = `-- name: CreateLeaveRequest :one
-INSERT INTO leave_requests (employee_id, leave_type_id, start_date, end_date, total_days, reason, attachment_url)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, employee_id, leave_type_id, start_date, end_date, total_days, reason, status, hrd_note, reviewed_by, created_at, attachment_url
+INSERT INTO leave_requests (
+  employee_id, leave_type_id, start_date, end_date, total_days, reason,
+  attachment_url, attachment_data, attachment_content_type, attachment_filename
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+RETURNING id, employee_id, leave_type_id, start_date, end_date, total_days, reason, status, hrd_note, reviewed_by, created_at, attachment_url, attachment_data, attachment_content_type, attachment_filename
 `
 
 type CreateLeaveRequestParams struct {
-	EmployeeID    int32          `json:"employee_id"`
-	LeaveTypeID   int32          `json:"leave_type_id"`
-	StartDate     time.Time      `json:"start_date"`
-	EndDate       time.Time      `json:"end_date"`
-	TotalDays     int32          `json:"total_days"`
-	Reason        string         `json:"reason"`
-	AttachmentUrl sql.NullString `json:"attachment_url"`
+	EmployeeID            int32          `json:"employee_id"`
+	LeaveTypeID           int32          `json:"leave_type_id"`
+	StartDate             time.Time      `json:"start_date"`
+	EndDate               time.Time      `json:"end_date"`
+	TotalDays             int32          `json:"total_days"`
+	Reason                string         `json:"reason"`
+	AttachmentUrl         sql.NullString `json:"attachment_url"`
+	AttachmentData        []byte         `json:"attachment_data"`
+	AttachmentContentType sql.NullString `json:"attachment_content_type"`
+	AttachmentFilename    sql.NullString `json:"attachment_filename"`
 }
 
 func (q *Queries) CreateLeaveRequest(ctx context.Context, arg CreateLeaveRequestParams) (LeaveRequest, error) {
@@ -36,6 +42,9 @@ func (q *Queries) CreateLeaveRequest(ctx context.Context, arg CreateLeaveRequest
 		arg.TotalDays,
 		arg.Reason,
 		arg.AttachmentUrl,
+		arg.AttachmentData,
+		arg.AttachmentContentType,
+		arg.AttachmentFilename,
 	)
 	var i LeaveRequest
 	err := row.Scan(
@@ -51,6 +60,9 @@ func (q *Queries) CreateLeaveRequest(ctx context.Context, arg CreateLeaveRequest
 		&i.ReviewedBy,
 		&i.CreatedAt,
 		&i.AttachmentUrl,
+		&i.AttachmentData,
+		&i.AttachmentContentType,
+		&i.AttachmentFilename,
 	)
 	return i, err
 }
@@ -65,6 +77,7 @@ SELECT
   lr.total_days,
   lr.reason,
   lr.attachment_url,
+  (lr.attachment_data IS NOT NULL AND octet_length(lr.attachment_data) > 0) AS has_binary_attachment,
   lr.status,
   lr.hrd_note,
   lr.reviewed_by,
@@ -78,21 +91,22 @@ ORDER BY lr.created_at DESC
 `
 
 type GetAllLeaveRequestsRow struct {
-	ID                 int32          `json:"id"`
-	EmployeeID         int32          `json:"employee_id"`
-	LeaveTypeID        int32          `json:"leave_type_id"`
-	StartDate          time.Time      `json:"start_date"`
-	EndDate            time.Time      `json:"end_date"`
-	TotalDays          int32          `json:"total_days"`
-	Reason             string         `json:"reason"`
-	AttachmentUrl      sql.NullString `json:"attachment_url"`
-	Status             string         `json:"status"`
-	HrdNote            sql.NullString `json:"hrd_note"`
-	ReviewedBy         sql.NullInt32  `json:"reviewed_by"`
-	CreatedAt          sql.NullTime   `json:"created_at"`
-	EmployeeName       string         `json:"employee_name"`
-	EmployeeDepartment string         `json:"employee_department"`
-	EmployeePosition   string         `json:"employee_position"`
+	ID                  int32          `json:"id"`
+	EmployeeID          int32          `json:"employee_id"`
+	LeaveTypeID         int32          `json:"leave_type_id"`
+	StartDate           time.Time      `json:"start_date"`
+	EndDate             time.Time      `json:"end_date"`
+	TotalDays           int32          `json:"total_days"`
+	Reason              string         `json:"reason"`
+	AttachmentUrl       sql.NullString `json:"attachment_url"`
+	HasBinaryAttachment sql.NullBool   `json:"has_binary_attachment"`
+	Status              string         `json:"status"`
+	HrdNote             sql.NullString `json:"hrd_note"`
+	ReviewedBy          sql.NullInt32  `json:"reviewed_by"`
+	CreatedAt           sql.NullTime   `json:"created_at"`
+	EmployeeName        string         `json:"employee_name"`
+	EmployeeDepartment  string         `json:"employee_department"`
+	EmployeePosition    string         `json:"employee_position"`
 }
 
 func (q *Queries) GetAllLeaveRequests(ctx context.Context) ([]GetAllLeaveRequestsRow, error) {
@@ -113,6 +127,7 @@ func (q *Queries) GetAllLeaveRequests(ctx context.Context) ([]GetAllLeaveRequest
 			&i.TotalDays,
 			&i.Reason,
 			&i.AttachmentUrl,
+			&i.HasBinaryAttachment,
 			&i.Status,
 			&i.HrdNote,
 			&i.ReviewedBy,
@@ -166,6 +181,32 @@ func (q *Queries) GetAllLeaveTypes(ctx context.Context) ([]LeaveType, error) {
 	return items, nil
 }
 
+const getLeaveAttachmentByID = `-- name: GetLeaveAttachmentByID :one
+SELECT attachment_data, attachment_content_type, attachment_filename, employee_id
+FROM leave_requests
+WHERE id = $1
+LIMIT 1
+`
+
+type GetLeaveAttachmentByIDRow struct {
+	AttachmentData        []byte         `json:"attachment_data"`
+	AttachmentContentType sql.NullString `json:"attachment_content_type"`
+	AttachmentFilename    sql.NullString `json:"attachment_filename"`
+	EmployeeID            int32          `json:"employee_id"`
+}
+
+func (q *Queries) GetLeaveAttachmentByID(ctx context.Context, id int32) (GetLeaveAttachmentByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getLeaveAttachmentByID, id)
+	var i GetLeaveAttachmentByIDRow
+	err := row.Scan(
+		&i.AttachmentData,
+		&i.AttachmentContentType,
+		&i.AttachmentFilename,
+		&i.EmployeeID,
+	)
+	return i, err
+}
+
 const getLeaveBalance = `-- name: GetLeaveBalance :many
 SELECT id, employee_id, leave_type_id, year, total_days, used_days, remaining_days FROM leave_balances
 WHERE employee_id = $1 AND year = $2
@@ -208,7 +249,7 @@ func (q *Queries) GetLeaveBalance(ctx context.Context, arg GetLeaveBalanceParams
 }
 
 const getLeaveRequestByID = `-- name: GetLeaveRequestByID :one
-SELECT id, employee_id, leave_type_id, start_date, end_date, total_days, reason, status, hrd_note, reviewed_by, created_at, attachment_url FROM leave_requests
+SELECT id, employee_id, leave_type_id, start_date, end_date, total_days, reason, status, hrd_note, reviewed_by, created_at, attachment_url, attachment_data, attachment_content_type, attachment_filename FROM leave_requests
 WHERE id = $1 LIMIT 1
 `
 
@@ -228,25 +269,62 @@ func (q *Queries) GetLeaveRequestByID(ctx context.Context, id int32) (LeaveReque
 		&i.ReviewedBy,
 		&i.CreatedAt,
 		&i.AttachmentUrl,
+		&i.AttachmentData,
+		&i.AttachmentContentType,
+		&i.AttachmentFilename,
 	)
 	return i, err
 }
 
 const getLeaveRequestsByEmployee = `-- name: GetLeaveRequestsByEmployee :many
-SELECT id, employee_id, leave_type_id, start_date, end_date, total_days, reason, status, hrd_note, reviewed_by, created_at, attachment_url FROM leave_requests
-WHERE employee_id = $1
-ORDER BY created_at DESC
+SELECT
+  lr.id,
+  lr.employee_id,
+  lr.leave_type_id,
+  lr.start_date,
+  lr.end_date,
+  lr.total_days,
+  lr.reason,
+  lr.status,
+  lr.hrd_note,
+  lr.reviewed_by,
+  lr.created_at,
+  lr.attachment_url,
+  lr.attachment_content_type,
+  lr.attachment_filename,
+  (lr.attachment_data IS NOT NULL AND octet_length(lr.attachment_data) > 0) AS has_binary_attachment
+FROM leave_requests lr
+WHERE lr.employee_id = $1
+ORDER BY lr.created_at DESC
 `
 
-func (q *Queries) GetLeaveRequestsByEmployee(ctx context.Context, employeeID int32) ([]LeaveRequest, error) {
+type GetLeaveRequestsByEmployeeRow struct {
+	ID                    int32          `json:"id"`
+	EmployeeID            int32          `json:"employee_id"`
+	LeaveTypeID           int32          `json:"leave_type_id"`
+	StartDate             time.Time      `json:"start_date"`
+	EndDate               time.Time      `json:"end_date"`
+	TotalDays             int32          `json:"total_days"`
+	Reason                string         `json:"reason"`
+	Status                string         `json:"status"`
+	HrdNote               sql.NullString `json:"hrd_note"`
+	ReviewedBy            sql.NullInt32  `json:"reviewed_by"`
+	CreatedAt             sql.NullTime   `json:"created_at"`
+	AttachmentUrl         sql.NullString `json:"attachment_url"`
+	AttachmentContentType sql.NullString `json:"attachment_content_type"`
+	AttachmentFilename    sql.NullString `json:"attachment_filename"`
+	HasBinaryAttachment   sql.NullBool   `json:"has_binary_attachment"`
+}
+
+func (q *Queries) GetLeaveRequestsByEmployee(ctx context.Context, employeeID int32) ([]GetLeaveRequestsByEmployeeRow, error) {
 	rows, err := q.db.QueryContext(ctx, getLeaveRequestsByEmployee, employeeID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []LeaveRequest
+	var items []GetLeaveRequestsByEmployeeRow
 	for rows.Next() {
-		var i LeaveRequest
+		var i GetLeaveRequestsByEmployeeRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.EmployeeID,
@@ -260,6 +338,9 @@ func (q *Queries) GetLeaveRequestsByEmployee(ctx context.Context, employeeID int
 			&i.ReviewedBy,
 			&i.CreatedAt,
 			&i.AttachmentUrl,
+			&i.AttachmentContentType,
+			&i.AttachmentFilename,
+			&i.HasBinaryAttachment,
 		); err != nil {
 			return nil, err
 		}
@@ -313,7 +394,7 @@ const updateLeaveRequestStatus = `-- name: UpdateLeaveRequestStatus :one
 UPDATE leave_requests
 SET status = $2, hrd_note = $3, reviewed_by = $4
 WHERE id = $1
-RETURNING id, employee_id, leave_type_id, start_date, end_date, total_days, reason, status, hrd_note, reviewed_by, created_at, attachment_url
+RETURNING id, employee_id, leave_type_id, start_date, end_date, total_days, reason, status, hrd_note, reviewed_by, created_at, attachment_url, attachment_data, attachment_content_type, attachment_filename
 `
 
 type UpdateLeaveRequestStatusParams struct {
@@ -344,6 +425,9 @@ func (q *Queries) UpdateLeaveRequestStatus(ctx context.Context, arg UpdateLeaveR
 		&i.ReviewedBy,
 		&i.CreatedAt,
 		&i.AttachmentUrl,
+		&i.AttachmentData,
+		&i.AttachmentContentType,
+		&i.AttachmentFilename,
 	)
 	return i, err
 }

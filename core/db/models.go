@@ -54,18 +54,21 @@ type LeaveHistory struct {
 }
 
 type LeaveRequest struct {
-	ID            int32          `json:"id"`
-	EmployeeID    int32          `json:"employee_id"`
-	LeaveTypeID   int32          `json:"leave_type_id"`
-	StartDate     time.Time      `json:"start_date"`
-	EndDate       time.Time      `json:"end_date"`
-	TotalDays     int32          `json:"total_days"`
-	Reason        string         `json:"reason"`
-	Status        string         `json:"status"`
-	HrdNote       sql.NullString `json:"hrd_note"`
-	ReviewedBy    sql.NullInt32  `json:"reviewed_by"`
-	CreatedAt     sql.NullTime   `json:"created_at"`
-	AttachmentUrl sql.NullString `json:"attachment_url"`
+	ID                    int32          `json:"id"`
+	EmployeeID            int32          `json:"employee_id"`
+	LeaveTypeID           int32          `json:"leave_type_id"`
+	StartDate             time.Time      `json:"start_date"`
+	EndDate               time.Time      `json:"end_date"`
+	TotalDays             int32          `json:"total_days"`
+	Reason                string         `json:"reason"`
+	Status                string         `json:"status"`
+	HrdNote               sql.NullString `json:"hrd_note"`
+	ReviewedBy            sql.NullInt32  `json:"reviewed_by"`
+	CreatedAt             sql.NullTime   `json:"created_at"`
+	AttachmentUrl         sql.NullString `json:"attachment_url"`
+	AttachmentData        []byte         `json:"attachment_data"`
+	AttachmentContentType sql.NullString `json:"attachment_content_type"`
+	AttachmentFilename    sql.NullString `json:"attachment_filename"`
 }
 
 type LeaveType struct {

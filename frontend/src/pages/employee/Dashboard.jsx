@@ -3,6 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Button, Textarea } from "@heroui/react";
 import { leaveApi } from "../../api/leaveApi";
 import { STORAGE_KEYS } from "../../constants/storage";
+import { API_BASE_URL } from "../../constants/config";
+import {
+  leaveRowHasAttachment,
+  legacyAttachmentHref,
+  fetchLeaveAttachmentWithMeta,
+} from "../../utils/leaveAttachmentFetch";
 
 export default function EmployeeDashboard() {
   const [leaves, setLeaves] = useState([]);
@@ -20,6 +26,25 @@ export default function EmployeeDashboard() {
   const [leaveLoading, setLeaveLoading] = useState(false);
   const [leaveError, setLeaveError] = useState("");
   const [leaveSuccess, setLeaveSuccess] = useState("");
+
+  const openMyAttachment = async (l) => {
+    try {
+      if (l.has_attachment) {
+        const { objectURL } = await fetchLeaveAttachmentWithMeta(
+          API_BASE_URL,
+          "employee",
+          l.id,
+        );
+        window.open(objectURL, "_blank", "noopener,noreferrer");
+        setTimeout(() => URL.revokeObjectURL(objectURL), 120000);
+      } else {
+        const href = legacyAttachmentHref(API_BASE_URL, l);
+        if (href) window.open(href, "_blank", "noopener,noreferrer");
+      }
+    } catch (e) {
+      alert(e?.message || "Gagal membuka lampiran");
+    }
+  };
 
   const navigate = useNavigate();
   const name = localStorage.getItem(STORAGE_KEYS.name) || "Karyawan";
@@ -448,6 +473,7 @@ export default function EmployeeDashboard() {
                    <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase" }}>Tipe Cuti</th>
                    <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase" }}>Jadwal</th>
                    <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Durasi</th>
+                   <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Lampiran</th>
                    <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Status</th>
                  </tr>
                </thead>
@@ -458,13 +484,25 @@ export default function EmployeeDashboard() {
                      <td style={{ padding: "16px 24px", fontSize: 13, color: T.textGray }}>{l.start_date.slice(0,10)} sd {l.end_date.slice(0,10)}</td>
                      <td style={{ padding: "16px 24px", fontSize: 13, color: T.textDark, textAlign: "center", fontWeight: "600" }}>{l.total_days} Hari</td>
                      <td style={{ padding: "16px 24px", textAlign: "center" }}>
+                       {leaveRowHasAttachment(l) ? (
+                         <button
+                           type="button"
+                           onClick={() => openMyAttachment(l)}
+                           style={{ background: "none", border: "none", cursor: "pointer", color: T.primary, fontSize: 12, fontWeight: "700" }}>
+                           📎 Buka
+                         </button>
+                       ) : (
+                         <span style={{ fontSize: 11, color: T.textGray }}>-</span>
+                       )}
+                     </td>
+                     <td style={{ padding: "16px 24px", textAlign: "center" }}>
                        <span style={{ display: "inline-block", background: statusStyle[l.status]?.bg || "#f3f4f6", color: statusStyle[l.status]?.color || "#374151", padding: "6px 12px", borderRadius: 20, fontSize: 11, fontWeight: "600", textTransform: "uppercase" }}>
                          {statusStyle[l.status]?.label || l.status}
                        </span>
                      </td>
                    </tr>
                  ))}
-                 {leaves.length === 0 && <tr><td colSpan="4" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: T.textGray }}>Belum ada riwayat cuti.</td></tr>}
+                 {leaves.length === 0 && <tr><td colSpan="5" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: T.textGray }}>Belum ada riwayat cuti.</td></tr>}
                </tbody>
              </table>
            </div>

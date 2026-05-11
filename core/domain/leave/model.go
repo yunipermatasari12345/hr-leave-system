@@ -12,21 +12,30 @@ const (
 	StatusRejected Status = "rejected"
 )
 
+type AttachmentInput struct {
+	Data        []byte
+	ContentType string
+	Filename    string
+}
+
 type LeaveRequest struct {
-	ID            int32
-	EmployeeID    int32
-	LeaveTypeID   int32
-	StartDate     time.Time
-	EndDate       time.Time
-	TotalDays     int32
-	Reason        string
-	AttachmentURL string
-	Status        Status
-	HrdNote       string
-	ReviewedBy    int32
-	CreatedAt     time.Time
-	HasCreatedAt  bool
-	LeaveTypeName string
+	ID                    int32
+	EmployeeID            int32
+	LeaveTypeID           int32
+	StartDate             time.Time
+	EndDate               time.Time
+	TotalDays             int32
+	Reason                string
+	AttachmentURL         string
+	HasBinaryAttachment   bool
+	AttachmentFilename    string
+	AttachmentContentType string
+	Status                Status
+	HrdNote               string
+	ReviewedBy            int32
+	CreatedAt             time.Time
+	HasCreatedAt          bool
+	LeaveTypeName         string
 }
 
 type RequestSummary struct {
@@ -45,14 +54,14 @@ type LeaveType struct {
 }
 
 type LeaveBalance struct {
-	ID            int32 `json:"id"`
-	EmployeeID    int32 `json:"employee_id"`
-	LeaveTypeID   int32 `json:"leave_type_id"`
+	ID            int32  `json:"id"`
+	EmployeeID    int32  `json:"employee_id"`
+	LeaveTypeID   int32  `json:"leave_type_id"`
 	LeaveTypeName string `json:"leave_type_name"`
-	Year          int32 `json:"year"`
-	TotalDays     int32 `json:"total_days"`
-	UsedDays      int32 `json:"used_days"`
-	RemainingDays int32 `json:"remaining_days"`
+	Year          int32  `json:"year"`
+	TotalDays     int32  `json:"total_days"`
+	UsedDays      int32  `json:"used_days"`
+	RemainingDays int32  `json:"remaining_days"`
 }
 
 func ParseReviewDecision(status string) (Status, error) {
@@ -68,7 +77,7 @@ func ComputeTotalDays(start, end time.Time) (int32, error) {
 	if end.Before(start) {
 		return 0, ErrInvalidDateRange
 	}
-	
+
 	start = time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, start.Location())
 	end = time.Date(end.Year(), end.Month(), end.Day(), 0, 0, 0, 0, end.Location())
 
