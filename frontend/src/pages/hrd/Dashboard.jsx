@@ -374,16 +374,16 @@ export default function HrdDashboard() {
   );
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "'Inter', sans-serif" }}>
+    <div className="resp-layout" style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "'Inter', sans-serif" }}>
       
       {/* SIDEBAR KLASIK */}
-      <div style={{ width: 260, background: T.sidebar, borderRight: T.cardBorder, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
-        <div style={{ padding: "0 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 1 }}>
+      <div className="resp-sidebar" style={{ width: 260, background: T.sidebar, borderRight: T.cardBorder, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
+        <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 1 }}>
           <img src="/logo.png" alt="Logo" style={{ height: 80, width: "auto", objectFit: "contain" }} onError={(e) => { e.target.style.display='none'; }} />
           <h1 style={{ color: "#03070cff", fontSize: 28, fontWeight: "900", margin: 0, letterSpacing: -0.3 }}>appskep</h1>
         </div>
         
-        <div style={{ display: "flex", flexDirection: "column", padding: "0 16px" }}>
+        <div className="sidebar-menu" style={{ display: "flex", flexDirection: "column", padding: "0 16px" }}>
           <MenuItem id="dashboard" label="Dashboard" icon="❖" />
           <MenuItem id="leaves" label="Pengajuan Cuti" icon="📑" />
           <MenuItem id="calendar" label="Kalender Cuti" icon="📅" />
@@ -393,7 +393,7 @@ export default function HrdDashboard() {
         </div>
 
         {/* RINGKASAN PERUSAHAAN (Optional) */}
-        <div style={{ padding: "0 20px", marginTop: 24 }}>
+        <div className="sidebar-status" style={{ padding: "0 20px", marginTop: 24 }}>
           <div onClick={() => setIsStatusOpen(!isStatusOpen)} style={{ background: T.bg, borderRadius: 12, padding: "16px 20px", border: T.cardBorder, cursor: "pointer", transition: "all 0.3s ease" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -411,7 +411,7 @@ export default function HrdDashboard() {
           </div>
         </div>
 
-        <div style={{ marginTop: "auto", padding: "24px", borderTop: T.cardBorder }}>
+        <div className="sidebar-profile" style={{ marginTop: "auto", padding: "24px", borderTop: T.cardBorder }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
             <div style={{ width: 36, height: 36, borderRadius: "50%", background: T.primary, color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: "bold" }}>HR</div>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -426,16 +426,16 @@ export default function HrdDashboard() {
       </div>
 
       {/* MAIN CONTENT KLASIK (Layout Kanan) */}
-      <div style={{ flex: 1, padding: "40px", overflowY: "auto" }}>
+      <div className="resp-content" style={{ flex: 1, padding: "40px", overflowY: "auto" }}>
         
         {/* HEADER KLASIK */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
+        <div className="resp-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
            <div>
              <h2 style={{ fontSize: 24, fontWeight: "700", color: T.textDark, margin: "0 0 8px 0" }}>Halo HRD, {name.split(' ')[0]}!</h2>
              <p style={{ fontSize: 13, color: T.textGray, margin: 0 }}>📅 &nbsp; {todayStr}</p>
            </div>
            
-           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+           <div className="resp-header-right" style={{ display: "flex", alignItems: "center", gap: 16 }}>
              {/* THEME TOGGLE BUTTON */}
              <button onClick={toggleTheme} style={{ background: T.cardBg, border: T.cardBorder, padding: "8px 16px", borderRadius: 20, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, color: T.textDark, fontWeight: "600", fontSize: 13, boxShadow: "0 2px 4px rgba(0,0,0,0.02)", transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"} onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
                <span style={{ fontSize: 16 }}>{isDarkMode ? "☀️" : "🌙"}</span>
@@ -454,7 +454,7 @@ export default function HrdDashboard() {
         {activePage === "dashboard" && (
           <>
             {/* STATS KOTAK 4 KLASIK DENGAN DESAIN TALENTA */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24, marginBottom: 40 }}>
+            <div className="resp-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24, marginBottom: 40 }}>
               <div style={{ background: T.cardBg, padding: 24, borderRadius: 12, border: T.cardBorder, transition: "transform 0.2s, box-shadow 0.2s", cursor: "pointer", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" }}
                    onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 10px 15px -3px rgba(0,0,0,0.1)"; }}
                    onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 6px -1px rgba(0,0,0,0.05)"; }}>
@@ -494,7 +494,7 @@ export default function HrdDashboard() {
             </div>
 
             {/* INSIGHTS & ANALYTICS SECTION */}
-            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24, marginBottom: 40 }}>
+            <div className="resp-grid-2" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24, marginBottom: 40 }}>
               {/* ANTREAN CUTI TERBARU */}
               <div style={{ background: T.cardBg, borderRadius: 16, border: T.cardBorder, padding: 24, boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)", display: "flex", flexDirection: "column" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
@@ -579,6 +579,7 @@ export default function HrdDashboard() {
                  </Button>
                </div>
              </div>
+             <div className="resp-table-wrapper">
              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
                <thead>
                  <tr>
@@ -622,6 +623,7 @@ export default function HrdDashboard() {
                  {leaves.length === 0 && <tr><td colSpan="5" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: T.textGray }}>Belum ada data.</td></tr>}
                </tbody>
              </table>
+             </div>
            </div>
         )}
 
@@ -703,6 +705,7 @@ export default function HrdDashboard() {
              <div style={{ padding: "20px 24px", borderBottom: T.cardBorder }}>
                <h3 style={{ margin: 0, fontSize: 16, fontWeight: "600", color: T.textDark }}>Data Karyawan Aktif</h3>
              </div>
+             <div className="resp-table-wrapper">
              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
                <thead>
                  <tr>
@@ -737,6 +740,7 @@ export default function HrdDashboard() {
                  {employees.length === 0 && <tr><td colSpan="4" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: T.textGray }}>Tidak ada karyawan.</td></tr>}
                </tbody>
              </table>
+             </div>
            </div>
         )}
 
@@ -746,6 +750,7 @@ export default function HrdDashboard() {
                <h3 style={{ margin: 0, fontSize: 16, fontWeight: "600", color: T.textDark }}>Analisis Rekapitulasi</h3>
                <Button size="sm" onClick={exportReportsToExcel} style={{ background: T.cardBg, border: T.cardBorder, color: T.textDark, fontWeight: "600", borderRadius: 6 }}>Export (XLSX)</Button>
              </div>
+             <div className="resp-table-wrapper">
              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
                <thead>
                  <tr>
@@ -765,6 +770,7 @@ export default function HrdDashboard() {
                  {reports.length === 0 && <tr><td colSpan="3" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: T.textGray }}>Tidak ada data.</td></tr>}
                </tbody>
              </table>
+             </div>
            </div>
         )}
 
@@ -777,7 +783,7 @@ export default function HrdDashboard() {
                </div>
                <Button disableRipple size="sm" onClick={fetchAuditLogs} style={{ background: T.bg, border: T.cardBorder, color: T.textDark, fontWeight: "600", borderRadius: 8, height: 38 }}>🔄 Segarkan</Button>
              </div>
-             <div style={{ overflowX: "auto" }}>
+             <div className="resp-table-wrapper" style={{ overflowX: "auto" }}>
                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
                  <thead>
                    <tr>

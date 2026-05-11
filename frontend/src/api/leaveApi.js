@@ -11,10 +11,8 @@ export const leaveApi = {
     return apiClient.get("/employee/leave-balances").then((r) => r.data);
   },
   createRequest(payload) {
-    const isFormData = payload instanceof FormData;
-    return apiClient.post("/employee/leaves", payload, {
-      headers: isFormData ? { "Content-Type": "multipart/form-data" } : {},
-    }).then((r) => r.data);
+    const config = {};
+    return apiClient.post("/employee/leaves", payload, config).then((r) => r.data);
   },
   getMyNotifications() {
     return apiClient.get("/employee/notifications").then((r) => r.data);
@@ -23,10 +21,8 @@ export const leaveApi = {
     return apiClient.put(`/employee/notifications/${id}/read`).then((r) => r.data);
   },
   createManualLeaveHR(payload) {
-    const isFormData = payload instanceof FormData;
-    return apiClient.post("/hrd/leaves/manual", payload, {
-      headers: isFormData ? { "Content-Type": "multipart/form-data" } : {},
-    }).then((r) => r.data);
+    const config = {};
+    return apiClient.post("/hrd/leaves/manual", payload, config).then((r) => r.data);
   },
   getAdvancedForHR({ status = "", department = "" } = {}) {
     return apiClient

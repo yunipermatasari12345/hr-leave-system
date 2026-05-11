@@ -73,3 +73,167 @@ body {
 .animate-shake {
   animation: shake 0.2s ease-in-out 0s 2;
 }
+
+/* Responsive Dashboard Overrides */
+@media (max-width: 768px) {
+  .resp-layout {
+    flex-direction: column !important;
+  }
+  .resp-sidebar {
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    border-right: none !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    padding: 16px !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  .sidebar-logo {
+    margin-bottom: 16px !important;
+    padding: 0 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+  .sidebar-logo img {
+    height: 40px !important;
+  }
+  .sidebar-logo h1 {
+    font-size: 20px !important;
+  }
+
+  .sidebar-menu {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    padding: 0 !important;
+    margin: 0 -16px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    white-space: nowrap !important;
+    gap: 12px !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .sidebar-menu::-webkit-scrollbar {
+    display: none;
+  }
+  .sidebar-menu > div {
+    margin-bottom: 0 !important;
+    padding: 10px 16px !important;
+    font-size: 13px !important;
+    flex-shrink: 0;
+    border-radius: 20px !important;
+  }
+  
+  /* Active menu item will have specific inline style, but we can override if needed */
+
+  .sidebar-status {
+    display: none !important; /* Hide on mobile to save space */
+  }
+
+  .sidebar-profile {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 16px 0 0 0 !important;
+    margin-top: 16px !important;
+    border-top: 1px dashed #e2e8f0 !important;
+  }
+  .sidebar-profile > div:first-child {
+    margin-bottom: 0 !important;
+  }
+  .sidebar-profile button {
+    width: auto !important;
+    padding: 8px 12px !important;
+    background: #fee2e2 !important;
+    color: #ef4444 !important;
+    border-radius: 8px !important;
+  }
+
+  .resp-content {
+    padding: 16px !important;
+  }
+  .resp-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+    margin-bottom: 24px !important;
+  }
+  .resp-header h2 {
+    font-size: 20px !important;
+  }
+  .resp-header-right {
+    width: 100% !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+  }
+  .resp-header-right button {
+    flex: 1;
+    min-width: 140px;
+    justify-content: center;
+  }
+  .resp-grid-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  .resp-grid-3 {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .resp-grid-2 {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  
+  .resp-table-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -16px;
+    padding: 0 16px;
+  }
+  .resp-table-wrapper table {
+    min-width: 700px;
+  }
+  
+  /* Make cards look better on mobile */
+  .resp-grid-3 > div, .resp-grid-4 > div {
+    padding: 16px !important;
+  }
+  .resp-grid-3 > div > div:first-child {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 20px !important;
+  }
+  .resp-grid-3 > div p:nth-child(2) {
+    font-size: 20px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .resp-grid-4 {
+    grid-template-columns: 1fr !important;
+  }
+  .sidebar-profile {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+  .sidebar-profile button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  .resp-form-topbar {
+    padding: 24px 16px 16px 16px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+  }
+  .resp-form-body {
+    padding: 0 16px 24px 16px !important;
+  }
+}

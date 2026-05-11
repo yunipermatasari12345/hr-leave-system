@@ -166,14 +166,14 @@ export default function EmployeeDashboard() {
   );
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "'Inter', sans-serif" }}>
+    <div className="resp-layout" style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "'Inter', sans-serif" }}>
       {/* SIDEBAR KLASIK (Desain Talenta) */}
-      <div style={{ width: 260, background: T.sidebar, borderRight: T.cardBorder, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
-        <div style={{ padding: "0 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 1 }}>
+      <div className="resp-sidebar" style={{ width: 260, background: T.sidebar, borderRight: T.cardBorder, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
+        <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 1 }}>
           <img src="/logo.png" alt="Logo" style={{ height: 80, width: "auto", objectFit: "contain" }} onError={(e) => { e.target.style.display='none'; }} />
           <h1 style={{ color: "#03070cff", fontSize: 28, fontWeight: "900", margin: 0, letterSpacing: -0.3 }}>appskep</h1>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", padding: "0 16px" }}>
+        <div className="sidebar-menu" style={{ display: "flex", flexDirection: "column", padding: "0 16px" }}>
           <MenuItem id="dashboard" label="Dashboard Utama" icon="❖" />
           <MenuItem id="new_leave" label="Ajukan Cuti Baru" icon="➕" />
           <MenuItem id="leaves" label="Riwayat Cuti" icon="📄" />
@@ -182,7 +182,7 @@ export default function EmployeeDashboard() {
         </div>
 
         {/* STATUS CUTI COLLAPSIBLE */}
-        <div style={{ padding: "0 20px", marginTop: 24 }}>
+        <div className="sidebar-status" style={{ padding: "0 20px", marginTop: 24 }}>
           <div onClick={() => setIsStatusOpen(!isStatusOpen)} style={{ background: T.bg, borderRadius: 12, padding: "16px 20px", border: T.cardBorder, cursor: "pointer", transition: "all 0.3s ease" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -204,7 +204,7 @@ export default function EmployeeDashboard() {
           </div>
         </div>
 
-        <div style={{ marginTop: "auto", padding: "24px", borderTop: T.cardBorder }}>
+        <div className="sidebar-profile" style={{ marginTop: "auto", padding: "24px", borderTop: T.cardBorder }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
             <div style={{ width: 36, height: 36, borderRadius: "50%", background: T.yellow, color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: "bold" }}>{name.substring(0,2).toUpperCase()}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -219,15 +219,15 @@ export default function EmployeeDashboard() {
       </div>
 
       {/* MAIN CONTENT KLASIK (Layout Kanan) */}
-      <div style={{ flex: 1, padding: "40px", overflowY: "auto" }}>
+      <div className="resp-content" style={{ flex: 1, padding: "40px", overflowY: "auto" }}>
         
         {/* HEADER KLASIK */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
+        <div className="resp-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
            <div>
              <h2 style={{ fontSize: 24, fontWeight: "700", color: T.textDark, margin: "0 0 8px 0" }}>Selamat datang, {name.split(' ')[0]}!</h2>
              <p style={{ fontSize: 13, color: T.textGray, margin: 0 }}>📅 &nbsp; {today}</p>
            </div>
-           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+           <div className="resp-header-right" style={{ display: "flex", alignItems: "center", gap: 16 }}>
              
              {/* THEME TOGGLE BUTTON */}
              <button onClick={toggleTheme} style={{ background: T.cardBg, border: T.cardBorder, padding: "8px 16px", borderRadius: 20, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, color: T.textDark, fontWeight: "600", fontSize: 13, boxShadow: "0 2px 4px rgba(0,0,0,0.02)", transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"} onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
@@ -266,7 +266,7 @@ export default function EmployeeDashboard() {
         {activePage === "dashboard" && (
           <>
             {/* STATS KOTAK 3 KLASIK */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, marginBottom: 24 }}>
+            <div className="resp-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, marginBottom: 24 }}>
                <div style={{ background: T.cardBg, padding: 24, borderRadius: 12, border: T.cardBorder, display: "flex", alignItems: "center", gap: 20, boxShadow: "0 4px 6px -1px rgba(0,0,0,0.02)" }}>
                   <div style={{ width: 48, height: 48, borderRadius: 12, background: T.bg, color: T.primary, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>🎟️</div>
                   <div>
@@ -291,7 +291,7 @@ export default function EmployeeDashboard() {
             </div>
 
             {/* TWO COLUMN CONTENT AREA */}
-            <div style={{ display: "grid", gridTemplateColumns: "2.5fr 1.5fr", gap: 24 }}>
+            <div className="resp-grid-2" style={{ display: "grid", gridTemplateColumns: "2.5fr 1.5fr", gap: 24 }}>
               
               {/* KOLOM KIRI: Pengajuan Terakhir */}
               <div style={{ background: T.cardBg, borderRadius: 12, border: T.cardBorder, overflow: "hidden", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.02)" }}>
@@ -467,6 +467,7 @@ export default function EmployeeDashboard() {
              <div style={{ padding: "20px 24px", borderBottom: T.cardBorder }}>
                <h3 style={{ margin: 0, fontSize: 16, fontWeight: "600", color: T.textDark }}>Riwayat Pengajuan Cuti</h3>
              </div>
+             <div className="resp-table-wrapper">
              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
                <thead>
                  <tr>
@@ -505,6 +506,7 @@ export default function EmployeeDashboard() {
                  {leaves.length === 0 && <tr><td colSpan="5" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: T.textGray }}>Belum ada riwayat cuti.</td></tr>}
                </tbody>
              </table>
+             </div>
            </div>
         )}
         {activePage === "info" && (
