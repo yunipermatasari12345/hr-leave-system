@@ -1224,12 +1224,4 @@ export default function HrdDashboard() {
       )}
     </div>
   );
-}borderRadius: 12, fontWeight: "600" }}>Simpan & Setujui Otomatis</Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-    </div>
-  );
 }
