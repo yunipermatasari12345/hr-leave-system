@@ -463,9 +463,7 @@ export default function HrdDashboard() {
           <>
             {/* STATS KOTAK 4 KLASIK DENGAN DESAIN TALENTA */}
             <div className="resp-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24, marginBottom: 40 }}>
-              <div style={{ background: T.cardBg, padding: 24, borderRadius: 12, border: T.cardBorder, transition: "transform 0.2s, box-shadow 0.2s", cursor: "pointer", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" }}
-                   onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 10px 15px -3px rgba(0,0,0,0.1)"; }}
-                   onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 6px -1px rgba(0,0,0,0.05)"; }}>
+              <div className="premium-shadow premium-hover" style={{ background: T.cardBg, padding: 24, borderRadius: 12, border: T.cardBorder, cursor: "pointer" }}>
                  <p style={{ fontSize: 12, fontWeight: "600", color: T.textGray, margin: "0 0 12px 0", textTransform: "uppercase" }}>Menunggu Persetujuan</p>
                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                    <p style={{ fontSize: 32, fontWeight: "700", color: T.textDark, margin: 0 }}>{pending.length}</p>
@@ -504,7 +502,7 @@ export default function HrdDashboard() {
             {/* INSIGHTS & ANALYTICS SECTION */}
             <div className="resp-grid-2" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24, marginBottom: 40 }}>
               {/* ANTREAN CUTI TERBARU */}
-              <div style={{ background: T.cardBg, borderRadius: 16, border: T.cardBorder, padding: 24, boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)", display: "flex", flexDirection: "column" }}>
+              <div className="premium-shadow" style={{ background: T.cardBg, borderRadius: 16, border: T.cardBorder, padding: 24, display: "flex", flexDirection: "column" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                   <h3 style={{ margin: 0, fontSize: 16, fontWeight: "700", color: T.textDark }}>Antrean Cuti Terbaru ⏳</h3>
                   {pending.length > 0 && <span style={{ background: "#fef3c7", color: "#d97706", padding: "4px 10px", borderRadius: 20, fontSize: 12, fontWeight: "700" }}>{pending.length} Menunggu</span>}
@@ -541,7 +539,7 @@ export default function HrdDashboard() {
                 </div>
               </div>
               {/* WHO IS OFF TODAY */}
-              <div style={{ background: T.cardBg, borderRadius: 16, border: T.cardBorder, padding: 24, boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)", display: "flex", flexDirection: "column" }}>
+              <div className="premium-shadow" style={{ background: T.cardBg, borderRadius: 16, border: T.cardBorder, padding: 24, display: "flex", flexDirection: "column" }}>
                 <h3 style={{ margin: "0 0 20px 0", fontSize: 16, fontWeight: "700", color: T.textDark }}>Sedang Cuti Hari Ini 🏖️</h3>
                 <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 12 }}>
                   {(() => {
