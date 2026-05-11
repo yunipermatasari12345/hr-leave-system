@@ -50,7 +50,7 @@ export default function AddEmployee() {
   );
 
   return (
-    <div className="resp-layout" style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "'Inter', sans-serif" }}>
+    <div className="resp-layout" style={{ display: "flex", minHeight: "100vh", background: T.bg }}>
       {/* SIDEBAR KLASIK */}
       <div className="resp-sidebar" style={{ width: 260, background: T.sidebar, borderRight: T.cardBorder, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
         <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 12, justifyContent: "space-between" }}>

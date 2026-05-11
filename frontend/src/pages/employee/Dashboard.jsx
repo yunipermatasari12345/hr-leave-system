@@ -167,7 +167,7 @@ export default function EmployeeDashboard() {
   );
 
   return (
-    <div className="resp-layout" style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "'Inter', sans-serif" }}>
+    <div className="resp-layout" style={{ display: "flex", minHeight: "100vh", background: T.bg }}>
       {/* SIDEBAR KLASIK (Desain Talenta) */}
       <div className="resp-sidebar" style={{ width: 260, background: T.sidebar, borderRight: T.cardBorder, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
         <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 1, justifyContent: "space-between" }}>
@@ -274,74 +274,123 @@ export default function EmployeeDashboard() {
 
         {activePage === "dashboard" && (
           <>
-            {/* STATS KOTAK 3 KLASIK */}
-            <div className="resp-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, marginBottom: 24 }}>
-               <div style={{ background: T.cardBg, padding: 24, borderRadius: 12, border: T.cardBorder, display: "flex", alignItems: "center", gap: 20, boxShadow: "0 4px 6px -1px rgba(0,0,0,0.02)" }}>
-                  <div style={{ width: 48, height: 48, borderRadius: 12, background: T.bg, color: T.primary, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>🎟️</div>
-                  <div>
-                    <p style={{ fontSize: 12, fontWeight: "600", color: T.textGray, margin: "0 0 4px 0", textTransform: "uppercase" }}>Sisa Cuti</p>
-                    <p style={{ fontSize: 24, fontWeight: "700", color: T.textDark, margin: 0 }}>{sisaCuti} <span style={{ fontSize: 14, fontWeight: "500", color: T.textLight }}>HARI</span></p>
-                  </div>
-               </div>
-               <div style={{ background: T.cardBg, padding: 24, borderRadius: 12, border: T.cardBorder, display: "flex", alignItems: "center", gap: 20, boxShadow: "0 4px 6px -1px rgba(0,0,0,0.02)" }}>
-                  <div style={{ width: 48, height: 48, borderRadius: 12, background: T.bg, color: T.red, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>📊</div>
-                  <div>
-                    <p style={{ fontSize: 12, fontWeight: "600", color: T.textGray, margin: "0 0 4px 0", textTransform: "uppercase" }}>Cuti Terpakai</p>
-                    <p style={{ fontSize: 24, fontWeight: "700", color: T.textDark, margin: 0 }}>{totalTerpakai} <span style={{ fontSize: 14, fontWeight: "500", color: T.textLight }}>HARI</span></p>
-                  </div>
-               </div>
-               <div style={{ background: T.cardBg, padding: 24, borderRadius: 12, border: T.cardBorder, display: "flex", alignItems: "center", gap: 20, boxShadow: "0 4px 6px -1px rgba(0,0,0,0.02)" }}>
-                  <div style={{ width: 48, height: 48, borderRadius: 12, background: T.bg, color: T.green, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>📅</div>
-                  <div>
-                    <p style={{ fontSize: 12, fontWeight: "600", color: T.textGray, margin: "0 0 4px 0", textTransform: "uppercase" }}>Total Kuota</p>
-                    <p style={{ fontSize: 24, fontWeight: "700", color: T.textDark, margin: 0 }}>{kuotaTotal} <span style={{ fontSize: 14, fontWeight: "500", color: T.textLight }}>HARI</span></p>
-                  </div>
-               </div>
+            {/* STATS KOTAK ADMIN LTE STYLE */}
+            <div className="resp-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24 }}>
+              
+              <div style={{ background: "#00c0ef", color: "white", padding: "20px 20px", borderRadius: 4, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
+                 <div style={{ zIndex: 2 }}>
+                   <h3 style={{ fontSize: 38, fontWeight: "bold", margin: "0 0 4px 0" }}>{sisaCuti}</h3>
+                   <p style={{ fontSize: 15, margin: 0 }}>Sisa Cuti</p>
+                 </div>
+                 <div style={{ position: "absolute", right: 10, top: 10, fontSize: 60, opacity: 0.2, zIndex: 1, lineHeight: 1 }}>
+                   🏖️
+                 </div>
+                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.1)", padding: "4px 0", textAlign: "center", fontSize: 12, cursor: "pointer", zIndex: 2 }}>
+                   More info ➔
+                 </div>
+              </div>
+
+              <div style={{ background: "#00a65a", color: "white", padding: "20px 20px", borderRadius: 4, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
+                 <div style={{ zIndex: 2 }}>
+                   <h3 style={{ fontSize: 38, fontWeight: "bold", margin: "0 0 4px 0" }}>{totalTerpakai}</h3>
+                   <p style={{ fontSize: 15, margin: 0 }}>Cuti Terpakai</p>
+                 </div>
+                 <div style={{ position: "absolute", right: 10, top: 10, fontSize: 60, opacity: 0.2, zIndex: 1, lineHeight: 1 }}>
+                   📊
+                 </div>
+                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.1)", padding: "4px 0", textAlign: "center", fontSize: 12, cursor: "pointer", zIndex: 2 }}>
+                   More info ➔
+                 </div>
+              </div>
+
+              <div style={{ background: "#f39c12", color: "white", padding: "20px 20px", borderRadius: 4, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
+                 <div style={{ zIndex: 2 }}>
+                   <h3 style={{ fontSize: 38, fontWeight: "bold", margin: "0 0 4px 0" }}>{kuotaTotal}</h3>
+                   <p style={{ fontSize: 15, margin: 0 }}>Total Kuota</p>
+                 </div>
+                 <div style={{ position: "absolute", right: 10, top: 10, fontSize: 60, opacity: 0.2, zIndex: 1, lineHeight: 1 }}>
+                   📅
+                 </div>
+                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.1)", padding: "4px 0", textAlign: "center", fontSize: 12, cursor: "pointer", zIndex: 2 }}>
+                   More info ➔
+                 </div>
+              </div>
+
             </div>
 
-            {/* TWO COLUMN CONTENT AREA */}
-            <div className="resp-grid-2" style={{ display: "grid", gridTemplateColumns: "2.5fr 1.5fr", gap: 24 }}>
+            {/* TWO COLUMN CONTENT AREA (PROFIL SAYA) */}
+            <div className="resp-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 2.5fr", gap: 24 }}>
               
-              {/* KOLOM KIRI: Pengajuan Terakhir */}
-              <div style={{ background: T.cardBg, borderRadius: 12, border: T.cardBorder, overflow: "hidden", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.02)" }}>
-                <div style={{ padding: "20px 24px", borderBottom: T.cardBorder, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <h3 style={{ margin: 0, fontSize: 15, fontWeight: "700", color: T.textDark }}>⏳ Pengajuan Terakhir Anda</h3>
-                  <span onClick={() => setActivePage("leaves")} style={{ fontSize: 13, color: T.primary, cursor: "pointer", fontWeight: "600", transition: "opacity 0.2s" }} onMouseEnter={e => e.currentTarget.style.opacity=0.7} onMouseLeave={e => e.currentTarget.style.opacity=1}>Lihat Semua &rarr;</span>
+              {/* KOLOM KIRI: Foto Profil */}
+              <div style={{ background: "white", borderRadius: 4, border: "1px solid #0073b7", borderTopWidth: 3, overflow: "hidden", boxShadow: "0 1px 1px rgba(0,0,0,0.1)", display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 0" }}>
+                <div style={{ width: 100, height: 100, borderRadius: "50%", background: "#f3f4f6", border: "3px solid #e5e7eb", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40 }}>
+                   👨‍💼
                 </div>
-                <div style={{ padding: "8px 24px 24px", display: "flex", flexDirection: "column" }}>
-                  {leaves.length > 0 ? leaves.slice(0, 3).map(l => (
-                    <div key={l.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 16, paddingBottom: 16, borderBottom: T.cardBorder }}>
-                      <div>
-                        <p style={{ margin: "0 0 6px 0", fontSize: 13, fontWeight: "700", color: T.textDark }}>{l.leave_type_name || "Cuti Tahunan"} <span style={{ color: T.textLight, fontWeight: "500" }}>({l.total_days} Hari)</span></p>
-                        <p style={{ margin: 0, fontSize: 12, color: T.textGray, fontWeight: "500" }}>{l.start_date.slice(0,10)} s/d {l.end_date.slice(0,10)}</p>
-                      </div>
-                      <span style={{ background: statusStyle[l.status]?.bg || "#f3f4f6", color: statusStyle[l.status]?.color || "#374151", padding: "6px 12px", borderRadius: 20, fontSize: 11, fontWeight: "700", textTransform: "uppercase" }}>
-                        {statusStyle[l.status]?.label || l.status}
-                      </span>
-                    </div>
-                  )) : (
-                    <div style={{ textAlign: "center", padding: "32px 0", color: T.textGray, fontSize: 13 }}>Belum ada riwayat pengajuan cuti.</div>
-                  )}
+                <h3 style={{ margin: "0 0 4px 0", fontSize: 18, color: "#333", fontWeight: "normal" }}>{name}</h3>
+                <p style={{ margin: "0 0 16px 0", fontSize: 13, color: "#777" }}>1234567890</p>
+                
+                <div style={{ width: "100%", padding: "0 16px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderTop: "1px solid #f4f4f4", borderBottom: "1px solid #f4f4f4" }}>
+                    <strong style={{ fontSize: 13, color: "#333" }}>Devisi</strong>
+                    <span style={{ fontSize: 13, color: "#777", textTransform: "uppercase" }}>{dept}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid #f4f4f4", marginBottom: 16 }}>
+                    <strong style={{ fontSize: 13, color: "#333" }}>Kontak</strong>
+                    <span style={{ fontSize: 13, color: "#777" }}>6282272216125</span>
+                  </div>
+                  <button style={{ width: "100%", background: "#0073b7", color: "white", border: "none", padding: "8px", borderRadius: 2, cursor: "pointer", fontWeight: "bold", fontSize: 13 }}>EDIT</button>
                 </div>
               </div>
 
-              {/* KOLOM KANAN: Widget Info */}
-              <div style={{ background: "linear-gradient(135deg, #2563eb, #1e40af)", borderRadius: 12, border: "none", color: "white", padding: 32, display: "flex", flexDirection: "column", position: "relative", overflow: "hidden", boxShadow: "0 10px 15px -3px rgba(37,99,235,0.3)" }}>
-                <div style={{ position: "absolute", right: -30, top: -20, fontSize: 140, opacity: 0.1, transform: "rotate(15deg)" }}>🏖️</div>
-                <div style={{ zIndex: 1, flex: 1 }}>
-                  <h3 style={{ margin: "0 0 12px 0", fontSize: 18, fontWeight: "800", display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: 20 }}>{sisaCuti > 5 ? "✨" : "⚠️"}</span> {sisaCuti > 5 ? "Waktunya Liburan!" : "Kuota Menipis!"}
-                  </h3>
-                  <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, opacity: 0.9 }}>
-                    {sisaCuti > 5 
-                      ? `Anda masih memiliki ${sisaCuti} hari cuti tahun ini. Jangan lupakan keseimbangan kerja dan istirahat Anda. Yuk, rencanakan liburan bersama keluarga atau sahabat!` 
-                      : `Sisa cuti Anda tinggal ${sisaCuti} hari. Gunakan sisa kuota tersebut dengan bijak ya.`}
-                  </p>
+              {/* KOLOM KANAN: Detail Profil */}
+              <div style={{ background: "white", borderRadius: 4, border: "1px solid #d2d6de", overflow: "hidden", boxShadow: "0 1px 1px rgba(0,0,0,0.1)", display: "flex", flexDirection: "column" }}>
+                <div style={{ padding: "12px 16px", borderBottom: "1px solid #f4f4f4", background: "white" }}>
+                  <h3 style={{ margin: 0, fontSize: 16, color: "#333", fontWeight: "normal" }}>Profil Saya</h3>
                 </div>
-                <div style={{ zIndex: 1, marginTop: 32 }}>
-                  <Button disableRipple onPress={() => setActivePage("new_leave")} style={{ background: "white", color: "#1e40af", fontWeight: "800", width: "100%", borderRadius: 8, height: 44, fontSize: 14 }}>
-                    Ambil Cuti Sekarang
-                  </Button>
+                <div style={{ flex: 1, padding: 16, overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, color: "#333" }}>
+                    <tbody>
+                      <tr style={{ background: "#f9f9f9" }}>
+                        <td style={{ padding: 12, width: "30%", fontWeight: "bold", border: "1px solid #f4f4f4" }}>Nama</td>
+                        <td style={{ padding: 12, width: "5%", border: "1px solid #f4f4f4" }}>:</td>
+                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>{name}</td>
+                      </tr>
+                      <tr style={{ background: "white" }}>
+                        <td style={{ padding: 12, fontWeight: "bold", border: "1px solid #f4f4f4" }}>NIK/NIP</td>
+                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>:</td>
+                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>1234567890</td>
+                      </tr>
+                      <tr style={{ background: "#f9f9f9" }}>
+                        <td style={{ padding: 12, fontWeight: "bold", border: "1px solid #f4f4f4" }}>Jenis Kelamin</td>
+                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>:</td>
+                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>Laki-Laki</td>
+                      </tr>
+                      <tr style={{ background: "white" }}>
+                        <td style={{ padding: 12, fontWeight: "bold", border: "1px solid #f4f4f4" }}>Kontak</td>
+                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>:</td>
+                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>6282272216125</td>
+                      </tr>
+                      <tr style={{ background: "#f9f9f9" }}>
+                        <td style={{ padding: 12, fontWeight: "bold", border: "1px solid #f4f4f4" }}>Alamat</td>
+                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>:</td>
+                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>Culpa quis sequi mag</td>
+                      </tr>
+                      <tr style={{ background: "white" }}>
+                        <td style={{ padding: 12, fontWeight: "bold", border: "1px solid #f4f4f4" }}>Username</td>
+                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>:</td>
+                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>{name.split(' ')[0].toLowerCase()}</td>
+                      </tr>
+                      <tr style={{ background: "#f9f9f9" }}>
+                        <td style={{ padding: 12, fontWeight: "bold", verticalAlign: "top", border: "1px solid #f4f4f4" }}>Tanda Tangan</td>
+                        <td style={{ padding: 12, verticalAlign: "top", border: "1px solid #f4f4f4" }}>:</td>
+                        <td style={{ padding: 12, border: "1px solid #f4f4f4" }}>
+                           <div style={{ width: 60, height: 40, borderBottom: "1px solid #333", position: "relative" }}>
+                             <span style={{ position: "absolute", bottom: 0, left: 10, fontFamily: "cursive", color: "#333", fontSize: 24, transform: "rotate(-10deg)" }}>&sim;</span>
+                           </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
 

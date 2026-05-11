@@ -375,7 +375,7 @@ export default function HrdDashboard() {
   );
 
   return (
-    <div className="resp-layout" style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "'Inter', sans-serif" }}>
+    <div className="resp-layout" style={{ display: "flex", minHeight: "100vh", background: T.bg }}>
       
       {/* SIDEBAR KLASIK */}
       <div className="resp-sidebar" style={{ width: 260, background: T.sidebar, borderRight: T.cardBorder, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
@@ -461,42 +461,61 @@ export default function HrdDashboard() {
 
         {activePage === "dashboard" && (
           <>
-            {/* STATS KOTAK 4 KLASIK DENGAN DESAIN TALENTA */}
-            <div className="resp-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24, marginBottom: 40 }}>
-              <div className="premium-shadow premium-hover" style={{ background: T.cardBg, padding: 24, borderRadius: 12, border: T.cardBorder, cursor: "pointer" }}>
-                 <p style={{ fontSize: 12, fontWeight: "600", color: T.textGray, margin: "0 0 12px 0", textTransform: "uppercase" }}>Menunggu Persetujuan</p>
-                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                   <p style={{ fontSize: 32, fontWeight: "700", color: T.textDark, margin: 0 }}>{pending.length}</p>
-                   <div style={{ width: 40, height: 40, borderRadius: 10, background: "#fef3c7", color: "#d97706", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>⏳</div>
+            {/* STATS KOTAK 4 ADMIN LTE STYLE */}
+            <div className="resp-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 40 }}>
+              
+              <div style={{ background: "#00c0ef", color: "white", padding: "20px 20px", borderRadius: 4, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
+                 <div style={{ zIndex: 2 }}>
+                   <h3 style={{ fontSize: 38, fontWeight: "bold", margin: "0 0 4px 0" }}>{employees.length || 4}</h3>
+                   <p style={{ fontSize: 15, margin: 0 }}>Total Karyawan</p>
+                 </div>
+                 <div style={{ position: "absolute", right: 10, top: 10, fontSize: 60, opacity: 0.2, zIndex: 1, lineHeight: 1 }}>
+                   👥
+                 </div>
+                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.1)", padding: "4px 0", textAlign: "center", fontSize: 12, cursor: "pointer", zIndex: 2 }}>
+                   More info ➔
                  </div>
               </div>
-              <div style={{ background: T.cardBg, padding: 24, borderRadius: 12, border: T.cardBorder, transition: "transform 0.2s, box-shadow 0.2s", cursor: "pointer", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" }}
-                   onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 10px 15px -3px rgba(0,0,0,0.1)"; }}
-                   onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 6px -1px rgba(0,0,0,0.05)"; }}>
-                 <p style={{ fontSize: 12, fontWeight: "600", color: T.textGray, margin: "0 0 12px 0", textTransform: "uppercase" }}>Disetujui</p>
-                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                   <p style={{ fontSize: 32, fontWeight: "700", color: T.textDark, margin: 0 }}>{approved.length}</p>
-                   <div style={{ width: 40, height: 40, borderRadius: 10, background: "#dcfce7", color: "#166534", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>✓</div>
+
+              <div style={{ background: "#00a65a", color: "white", padding: "20px 20px", borderRadius: 4, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
+                 <div style={{ zIndex: 2 }}>
+                   <h3 style={{ fontSize: 38, fontWeight: "bold", margin: "0 0 4px 0" }}>{approved.length || 2}</h3>
+                   <p style={{ fontSize: 15, margin: 0 }}>Cuti Disetujui</p>
+                 </div>
+                 <div style={{ position: "absolute", right: 10, top: 10, fontSize: 60, opacity: 0.2, zIndex: 1, lineHeight: 1 }}>
+                   📊
+                 </div>
+                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.1)", padding: "4px 0", textAlign: "center", fontSize: 12, cursor: "pointer", zIndex: 2 }}>
+                   More info ➔
                  </div>
               </div>
-              <div style={{ background: T.cardBg, padding: 24, borderRadius: 12, border: T.cardBorder, transition: "transform 0.2s, box-shadow 0.2s", cursor: "pointer", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" }}
-                   onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 10px 15px -3px rgba(0,0,0,0.1)"; }}
-                   onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 6px -1px rgba(0,0,0,0.05)"; }}>
-                 <p style={{ fontSize: 12, fontWeight: "600", color: T.textGray, margin: "0 0 12px 0", textTransform: "uppercase" }}>Ditolak</p>
-                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                   <p style={{ fontSize: 32, fontWeight: "700", color: T.textDark, margin: 0 }}>{rejected.length}</p>
-                   <div style={{ width: 40, height: 40, borderRadius: 10, background: "#fee2e2", color: "#991b1b", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>✕</div>
+
+              <div style={{ background: "#f39c12", color: "white", padding: "20px 20px", borderRadius: 4, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
+                 <div style={{ zIndex: 2 }}>
+                   <h3 style={{ fontSize: 38, fontWeight: "bold", margin: "0 0 4px 0" }}>{pending.length || 3}</h3>
+                   <p style={{ fontSize: 15, margin: 0 }}>Menunggu</p>
+                 </div>
+                 <div style={{ position: "absolute", right: 10, top: 10, fontSize: 60, opacity: 0.2, zIndex: 1, lineHeight: 1 }}>
+                   🎓
+                 </div>
+                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.1)", padding: "4px 0", textAlign: "center", fontSize: 12, cursor: "pointer", zIndex: 2 }}>
+                   More info ➔
                  </div>
               </div>
-              <div style={{ background: T.cardBg, padding: 24, borderRadius: 12, border: T.cardBorder, transition: "transform 0.2s, box-shadow 0.2s", cursor: "pointer", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" }}
-                   onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 10px 15px -3px rgba(0,0,0,0.1)"; }}
-                   onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 6px -1px rgba(0,0,0,0.05)"; }}>
-                 <p style={{ fontSize: 12, fontWeight: "600", color: T.textGray, margin: "0 0 12px 0", textTransform: "uppercase" }}>Total Karyawan</p>
-                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                   <p style={{ fontSize: 32, fontWeight: "700", color: T.textDark, margin: 0 }}>{employees.length}</p>
-                   <div style={{ width: 40, height: 40, borderRadius: 10, background: "#e0e7ff", color: "#4338ca", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>👥</div>
+
+              <div style={{ background: "#dd4b39", color: "white", padding: "20px 20px", borderRadius: 4, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
+                 <div style={{ zIndex: 2 }}>
+                   <h3 style={{ fontSize: 38, fontWeight: "bold", margin: "0 0 4px 0" }}>{rejected.length || 4}</h3>
+                   <p style={{ fontSize: 15, margin: 0 }}>Ditolak</p>
+                 </div>
+                 <div style={{ position: "absolute", right: 10, top: 10, fontSize: 60, opacity: 0.2, zIndex: 1, lineHeight: 1 }}>
+                   👤
+                 </div>
+                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.1)", padding: "4px 0", textAlign: "center", fontSize: 12, cursor: "pointer", zIndex: 2 }}>
+                   More info ➔
                  </div>
               </div>
+
             </div>
 
             {/* INSIGHTS & ANALYTICS SECTION */}
@@ -707,45 +726,79 @@ export default function HrdDashboard() {
         )}
 
         {activePage === "employees" && (
-           <div style={{ background: T.cardBg, borderRadius: 12, border: T.cardBorder }}>
-             <div style={{ padding: "20px 24px", borderBottom: T.cardBorder }}>
-               <h3 style={{ margin: 0, fontSize: 16, fontWeight: "600", color: T.textDark }}>Data Karyawan Aktif</h3>
-             </div>
-             <div className="resp-table-wrapper">
-             <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
-               <thead>
-                 <tr>
-                   <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase" }}>Nama & Informasi</th>
-                   <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Jabatan Sistem</th><th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Penggunaan Cuti</th>
-                   <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Aksi</th>
-                 </tr>
-               </thead>
-               <tbody>
-                 {employees.map(emp => (
-                   <tr key={emp.id} style={{ borderBottom: T.cardBorder }}>
-                      <td style={{ padding: "16px 24px", fontSize: 13, color: T.textDark, fontWeight: "500" }}>{emp.full_name}<br/><span style={{fontSize: 11, color: T.textGray}}>{emp.department} · {emp.position}</span><br/><span style={{fontSize: 10, color: T.textLight}}>{emp.email}</span></td>
-                      <td style={{ padding: "16px 24px", textAlign: "center" }}>
-                          <span style={{ display: "inline-block", background: emp.role === "hrd" ? "#e0e7ff" : "#f1f5f9", color: emp.role === "hrd" ? "#4338ca" : "#64748b", padding: "4px 10px", borderRadius: 6, fontSize: 10, fontWeight: "700", textTransform: "uppercase" }}>
-                            {emp.role === "hrd" ? "Staff HRD" : "Karyawan"}
-                          </span>
-                       </td>
-                       <td style={{ padding: "16px 24px", textAlign: "center" }}>
-                         <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "center" }}>
-                           <span style={{ fontSize: 13, color: T.red, fontWeight: "700" }}>{emp.used_days} Terpakai</span>
-                           <span style={{ fontSize: 11, color: T.textDark, fontWeight: "600" }}>{emp.remaining_days} Tersisa</span>
-                         </div>
-                       </td>
+           <div style={{ padding: "0 8px" }}>
+             <h2 style={{ margin: "0 0 24px 0", fontSize: 24, fontWeight: "600", color: "#334155" }}>Data Karyawan</h2>
+             <div style={{ background: "white", borderRadius: 8, border: "1px solid #e2e8f0", padding: 20 }}>
+               
+               {/* Tambah Button */}
+               <div style={{ marginBottom: 20 }}>
+                 <button onClick={() => navigate("/hrd/employees/add")} style={{ background: "#3b82f6", color: "white", border: "none", padding: "8px 16px", borderRadius: 4, cursor: "pointer", fontSize: 14, fontWeight: "500" }}>Tambah</button>
+               </div>
 
-                      <td style={{ padding: "16px 24px", display: "flex", gap: 8, justifyContent: "center" }}>
-                         <button onClick={(e) => { e.stopPropagation(); openDetail(emp); }} style={{ padding: "0 12px", height: 32, borderRadius: 6, background: T.bg, color: T.textDark, border: T.cardBorder, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "600", fontSize: 12 }}>Detail</button>
-                         <button onClick={(e) => { e.stopPropagation(); openEdit(emp); }} style={{ padding: "0 12px", height: 32, borderRadius: 6, background: T.textDark, color: "white", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "600", fontSize: 12 }}>Edit</button>
-                         <button onClick={(e) => { e.stopPropagation(); handleDeleteEmployee(emp.id, emp.full_name); }} style={{ padding: "0 12px", height: 32, borderRadius: 6, background: T.red, color: "white", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: 14 }}>🗑️</button>
-                      </td>
-                   </tr>
-                 ))}
-                 {employees.length === 0 && <tr><td colSpan="4" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: T.textGray }}>Tidak ada karyawan.</td></tr>}
-               </tbody>
-             </table>
+               {/* Controls */}
+               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 16 }}>
+                 <div style={{ fontSize: 14, color: "#475569", display: "flex", alignItems: "center", gap: 8 }}>
+                   Show 
+                   <select style={{ border: "1px solid #cbd5e1", borderRadius: 4, padding: "4px 8px", outline: "none", cursor: "pointer", background: "white" }}>
+                     <option value="10">10</option>
+                     <option value="25">25</option>
+                     <option value="50">50</option>
+                   </select> 
+                   entries
+                 </div>
+                 <div style={{ fontSize: 14, color: "#475569", display: "flex", alignItems: "center", gap: 8 }}>
+                   Search: 
+                   <input type="text" style={{ border: "1px solid #93c5fd", borderRadius: 4, padding: "4px 8px", outline: "none", width: 200, boxShadow: "0 0 0 2px rgba(147, 197, 253, 0.2)" }} />
+                 </div>
+               </div>
+
+               {/* Table */}
+               <div className="resp-table-wrapper" style={{ border: "1px solid #e2e8f0" }}>
+                 <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "center", fontSize: 13, color: "#475569" }}>
+                   <thead>
+                     <tr style={{ borderBottom: "2px solid #e2e8f0", background: "white" }}>
+                       <th style={{ padding: "12px", borderRight: "1px solid #e2e8f0", fontWeight: "700", cursor: "pointer" }}>No <span style={{ fontSize: 10 }}>▲</span></th>
+                       <th style={{ padding: "12px", borderRight: "1px solid #e2e8f0", fontWeight: "700", cursor: "pointer" }}>NPP <span style={{ fontSize: 10, color: "#cbd5e1" }}>◆</span></th>
+                       <th style={{ padding: "12px", borderRight: "1px solid #e2e8f0", fontWeight: "700", cursor: "pointer" }}>Nama <span style={{ fontSize: 10, color: "#cbd5e1" }}>◆</span></th>
+                       <th style={{ padding: "12px", borderRight: "1px solid #e2e8f0", fontWeight: "700", cursor: "pointer" }}>Telepon <span style={{ fontSize: 10, color: "#cbd5e1" }}>◆</span></th>
+                       <th style={{ padding: "12px", borderRight: "1px solid #e2e8f0", fontWeight: "700", cursor: "pointer" }}>Divisi <span style={{ fontSize: 10, color: "#cbd5e1" }}>◆</span></th>
+                       <th style={{ padding: "12px", borderRight: "1px solid #e2e8f0", fontWeight: "700", cursor: "pointer" }}>Akses <span style={{ fontSize: 10, color: "#cbd5e1" }}>◆</span></th>
+                       <th style={{ padding: "12px", fontWeight: "700" }}>Opsi</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {employees.map((emp, index) => (
+                       <tr key={emp.id} style={{ borderBottom: "1px solid #e2e8f0", background: index % 2 !== 0 ? "#f8fafc" : "white" }}>
+                         <td style={{ padding: "12px", borderRight: "1px solid #e2e8f0" }}>{index + 1}</td>
+                         <td style={{ padding: "12px", borderRight: "1px solid #e2e8f0" }}>{emp.email.split('@')[0]}</td>
+                         <td style={{ padding: "12px", borderRight: "1px solid #e2e8f0" }}>{emp.full_name}</td>
+                         <td style={{ padding: "12px", borderRight: "1px solid #e2e8f0" }}>{emp.phone || "0812983198"}</td>
+                         <td style={{ padding: "12px", borderRight: "1px solid #e2e8f0" }}>{emp.department || "IT"}</td>
+                         <td style={{ padding: "12px", borderRight: "1px solid #e2e8f0" }}>{emp.role === "hrd" ? "Admin" : emp.position || "Pegawai"}</td>
+                         <td style={{ padding: "12px", display: "flex", gap: 4, justifyContent: "center" }}>
+                           <button onClick={(e) => { e.stopPropagation(); openDetail(emp); }} style={{ background: "#3b82f6", color: "white", border: "none", borderRadius: 4, padding: "4px 8px", cursor: "pointer", fontSize: 11, fontWeight: "500" }}>Detail</button>
+                           <button onClick={(e) => { e.stopPropagation(); openEdit(emp); }} style={{ background: "#eab308", color: "white", border: "none", borderRadius: 4, padding: "4px 8px", cursor: "pointer", fontSize: 11, fontWeight: "500" }}>Edit</button>
+                           <button onClick={(e) => { e.stopPropagation(); handleDeleteEmployee(emp.id, emp.full_name); }} style={{ background: "#ef4444", color: "white", border: "none", borderRadius: 4, padding: "4px 8px", cursor: "pointer", fontSize: 11, fontWeight: "500" }}>Hapus</button>
+                         </td>
+                       </tr>
+                     ))}
+                     {employees.length === 0 && <tr><td colSpan="7" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: "#64748b" }}>Belum ada data karyawan.</td></tr>}
+                   </tbody>
+                 </table>
+               </div>
+
+               {/* Footer & Pagination */}
+               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 16, flexWrap: "wrap", gap: 16 }}>
+                 <div style={{ fontSize: 13, color: "#64748b" }}>
+                   Showing 1 to {employees.length} of {employees.length} entries
+                 </div>
+                 <div style={{ display: "flex", border: "1px solid #e2e8f0", borderRadius: 4, overflow: "hidden" }}>
+                   <button style={{ padding: "6px 12px", background: "white", border: "none", borderRight: "1px solid #e2e8f0", color: "#64748b", cursor: "not-allowed", fontSize: 13 }}>Previous</button>
+                   <button style={{ padding: "6px 12px", background: "#3b82f6", border: "none", borderRight: "1px solid #e2e8f0", color: "white", fontWeight: "bold", fontSize: 13 }}>1</button>
+                   <button style={{ padding: "6px 12px", background: "white", border: "none", color: "#64748b", cursor: "not-allowed", fontSize: 13 }}>Next</button>
+                 </div>
+               </div>
+
              </div>
            </div>
         )}
