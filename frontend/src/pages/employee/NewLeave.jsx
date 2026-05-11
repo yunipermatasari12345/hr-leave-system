@@ -12,6 +12,7 @@ export default function NewLeave() {
   const [success, setSuccess] = useState("");
   const [attachmentFile, setAttachmentFile] = useState(null);
   const [form, setForm] = useState({ leave_type_id: "", start_date: "", end_date: "", reason: "" });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const name = localStorage.getItem(STORAGE_KEYS.name) || "Karyawan";
   const dept = localStorage.getItem(STORAGE_KEYS.department) || "Grup Umum";
@@ -75,7 +76,7 @@ export default function NewLeave() {
   const today = new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   const MenuItem = ({ id, label, icon }) => (
-    <div onClick={() => navigate(id === 'dashboard' ? "/dashboard" : "/leaves/new")} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 8, cursor: "pointer", background: id === "new_leave" ? "#eff6ff" : "transparent", color: id === "new_leave" ? "#1d4ed8" : T.textGray, fontWeight: id === "new_leave" ? "600" : "500", fontSize: 14, transition: "background 0.2s", marginBottom: 4 }}>
+    <div onClick={() => { navigate(id === 'dashboard' ? "/dashboard" : "/leaves/new"); setIsMobileMenuOpen(false); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 8, cursor: "pointer", background: id === "new_leave" ? "#eff6ff" : "transparent", color: id === "new_leave" ? "#1d4ed8" : T.textGray, fontWeight: id === "new_leave" ? "600" : "500", fontSize: 14, transition: "background 0.2s", marginBottom: 4 }}>
       <span style={{ fontSize: 16 }}>{icon}</span> {label}
     </div>
   );
@@ -84,9 +85,14 @@ export default function NewLeave() {
     <div className="resp-layout" style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "'Inter', sans-serif" }}>
       {/* SIDEBAR KLASIK */}
       <div className="resp-sidebar" style={{ width: 260, background: T.sidebar, borderRight: T.cardBorder, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
-        <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 12 }}>
+        <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 12, justifyContent: "space-between" }}>
           <h1 style={{ color: T.primary, fontSize: 22, fontWeight: "800", margin: 0, textTransform: "uppercase", letterSpacing: -0.5 }}>Appskep</h1>
+          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: T.textDark }}>
+             {isMobileMenuOpen ? "✕" : "☰"}
+          </button>
         </div>
+        
+        <div className={`sidebar-collapsible ${isMobileMenuOpen ? "open" : ""}`} style={{ display: "flex", flexDirection: "column", flex: 1 }}>
         <div className="sidebar-menu" style={{ display: "flex", flexDirection: "column", padding: "0 16px" }}>
           <MenuItem id="dashboard" label="Dashboard Utama" icon="❖" />
           <MenuItem id="new_leave" label="Ajukan Cuti Baru" icon="➕" />
@@ -103,6 +109,7 @@ export default function NewLeave() {
           <Button disableRipple onPress={() => { localStorage.clear(); navigate("/login"); }} style={{ width: "100%", background: "transparent", border: "none", color: T.textGray, fontWeight: "600", fontSize: 13, justifyContent: "flex-start", padding: 0 }} onMouseEnter={(e)=>e.currentTarget.style.color=T.red} onMouseLeave={(e)=>e.currentTarget.style.color=T.textGray}>
             <span style={{ marginRight: 8, fontSize: 16 }}>🚪</span> Keluar
           </Button>
+        </div>
         </div>
       </div>
 

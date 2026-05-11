@@ -27,6 +27,7 @@ export default function HrdDashboard() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
   
   const [manualModalOpen, setManualModalOpen] = useState(false);
@@ -368,7 +369,7 @@ export default function HrdDashboard() {
   const statusStyle = { pending: { bg: "#fef3c7", color: "#d97706", label: "Menunggu" }, approved: { bg: "#dcfce7", color: "#166534", label: "Disetujui" }, rejected: { bg: "#fee2e2", color: "#991b1b", label: "Ditolak" } };
 
   const MenuItem = ({ id, label, icon, onClick }) => (
-    <div onClick={() => onClick ? onClick() : setActivePage(id)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 8, cursor: "pointer", background: activePage === id ? activeTabStyle.bg : "transparent", color: activePage === id ? activeTabStyle.text : T.textGray, fontWeight: activePage === id ? "600" : "500", fontSize: 14, transition: "background 0.2s", marginBottom: 4 }}>
+    <div onClick={() => { if(onClick) onClick(); else setActivePage(id); setIsMobileMenuOpen(false); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 8, cursor: "pointer", background: activePage === id ? activeTabStyle.bg : "transparent", color: activePage === id ? activeTabStyle.text : T.textGray, fontWeight: activePage === id ? "600" : "500", fontSize: 14, transition: "background 0.2s", marginBottom: 4 }}>
       <span style={{ fontSize: 16 }}>{icon}</span> {label}
     </div>
   );
@@ -378,12 +379,18 @@ export default function HrdDashboard() {
       
       {/* SIDEBAR KLASIK */}
       <div className="resp-sidebar" style={{ width: 260, background: T.sidebar, borderRight: T.cardBorder, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
-        <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 1 }}>
-          <img src="/logo.png" alt="Logo" style={{ height: 80, width: "auto", objectFit: "contain" }} onError={(e) => { e.target.style.display='none'; }} />
-          <h1 style={{ color: "#03070cff", fontSize: 28, fontWeight: "900", margin: 0, letterSpacing: -0.3 }}>appskep</h1>
+        <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 1, justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <img src="/logo.png" alt="Logo" style={{ height: 80, width: "auto", objectFit: "contain" }} onError={(e) => { e.target.style.display='none'; }} />
+            <h1 style={{ color: "#03070cff", fontSize: 28, fontWeight: "900", margin: 0, letterSpacing: -0.3 }}>appskep</h1>
+          </div>
+          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: T.textDark }}>
+             {isMobileMenuOpen ? "✕" : "☰"}
+          </button>
         </div>
         
-        <div className="sidebar-menu" style={{ display: "flex", flexDirection: "column", padding: "0 16px" }}>
+        <div className={`sidebar-collapsible ${isMobileMenuOpen ? "open" : ""}`} style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+          <div className="sidebar-menu" style={{ display: "flex", flexDirection: "column", padding: "0 16px" }}>
           <MenuItem id="dashboard" label="Dashboard" icon="❖" />
           <MenuItem id="leaves" label="Pengajuan Cuti" icon="📑" />
           <MenuItem id="calendar" label="Kalender Cuti" icon="📅" />
@@ -422,6 +429,7 @@ export default function HrdDashboard() {
           <Button disableRipple onPress={handleLogout} style={{ width: "100%", background: "transparent", border: "none", color: T.textGray, fontWeight: "600", fontSize: 13, justifyContent: "flex-start", padding: 0 }} onMouseEnter={(e)=>e.currentTarget.style.color=T.red} onMouseLeave={(e)=>e.currentTarget.style.color=T.textGray}>
             <span style={{ marginRight: 8, fontSize: 16 }}>🚪</span> Keluar
           </Button>
+        </div>
         </div>
       </div>
 

@@ -10,6 +10,7 @@ export default function AddEmployee() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [form, setForm] = useState({ email: "", full_name: "", department: "", position: "", phone: "", role: "employee" });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const DEPT_OPTIONS = ["Product", "Bisnis", "Kreatif"];
   const POS_OPTIONS = ["Coordinator of appsgizi", "Marketing", "Admin Officer", "Co Manager", "Manager"];
@@ -43,7 +44,7 @@ export default function AddEmployee() {
   const today = new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   const MenuItem = ({ id, label, icon }) => (
-    <div onClick={() => navigate(id === 'dashboard' ? "/hrd/dashboard" : "/hrd/employees/add")} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 8, cursor: "pointer", background: id === "add_employee" ? "#eff6ff" : "transparent", color: id === "add_employee" ? "#1d4ed8" : T.textGray, fontWeight: id === "add_employee" ? "600" : "500", fontSize: 14, transition: "background 0.2s", marginBottom: 4 }}>
+    <div onClick={() => { navigate(id === 'dashboard' ? "/hrd/dashboard" : "/hrd/employees/add"); setIsMobileMenuOpen(false); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 8, cursor: "pointer", background: id === "add_employee" ? "#eff6ff" : "transparent", color: id === "add_employee" ? "#1d4ed8" : T.textGray, fontWeight: id === "add_employee" ? "600" : "500", fontSize: 14, transition: "background 0.2s", marginBottom: 4 }}>
       <span style={{ fontSize: 16 }}>{icon}</span> {label}
     </div>
   );
@@ -52,9 +53,14 @@ export default function AddEmployee() {
     <div className="resp-layout" style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "'Inter', sans-serif" }}>
       {/* SIDEBAR KLASIK */}
       <div className="resp-sidebar" style={{ width: 260, background: T.sidebar, borderRight: T.cardBorder, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
-        <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 12 }}>
+        <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 12, justifyContent: "space-between" }}>
           <h1 style={{ color: T.primary, fontSize: 22, fontWeight: "800", margin: 0, textTransform: "uppercase", letterSpacing: -0.5 }}>Appskep</h1>
+          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: T.textDark }}>
+             {isMobileMenuOpen ? "✕" : "☰"}
+          </button>
         </div>
+        
+        <div className={`sidebar-collapsible ${isMobileMenuOpen ? "open" : ""}`} style={{ display: "flex", flexDirection: "column", flex: 1 }}>
         <div className="sidebar-menu" style={{ display: "flex", flexDirection: "column", padding: "0 16px" }}>
           <MenuItem id="dashboard" label="Dashboard Utama" icon="❖" />
           <MenuItem id="add_employee" label="Tambah Karyawan" icon="👤" />
@@ -71,6 +77,7 @@ export default function AddEmployee() {
           <Button disableRipple onPress={() => { localStorage.clear(); navigate("/login"); }} style={{ width: "100%", background: "transparent", border: "none", color: T.textGray, fontWeight: "600", fontSize: 13, justifyContent: "flex-start", padding: 0 }} onMouseEnter={(e)=>e.currentTarget.style.color=T.red} onMouseLeave={(e)=>e.currentTarget.style.color=T.textGray}>
             <span style={{ marginRight: 8, fontSize: 16 }}>🚪</span> Keluar
           </Button>
+        </div>
         </div>
       </div>
 
