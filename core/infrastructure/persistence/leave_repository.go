@@ -334,16 +334,26 @@ func (r *leaveRepository) Delete(ctx context.Context, id int32) error {
 	}
 	defer tx.Rollback()
 
-	// Hapus history dulu (FK constraint)
-	_, err = tx.ExecContext(ctx, `DELETE FROM leave_histories WHERE leave_request_id = $1`, id)
+	// 1. Ambil data pengajuan dulu untuk cek status (penting untuk log/audit jika perlu)
+	var status string
+	err = tx.QueryRowContext(ctx, `SELECT status FROM leave_requests WHERE id = $1`, id).Scan(&status)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil // Sudah tidak ada
+		}
 		return err
 	}
 
-	// Hapus pengajuan cuti
+	// 2. Hapus history (Riwayat pengajuan)
+	_, err = tx.ExecContext(ctx, `DELETE FROM leave_histories WHERE leave_request_id = $1`, id)
+	if err != nil {
+		return fmt.Errorf("gagal menghapus riwayat: %w", err)
+	}
+
+	// 3. Hapus pengajuan utama
 	_, err = tx.ExecContext(ctx, `DELETE FROM leave_requests WHERE id = $1`, id)
 	if err != nil {
-		return err
+		return fmt.Errorf("gagal menghapus pengajuan: %w", err)
 	}
 
 	return tx.Commit()
