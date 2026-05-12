@@ -14,7 +14,7 @@ func GetAuditLogs(w http.ResponseWriter, r *http.Request) {
 		sendError(w, 500, "Database connection not initialized")
 		return
 	}
-	
+
 	q := db.New(config.DB)
 	logs, err := q.GetAuditLogs(r.Context())
 	if err != nil {
@@ -23,7 +23,7 @@ func GetAuditLogs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	type AuditLogDTO struct {
 		ID        int32  `json:"id"`
 		FullName  string `json:"full_name"`
@@ -40,12 +40,12 @@ func GetAuditLogs(w http.ResponseWriter, r *http.Request) {
 		if l.IpAddress.Valid {
 			ip = l.IpAddress.String
 		}
-		
+
 		createdAt := ""
 		if l.CreatedAt.Valid {
-			// Konversi UTC ke WIB (+7 jam)
-			jakartaTime := l.CreatedAt.Time.Add(7 * time.Hour)
-			createdAt = jakartaTime.Format("2006-01-02 15:04:05")
+			// Tambahkan offset +7 jam secara manual untuk WIB
+			t := l.CreatedAt.Time.Add(time.Duration(7) * time.Hour)
+			createdAt = t.Format("2006-01-02 15:04:05")
 		}
 
 		response = append(response, AuditLogDTO{
