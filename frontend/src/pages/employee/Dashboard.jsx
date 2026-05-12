@@ -19,6 +19,7 @@ export default function EmployeeDashboard() {
   const [isStatusOpen, setIsStatusOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
 
   // Form Pengajuan Cuti
@@ -124,7 +125,12 @@ export default function EmployeeDashboard() {
       });
       setLeaveSuccess("Pengajuan berhasil dikirim! Menunggu persetujuan HRD.");
       fetchLeaves(); fetchBalances();
-      setTimeout(() => { setActivePage("leaves"); setLeaveForm({ leave_type_id: "", start_date: "", end_date: "", reason: "" }); setAttachmentFile(null); setLeaveSuccess(""); }, 2000);
+      setTimeout(() => { 
+        setIsLeaveModalOpen(false);
+        setLeaveForm({ leave_type_id: "", start_date: "", end_date: "", reason: "" }); 
+        setAttachmentFile(null); 
+        setLeaveSuccess(""); 
+      }, 2000);
     } catch (e) {
       setLeaveError(e.response?.data?.error || "Gagal mengajukan cuti");
     } finally { setLeaveLoading(false); }
@@ -168,7 +174,7 @@ export default function EmployeeDashboard() {
   const kuotaTotal = balances?.reduce((sum, b) => sum + (b.total_days || 0), 0) || 0;
 
   const MenuItem = ({ id, label, icon, onClick }) => (
-    <div onClick={() => { if(onClick) onClick(); else setActivePage(id); setIsMobileMenuOpen(false); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 8, cursor: "pointer", background: activePage === id ? activeTabStyle.bg : "transparent", color: activePage === id ? activeTabStyle.text : T.textGray, fontWeight: activePage === id ? "600" : "500", fontSize: 14, transition: "background 0.2s", marginBottom: 4 }}>
+    <div onClick={() => { if(id === "new_leave") setIsLeaveModalOpen(true); else if(onClick) onClick(); else setActivePage(id); setIsMobileMenuOpen(false); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 8, cursor: "pointer", background: activePage === id ? activeTabStyle.bg : "transparent", color: activePage === id ? activeTabStyle.text : T.textGray, fontWeight: activePage === id ? "600" : "500", fontSize: 14, transition: "background 0.2s", marginBottom: 4 }}>
       <span style={{ fontSize: 16 }}>{icon}</span> {label}
     </div>
   );
@@ -273,7 +279,7 @@ export default function EmployeeDashboard() {
                  </div>
                )}
              </div>
-             <Button disableRipple onPress={() => setActivePage("new_leave")} style={{ background: T.primary, color: "white", fontWeight: "600", borderRadius: 8, height: 44, padding: "0 20px" }}>
+             <Button disableRipple onPress={() => setIsLeaveModalOpen(true)} style={{ background: T.primary, color: "white", fontWeight: "600", borderRadius: 8, height: 44, padding: "0 20px" }}>
                + Ajukan Cuti Baru
              </Button>
            </div>
@@ -356,7 +362,7 @@ export default function EmployeeDashboard() {
                   </p>
                 </div>
                 <div style={{ zIndex: 1, marginTop: 24 }}>
-                  <Button disableRipple onPress={() => setActivePage("new_leave")} style={{ background: "rgba(255,255,255,0.2)", color: "white", border: "1px solid rgba(255,255,255,0.4)", fontWeight: "bold", width: "100%", borderRadius: 4, height: 36, fontSize: 13 }}>
+                  <Button disableRipple onPress={() => setIsLeaveModalOpen(true)} style={{ background: "rgba(255,255,255,0.2)", color: "white", border: "1px solid rgba(255,255,255,0.4)", fontWeight: "bold", width: "100%", borderRadius: 4, height: 36, fontSize: 13 }}>
                     Ambil Cuti Sekarang
                   </Button>
                 </div>
@@ -366,124 +372,99 @@ export default function EmployeeDashboard() {
           </>
         )}
 
-        {activePage === "new_leave" && (
-          <div className="resp-form-card resp-card-fluid" style={{ maxWidth: 700, margin: "0 auto", background: T.cardBg, borderRadius: 12, border: T.cardBorder, padding: 32 }}>
-            <h3 style={{ margin: "0 0 24px 0", fontSize: 20, fontWeight: "700", color: T.textDark }}>Formulir Cuti Karyawan</h3>
-
-            {leaveError && <div style={{ background: "#fef2f2", color: T.red, padding: "12px 16px", borderRadius: 8, fontSize: 13, fontWeight: "500", marginBottom: 24 }}>{leaveError}</div>}
-            {leaveSuccess && <div style={{ background: "#f0fdf4", color: T.green, padding: "12px 16px", borderRadius: 8, fontSize: 13, fontWeight: "500", marginBottom: 24 }}>{leaveSuccess}</div>}
-
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
-                Jenis Cuti <span style={{ color: T.red }}>*</span>
-              </label>
-              <select value={leaveForm.leave_type_id}
-                onChange={(e) => setLeaveForm(prev => ({ ...prev, leave_type_id: e.target.value }))}
-                style={{ width: "100%", border: T.cardBorder, borderRadius: 8, padding: "12px 14px", fontSize: 14, color: T.textDark, background: T.bg, outline: "none", cursor: "pointer", fontFamily: "inherit" }}>
-                <option value="">Pilih Jenis Cuti</option>
-                {leaveTypes.map(type => (
-                  <option key={type.id} value={String(type.id)}>{type.name} (Maks. {type.max_days} Hari)</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="resp-grid-2 resp-grid-2--equal" style={{ marginBottom: 20 }}>
-              <div>
-                <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
-                  Tanggal Mulai <span style={{ color: T.red }}>*</span>
-                </label>
-                <input type="date" min={todayIsoStr} value={leaveForm.start_date}
-                  onChange={(e) => setLeaveForm(prev => ({ ...prev, start_date: e.target.value }))}
-                  style={{ width: "100%", border: T.cardBorder, borderRadius: 8, padding: "11px 14px", fontSize: 14, color: T.textDark, background: T.bg, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }} />
+        {/* MODAL AJUKAN CUTI */}
+        {isLeaveModalOpen && (
+          <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+            <div className="resp-form-card" style={{ width: "100%", maxWidth: 600, background: T.cardBg, borderRadius: 16, border: T.cardBorder, padding: 32, boxShadow: "0 20px 25px -5px rgba(0,0,0,0.2)", position: "relative", maxHeight: "90vh", overflowY: "auto" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+                <h3 style={{ margin: 0, fontSize: 20, fontWeight: "700", color: T.textDark }}>Ajukan Cuti Baru</h3>
+                <button onClick={() => setIsLeaveModalOpen(false)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: T.textGray }}>✕</button>
               </div>
-              <div>
-                <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
-                  Tanggal Selesai <span style={{ color: T.red }}>*</span>
-                </label>
-                <input type="date" min={leaveForm.start_date || todayIsoStr} value={leaveForm.end_date}
-                  onChange={(e) => setLeaveForm(prev => ({ ...prev, end_date: e.target.value }))}
-                  style={{ width: "100%", border: T.cardBorder, borderRadius: 8, padding: "11px 14px", fontSize: 14, color: T.textDark, background: T.bg, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }} />
-              </div>
-            </div>
 
-            {totalDays() > 0 && (
-              <div style={{ background: T.highlightBg, color: T.primary, padding: "16px 20px", borderRadius: 8, fontSize: 13, marginBottom: 24, display: "flex", flexDirection: "column", gap: 12 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px dashed rgba(37, 99, 235, 0.2)", paddingBottom: 12 }}>
-                  <span style={{ fontWeight: "600" }}>Total Durasi Cuti:</span>
-                  <span style={{ fontWeight: "800", fontSize: 15 }}>{totalDays()} Hari <span style={{ fontSize: 11, fontWeight: "500", opacity: 0.8 }}>(Tanpa Weekend)</span></span>
+              {leaveError && <div style={{ background: "#fef2f2", color: T.red, padding: "12px 16px", borderRadius: 8, fontSize: 13, fontWeight: "500", marginBottom: 24 }}>{leaveError}</div>}
+              {leaveSuccess && <div style={{ background: "#f0fdf4", color: T.green, padding: "12px 16px", borderRadius: 8, fontSize: 13, fontWeight: "500", marginBottom: 24 }}>{leaveSuccess}</div>}
+
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
+                  Jenis Cuti <span style={{ color: T.red }}>*</span>
+                </label>
+                <select value={leaveForm.leave_type_id}
+                  onChange={(e) => setLeaveForm(prev => ({ ...prev, leave_type_id: e.target.value }))}
+                  style={{ width: "100%", border: T.cardBorder, borderRadius: 8, padding: "12px 14px", fontSize: 14, color: T.textDark, background: T.bg, outline: "none", cursor: "pointer", fontFamily: "inherit" }}>
+                  <option value="">Pilih Jenis Cuti</option>
+                  {leaveTypes.map(type => (
+                    <option key={type.id} value={String(type.id)}>{type.name} (Maks. {type.max_days} Hari)</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+                <div>
+                  <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
+                    Tanggal Mulai <span style={{ color: T.red }}>*</span>
+                  </label>
+                  <input type="date" min={todayIsoStr} value={leaveForm.start_date}
+                    onChange={(e) => setLeaveForm(prev => ({ ...prev, start_date: e.target.value }))}
+                    style={{ width: "100%", border: T.cardBorder, borderRadius: 8, padding: "11px 14px", fontSize: 14, color: T.textDark, background: T.bg, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }} />
                 </div>
-                {getSisaCuti() !== null && (
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontWeight: "600" }}>Sisa Kuota Cuti Anda:</span>
-                    <span style={{ fontWeight: "800", color: getSisaCuti() >= totalDays() ? T.green : T.red }}>{getSisaCuti()} Hari</span>
+                <div>
+                  <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
+                    Tanggal Selesai <span style={{ color: T.red }}>*</span>
+                  </label>
+                  <input type="date" min={leaveForm.start_date || todayIsoStr} value={leaveForm.end_date}
+                    onChange={(e) => setLeaveForm(prev => ({ ...prev, end_date: e.target.value }))}
+                    style={{ width: "100%", border: T.cardBorder, borderRadius: 8, padding: "11px 14px", fontSize: 14, color: T.textDark, background: T.bg, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }} />
+                </div>
+              </div>
+
+              {totalDays() > 0 && (
+                <div style={{ background: T.highlightBg, color: T.primary, padding: "16px 20px", borderRadius: 8, fontSize: 13, marginBottom: 24, display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span>Total Durasi:</span>
+                    <span style={{ fontWeight: "700" }}>{totalDays()} Hari Kerja</span>
                   </div>
-                )}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontWeight: "600" }}>Harus Kembali Ke Kantor:</span>
-                  <span style={{ fontWeight: "800", color: T.textDark }}>📅 {getReturnDate()}</span>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span>Kembali Kerja:</span>
+                    <span style={{ fontWeight: "700" }}>{getReturnDate()}</span>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            <div style={{ marginBottom: 32 }}>
-              <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
-                Alasan Cuti <span style={{ color: T.red }}>*</span>
-              </label>
-              <Textarea
-                placeholder="Tulis alasan secara jelas dan detail..."
-                value={leaveForm.reason}
-                onValueChange={(val) => setLeaveForm(prev => ({ ...prev, reason: val }))}
-                variant="bordered"
-                minRows={4}
-                classNames={{
-                  inputWrapper: "!border-[#e5e7eb] rounded-lg !bg-transparent shadow-none hover:!border-slate-300 focus-within:!border-blue-600 focus-within:!bg-transparent",
-                  input: "text-sm font-medium",
-                  inputStyle: { color: T.textDark }
-                }}
-              />
-            </div>
-
-            <div style={{ marginBottom: 32 }}>
-              <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
-                Lampiran Pendukung <span style={{ fontSize: 12, fontWeight: "400", color: T.textGray }}>(Opsional)</span>
-              </label>
-              <div
-                onClick={() => document.getElementById("file-upload-input").click()}
-                style={{ border: `2px dashed ${attachmentFile ? T.primary : "#cbd5e1"}`, borderRadius: 10, padding: "20px 16px", textAlign: "center", cursor: "pointer", background: attachmentFile ? T.highlightBg : T.bg, transition: "all 0.2s" }}
-              >
-                <input
-                  id="file-upload-input"
-                  type="file"
-                  accept="image/*,.pdf,.doc,.docx"
-                  style={{ display: "none" }}
-                  onChange={(e) => setAttachmentFile(e.target.files[0] || null)}
+              <div style={{ marginBottom: 24 }}>
+                <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
+                  Alasan Cuti <span style={{ color: T.red }}>*</span>
+                </label>
+                <Textarea
+                  placeholder="Tulis alasan..."
+                  value={leaveForm.reason}
+                  onValueChange={(val) => setLeaveForm(prev => ({ ...prev, reason: val }))}
+                  variant="bordered"
+                  minRows={3}
+                  classNames={{
+                    inputWrapper: "!border-[#e5e7eb] rounded-lg !bg-transparent",
+                    input: "text-sm",
+                  }}
                 />
-                {attachmentFile ? (
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-                    <span style={{ fontSize: 22 }}>📎</span>
-                    <div style={{ textAlign: "left" }}>
-                       <p style={{ margin: 0, fontSize: 13, fontWeight: "600", color: T.primary }}>{attachmentFile.name}</p>
-                       <p style={{ margin: 0, fontSize: 11, color: T.textGray }}>{(attachmentFile.size / 1024).toFixed(1)} KB</p>
-                    </div>
-                    <button onClick={(e) => { e.stopPropagation(); setAttachmentFile(null); }} style={{ marginLeft: 8, border: "none", background: "transparent", cursor: "pointer", color: T.red, fontSize: 18, lineHeight: 1 }}>✕</button>
-                  </div>
-                ) : (
-                  <div>
-                    <p style={{ margin: "0 0 4px 0", fontSize: 13, color: T.textGray, fontWeight: "600" }}>🖼️ &nbsp; Klik untuk pilih file</p>
-                    <p style={{ margin: 0, fontSize: 11, color: T.textGray }}>JPG, PNG, PDF, DOC — Maks. 10MB</p>
-                  </div>
-                )}
               </div>
-            </div>
 
-            <div className="resp-form-actions" style={{ display: "flex", gap: 12, justifyContent: "flex-end", flexWrap: "wrap", borderTop: T.cardBorder, paddingTop: 24 }}>
-              <Button disableRipple onPress={() => setActivePage("dashboard")} style={{ fontSize: 14, fontWeight: "600", borderRadius: 8, background: "transparent", border: T.cardBorder, color: T.textDark, padding: "0 24px", height: 44 }}>
-                Batal
-              </Button>
-              <Button disableRipple isLoading={leaveLoading} onPress={handleSubmitLeave}
-                style={{ background: T.primary, border: "none", color: "white", fontWeight: "600", fontSize: 14, borderRadius: 8, padding: "0 24px", height: 44 }}>
-                Kirim Pengajuan
-              </Button>
+              <div style={{ marginBottom: 32 }}>
+                <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
+                  Lampiran <span style={{ fontSize: 12, fontWeight: "400", color: T.textGray }}>(Opsional)</span>
+                </label>
+                <div onClick={() => document.getElementById("modal-file-upload").click()} style={{ border: `2px dashed ${attachmentFile ? T.primary : "#cbd5e1"}`, borderRadius: 10, padding: "16px", textAlign: "center", cursor: "pointer", background: T.bg }}>
+                  <input id="modal-file-upload" type="file" accept="image/*,.pdf" style={{ display: "none" }} onChange={(e) => setAttachmentFile(e.target.files[0] || null)} />
+                  {attachmentFile ? (
+                    <span style={{ fontSize: 12, fontWeight: "600", color: T.primary }}>📎 {attachmentFile.name}</span>
+                  ) : (
+                    <span style={{ fontSize: 12, color: T.textGray }}>🖼️ Klik untuk pilih file</span>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+                <Button disableRipple onPress={() => setIsLeaveModalOpen(false)} style={{ background: "transparent", border: T.cardBorder, color: T.textDark, borderRadius: 8 }}>Batal</Button>
+                <Button disableRipple isLoading={leaveLoading} onPress={handleSubmitLeave} style={{ background: T.primary, color: "white", borderRadius: 8 }}>Kirim Pengajuan</Button>
+              </div>
             </div>
           </div>
         )}

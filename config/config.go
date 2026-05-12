@@ -17,35 +17,44 @@ var DB *sql.DB
 
 func InitDB() {
 	dsn := os.Getenv("DATABASE_URL")
-
 	if dsn == "" {
-		host := getEnv("DB_HOST", "localhost")
-		port := getEnv("DB_PORT", "5432")
-		user := getEnv("DB_USER", "postgres")
-		password := getEnv("DB_PASSWORD", "postgres123")
-		dbname := getEnv("DB_NAME", "hr_leave_db")
+		InitError = fmt.Errorf("DATABASE_URL tidak ditemukan di environment variables")
+		log.Println(InitError)
+		return
+	}
 
-		dsn = fmt.Sprintf(
-			"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-			host, port, user, password, dbname,
-		)
-	} else {
-		dsn = augmentPostgresURL(strings.TrimSpace(dsn))
+	// Tambahkan timeout ke DSN jika belum ada
+	if !strings.Contains(dsn, "connect_timeout") {
+		if strings.Contains(dsn, "?") {
+			dsn += "&connect_timeout=10"
+		} else {
+			dsn += "?connect_timeout=10"
+		}
 	}
 
 	var err error
 	DB, err = sql.Open("postgres", dsn)
 	if err != nil {
-		log.Fatal("Gagal koneksi database:", err)
+		InitError = fmt.Errorf("gagal membuka koneksi database: %w", err)
+		log.Println(InitError)
+		return
 	}
 
-	applyPoolSettings(DB)
+	// Atur pool koneksi yang lebih ramah serverless
+	DB.SetMaxOpenConns(5)
+	DB.SetMaxIdleConns(2)
+	DB.SetConnMaxLifetime(10 * time.Minute)
+	DB.SetConnMaxIdleTime(5 * time.Minute)
 
-	if err := pingWithRetry(DB, 4); err != nil {
-		log.Fatal("Database tidak bisa diping:", err)
+	// Cobalah ping beberapa kali dengan jeda (untuk menangani Neon cold start)
+	if err := pingWithRetry(DB, 5); err != nil {
+		InitError = fmt.Errorf("database tidak merespon setelah beberapa kali percobaan: %w", err)
+		log.Println(InitError)
+		return
 	}
 
-	log.Println("Koneksi database berhasil!")
+	log.Println("Koneksi database berhasil dan stabil!")
+	InitError = nil
 }
 
 // augmentPostgresURL menambah parameter yang membantu stabilitas ke Neon / Postgres jarak jauh.

@@ -7,6 +7,7 @@ import (
 	"hr-leave-system/core/handlers"
 	"hr-leave-system/core/infrastructure/persistence"
 	mw "hr-leave-system/core/middleware"
+	"encoding/json"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -96,5 +97,13 @@ func init() {
 }
 
 func Handler(w http.ResponseWriter, req *http.Request) {
+	if config.InitError != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"error": "Layanan database sedang gangguan: " + config.InitError.Error(),
+		})
+		return
+	}
 	r.ServeHTTP(w, req)
 }

@@ -37,20 +37,16 @@ func (s *LeaveService) SubmitRequest(ctx context.Context, userID int32, leaveTyp
 	}
 	start, err := time.Parse("2006-01-02", startStr)
 	if err != nil {
-		return leave.LeaveRequest{}, ErrValidation
+		return leave.LeaveRequest{}, fmt.Errorf("format tanggal mulai salah: %w", ErrValidation)
 	}
 	end, err := time.Parse("2006-01-02", endStr)
 	if err != nil {
-		return leave.LeaveRequest{}, ErrValidation
+		return leave.LeaveRequest{}, fmt.Errorf("format tanggal selesai salah: %w", ErrValidation)
 	}
 	days, err := leave.ComputeTotalDays(start, end)
 	if err != nil {
 		return leave.LeaveRequest{}, err
 	}
-
-	// Pastikan saldo ada sebelum membuat pengajuan
-	year := int32(time.Now().Year())
-	_ = s.SyncBalances(ctx, emp.ID, year)
 
 	req, err := s.leaves.Create(ctx, emp.ID, leaveTypeID, start, end, days, reason, attachmentURL, attachment)
 	if err == nil {
