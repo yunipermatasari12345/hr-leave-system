@@ -43,7 +43,7 @@ func GetAuditLogs(w http.ResponseWriter, r *http.Request) {
 		
 		createdAt := ""
 		if l.CreatedAt.Valid {
-			// Database Neon menggunakan UTC, kita konversi ke WIB (+7)
+			// Konversi UTC ke WIB (+7 jam)
 			jakartaTime := l.CreatedAt.Time.Add(7 * time.Hour)
 			createdAt = jakartaTime.Format("2006-01-02 15:04:05")
 		}
