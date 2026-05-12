@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"hr-leave-system/config"
 	"hr-leave-system/core/db"
@@ -43,9 +42,7 @@ func GetAuditLogs(w http.ResponseWriter, r *http.Request) {
 
 		createdAt := ""
 		if l.CreatedAt.Valid {
-			// Tambahkan offset +7 jam secara manual untuk WIB
-			t := l.CreatedAt.Time.Add(time.Duration(7) * time.Hour)
-			createdAt = t.Format("2006-01-02 15:04:05")
+			createdAt = l.CreatedAt.Time.Format("2006-01-02 15:04:05")
 		}
 
 		response = append(response, AuditLogDTO{
