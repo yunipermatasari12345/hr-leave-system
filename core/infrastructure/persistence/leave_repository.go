@@ -185,7 +185,8 @@ func (r *leaveRepository) Create(ctx context.Context, employeeID, leaveTypeID in
 	}
 	row, err := r.q.CreateLeaveRequest(ctx, params)
 	if err != nil {
-		return leave.LeaveRequest{}, err
+		log.Printf("DB ERROR [CreateLeaveRequest] for EmployeeID %d: %v", employeeID, err)
+		return leave.LeaveRequest{}, fmt.Errorf("database gagal menyimpan pengajuan (ID: %d): %w", employeeID, err)
 	}
 	return leaveFromDB(row), nil
 }

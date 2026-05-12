@@ -61,7 +61,7 @@ func augmentPostgresURL(dsn string) string {
 	}
 	q := u.Query()
 	if q.Get("connect_timeout") == "" {
-		q.Set("connect_timeout", "15")
+		q.Set("connect_timeout", "30")
 	}
 	if q.Get("sslmode") == "" && strings.Contains(strings.ToLower(u.Host), "neon.tech") {
 		q.Set("sslmode", "require")
