@@ -99,7 +99,7 @@ func CreateEmployee(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Gagal membuat data karyawan: " + err.Error()})
+		json.NewEncoder(w).Encode(map[string]string{"error": "Gagal membuat data karyawan"})
 		return
 	}
 

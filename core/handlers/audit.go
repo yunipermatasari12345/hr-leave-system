@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"hr-leave-system/config"
 	"hr-leave-system/core/db"
@@ -34,6 +35,9 @@ func GetAuditLogs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var response []AuditLogDTO
+	// Set lokasi waktu ke Jakarta (WIB)
+	loc, _ := time.LoadLocation("Asia/Jakarta")
+
 	for _, l := range logs {
 		ip := "-"
 		if l.IpAddress.Valid {
@@ -42,8 +46,15 @@ func GetAuditLogs(w http.ResponseWriter, r *http.Request) {
 
 		createdAt := "-"
 		if l.CreatedAt.Valid {
-			// Kita ambil string langsung dari database agar tidak butuh package "time"
-			createdAt = "Data Tersedia" 
+			// Konversi waktu database ke WIB
+			t := l.CreatedAt.Time
+			if loc != nil {
+				t = t.In(loc)
+			} else {
+				// Fallback manual jika zona waktu tidak terload
+				t = t.Add(7 * time.Hour)
+			}
+			createdAt = t.Format("2006-01-02 15:04:05")
 		}
 
 		response = append(response, AuditLogDTO{

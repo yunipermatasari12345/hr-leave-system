@@ -462,7 +462,7 @@ func CreateManualLeaveHR(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Gagal menyimpan cuti manual: " + err.Error()})
+		json.NewEncoder(w).Encode(map[string]string{"error": "Gagal menyimpan cuti manual"})
 		return
 	}
 
