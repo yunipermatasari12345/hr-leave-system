@@ -110,10 +110,20 @@ export default function EmployeeDashboard() {
   const handleSubmitLeave = async () => {
     if (!leaveForm.leave_type_id || !leaveForm.start_date || !leaveForm.end_date || !leaveForm.reason) { setLeaveError("Semua field wajib diisi!"); return; }
     if (new Date(leaveForm.end_date) < new Date(leaveForm.start_date)) { setLeaveError("Tanggal selesai tidak boleh sebelum tanggal mulai!"); return; }
-    if (totalDays() <= 0) {
+    
+    const days = totalDays();
+    const quota = getSisaCuti();
+
+    if (days <= 0) {
       setLeaveError("Pilih tanggal yang memuat minimal satu hari kerja (bukan hanya akhir pekan).");
       return;
     }
+
+    if (quota !== null && days > quota) {
+      setLeaveError(`Jumlah hari (${days} hari) melebihi sisa kuota Anda (${quota} hari).`);
+      return;
+    }
+
     setLeaveLoading(true); setLeaveError(""); setLeaveSuccess("");
     try {
       await leaveApi.createRequest({
@@ -418,11 +428,16 @@ export default function EmployeeDashboard() {
               </div>
 
               {totalDays() > 0 && (
-                <div style={{ background: T.highlightBg, color: T.primary, padding: "16px 20px", borderRadius: 8, fontSize: 13, marginBottom: 24, display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ background: totalDays() > (getSisaCuti() || 0) ? "#fef2f2" : T.highlightBg, color: totalDays() > (getSisaCuti() || 0) ? T.red : T.primary, padding: "16px 20px", borderRadius: 8, fontSize: 13, marginBottom: 24, display: "flex", flexDirection: "column", gap: 8, border: totalDays() > (getSisaCuti() || 0) ? `1px solid ${T.red}` : "none" }}>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <span>Total Durasi:</span>
                     <span style={{ fontWeight: "700" }}>{totalDays()} Hari Kerja</span>
                   </div>
+                  {totalDays() > (getSisaCuti() || 0) && (
+                    <div style={{ fontSize: 11, fontWeight: "600", marginTop: 4 }}>
+                      ⚠️ Perhatian: Durasi melebihi sisa kuota Anda ({getSisaCuti()} hari).
+                    </div>
+                  )}
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <span>Kembali Kerja:</span>
                     <span style={{ fontWeight: "700" }}>{getReturnDate()}</span>

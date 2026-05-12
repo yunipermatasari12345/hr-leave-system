@@ -71,7 +71,11 @@ export default function NewLeave() {
       setSuccess("Pengajuan berhasil dikirim! Menunggu persetujuan HRD.");
       setTimeout(() => navigate("/dashboard"), 2000);
     } catch (e) {
-      setError(e.response?.data?.error || "Gagal mengajukan cuti");
+      // Tampilkan error detail dari backend jika ada
+      let backendMsg = e?.response?.data?.error || e?.response?.data?.message || e?.message || "Gagal mengajukan cuti";
+      setError("Gagal mengajukan cuti: " + backendMsg);
+      // Log error ke console untuk debugging
+      console.error("[AJUKAN CUTI ERROR]", e);
     } finally { setLoading(false); }
   };
 
