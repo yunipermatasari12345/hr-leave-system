@@ -256,7 +256,7 @@ export default function EmployeeDashboard() {
         {/* HEADER KLASIK */}
         <div className="resp-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
            <div>
-             <h2 style={{ fontSize: 24, fontWeight: "700", color: T.textDark, margin: "0 0 8px 0" }}>Selamat datang, {name.split(' ')[0]}! <span style={{fontSize: 10, color: T.primary, background: T.highlightBg, padding: "2px 6px", borderRadius: 4, verticalAlign: "middle"}}>V2.1</span></h2>
+             <h2 style={{ fontSize: 24, fontWeight: "700", color: T.textDark, margin: "0 0 8px 0" }}>Selamat datang, {name.split(' ')[0]}!</h2>
              <p style={{ fontSize: 13, color: T.textGray, margin: 0 }}>📅 &nbsp; {today}</p>
            </div>
            <div className="resp-header-right" style={{ display: "flex", alignItems: "center", gap: 16 }}>
