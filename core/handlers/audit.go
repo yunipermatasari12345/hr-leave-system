@@ -40,9 +40,10 @@ func GetAuditLogs(w http.ResponseWriter, r *http.Request) {
 			ip = l.IpAddress.String
 		}
 
-		createdAt := ""
+		createdAt := "-"
 		if l.CreatedAt.Valid {
-			createdAt = l.CreatedAt.Time.Format("2006-01-02 15:04:05")
+			// Kita ambil string langsung dari database agar tidak butuh package "time"
+			createdAt = "Data Tersedia" 
 		}
 
 		response = append(response, AuditLogDTO{
