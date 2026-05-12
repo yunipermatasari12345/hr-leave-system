@@ -119,10 +119,7 @@ export default function EmployeeDashboard() {
       return;
     }
 
-    if (quota !== null && days > quota) {
-      setLeaveError(`Jumlah hari (${days} hari) melebihi sisa kuota Anda (${quota} hari).`);
-      return;
-    }
+    // Validasi kuota dihapus agar karyawan bebas mengajukan cuti kapan saja
 
     setLeaveLoading(true); setLeaveError(""); setLeaveSuccess("");
     try {
@@ -428,16 +425,11 @@ export default function EmployeeDashboard() {
               </div>
 
               {totalDays() > 0 && (
-                <div style={{ background: totalDays() > (getSisaCuti() || 0) ? "#fef2f2" : T.highlightBg, color: totalDays() > (getSisaCuti() || 0) ? T.red : T.primary, padding: "16px 20px", borderRadius: 8, fontSize: 13, marginBottom: 24, display: "flex", flexDirection: "column", gap: 8, border: totalDays() > (getSisaCuti() || 0) ? `1px solid ${T.red}` : "none" }}>
+                <div style={{ background: T.highlightBg, color: T.primary, padding: "16px 20px", borderRadius: 8, fontSize: 13, marginBottom: 24, display: "flex", flexDirection: "column", gap: 8 }}>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <span>Total Durasi:</span>
                     <span style={{ fontWeight: "700" }}>{totalDays()} Hari Kerja</span>
                   </div>
-                  {totalDays() > (getSisaCuti() || 0) && (
-                    <div style={{ fontSize: 11, fontWeight: "600", marginTop: 4 }}>
-                      ⚠️ Perhatian: Durasi melebihi sisa kuota Anda ({getSisaCuti()} hari).
-                    </div>
-                  )}
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <span>Kembali Kerja:</span>
                     <span style={{ fontWeight: "700" }}>{getReturnDate()}</span>
