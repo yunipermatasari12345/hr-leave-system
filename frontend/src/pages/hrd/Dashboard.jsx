@@ -332,11 +332,18 @@ export default function HrdDashboard() {
   };
 
   const exportReportsToExcel = () => {
+    if (!reports || reports.length === 0) {
+      alert("Tidak ada data laporan untuk diekspor.");
+      return;
+    }
     const ws = XLSX.utils.json_to_sheet(reports.map(r => ({
-      Departemen: r.department.toUpperCase(), "Total Pengajuan Disetujui": r.total_leaves, "Total Hari Cuti": r.total_days
+      Departemen: (r.department || "N/A").toUpperCase(), 
+      "Total Pengajuan Disetujui": r.total_leaves, 
+      "Total Hari Cuti": r.total_days
     })));
-    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Rekap Laporan");
-    XLSX.writeFile(wb, "Laporan_Rekap_Departemen.xlsx");
+    const wb = XLSX.utils.book_new(); 
+    XLSX.utils.book_append_sheet(wb, ws, "Rekap Laporan");
+    XLSX.writeFile(wb, `Laporan_Rekap_Departemen_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   const pending = leaves.filter(l => l.status === "pending");
