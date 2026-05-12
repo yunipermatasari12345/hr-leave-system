@@ -228,7 +228,7 @@ export default function EmployeeDashboard() {
       </div>
 
       {/* MAIN CONTENT KLASIK (Layout Kanan) */}
-      <div className="resp-content" style={{ flex: 1, overflowY: "auto" }}>
+      <div className="resp-content" style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
         
         {/* HEADER KLASIK */}
         <div className="resp-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
@@ -250,7 +250,7 @@ export default function EmployeeDashboard() {
                  {notifications.length > 0 && <span style={{ position: "absolute", top: 10, right: 10, width: 8, height: 8, borderRadius: 4, background: T.red }} />}
                </button>
                {isNotifOpen && (
-                 <div style={{ position: "absolute", top: 54, right: 0, width: 320, background: T.cardBg, borderRadius: 12, border: T.cardBorder, boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)", zIndex: 100, padding: 16 }}>
+                 <div className="resp-notif-panel" style={{ position: "absolute", top: 54, background: T.cardBg, borderRadius: 12, border: T.cardBorder, boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)", zIndex: 100, padding: 16 }}>
                    <h4 style={{ margin: "0 0 12px 0", fontSize: 14, fontWeight: "600", color: T.textDark }}>Pemberitahuan Terbaru</h4>
                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                      {notifications.length > 0 ? notifications.slice(0, 5).map((n, i) => (
@@ -275,7 +275,7 @@ export default function EmployeeDashboard() {
         {activePage === "dashboard" && (
           <>
             {/* STATS KOTAK ADMIN LTE STYLE */}
-            <div className="resp-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24 }}>
+            <div className="resp-grid-3" style={{ marginBottom: 24 }}>
               
               <div style={{ background: "#00c0ef", color: "white", padding: "20px 20px", borderRadius: 4, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
                  <div style={{ zIndex: 2 }}>
@@ -310,7 +310,7 @@ export default function EmployeeDashboard() {
             </div>
 
             {/* TWO COLUMN CONTENT AREA */}
-            <div className="resp-grid-2" style={{ display: "grid", gridTemplateColumns: "2.5fr 1.5fr", gap: 24 }}>
+            <div className="resp-grid-2" style={{ marginBottom: 24 }}>
               
               {/* KOLOM KIRI: Pengajuan Terakhir */}
               <div style={{ background: "white", borderRadius: 4, border: "1px solid #d2d6de", overflow: "hidden", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
@@ -360,7 +360,7 @@ export default function EmployeeDashboard() {
         )}
 
         {activePage === "new_leave" && (
-          <div style={{ maxWidth: 700, background: T.cardBg, borderRadius: 12, border: T.cardBorder, padding: 32 }}>
+          <div className="resp-form-card resp-card-fluid" style={{ maxWidth: 700, margin: "0 auto", background: T.cardBg, borderRadius: 12, border: T.cardBorder, padding: 32 }}>
             <h3 style={{ margin: "0 0 24px 0", fontSize: 20, fontWeight: "700", color: T.textDark }}>Formulir Cuti Karyawan</h3>
 
             {leaveError && <div style={{ background: "#fef2f2", color: T.red, padding: "12px 16px", borderRadius: 8, fontSize: 13, fontWeight: "500", marginBottom: 24 }}>{leaveError}</div>}
@@ -380,7 +380,7 @@ export default function EmployeeDashboard() {
               </select>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+            <div className="resp-grid-2 resp-grid-2--equal" style={{ marginBottom: 20 }}>
               <div>
                 <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
                   Tanggal Mulai <span style={{ color: T.red }}>*</span>
@@ -469,7 +469,7 @@ export default function EmployeeDashboard() {
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", borderTop: T.cardBorder, paddingTop: 24 }}>
+            <div className="resp-form-actions" style={{ display: "flex", gap: 12, justifyContent: "flex-end", flexWrap: "wrap", borderTop: T.cardBorder, paddingTop: 24 }}>
               <Button disableRipple onPress={() => setActivePage("dashboard")} style={{ fontSize: 14, fontWeight: "600", borderRadius: 8, background: "transparent", border: T.cardBorder, color: T.textDark, padding: "0 24px", height: 44 }}>
                 Batal
               </Button>
@@ -549,7 +549,7 @@ export default function EmployeeDashboard() {
              {/* Daftar Jenis Hak Cuti */}
              <div>
                 <h3 style={{ fontSize: 18, fontWeight: "800", color: T.textDark, margin: "0 0 16px 0" }}>Daftar Hak Cuti Karyawan</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
+                <div className="resp-info-cards">
                    {balances.map(b => (
                       <div key={b.id} style={{ background: T.cardBg, borderRadius: 12, border: T.cardBorder, padding: 24, paddingLeft: 20, borderLeft: `6px solid ${T.primary}`, display: "flex", flexDirection: "column", gap: 12, transition: "transform 0.2s", cursor: "default" }} onMouseEnter={(e)=>e.currentTarget.style.transform="translateY(-4px)"} onMouseLeave={(e)=>e.currentTarget.style.transform="translateY(0)"}>
                          <div>
@@ -578,22 +578,23 @@ export default function EmployeeDashboard() {
         )}
         {activePage === "calendar" && (
            <div style={{ background: T.cardBg, borderRadius: 16, border: T.cardBorder, minHeight: 600, display: "flex", flexDirection: "column", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" }}>
-             <div style={{ padding: "24px 32px", borderBottom: T.cardBorder, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-               <div>
+             <div className="resp-calendar-toolbar" style={{ padding: "24px 32px", borderBottom: T.cardBorder, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+               <div style={{ minWidth: 0 }}>
                   <h3 style={{ margin: 0, fontSize: 20, fontWeight: "800", color: T.textDark }}>Kalender Jadwal Pribadi</h3>
                   <p style={{ margin: "4px 0 0 0", fontSize: 14, color: T.textGray }}>Visualisasi hari masuk dan hari libur/cuti Anda</p>
                </div>
-               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                 <button onClick={() => setCurrentMonthDate(new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() - 1, 1))} style={{ width: 40, height: 40, borderRadius: 12, border: T.cardBorder, background: T.cardBg, cursor: "pointer", fontWeight: "bold" }}>←</button>
-                 <span style={{ fontSize: 16, fontWeight: "700", width: 140, textAlign: "center" }}>
+               <div style={{ display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
+                 <button type="button" onClick={() => setCurrentMonthDate(new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() - 1, 1))} style={{ width: 40, height: 40, borderRadius: 12, border: T.cardBorder, background: T.cardBg, cursor: "pointer", fontWeight: "bold" }}>←</button>
+                 <span style={{ fontSize: 16, fontWeight: "700", minWidth: 120, textAlign: "center" }}>
                    {currentMonthDate.toLocaleDateString("id-ID", { month: "long", year: "numeric" })}
                  </span>
-                 <button onClick={() => setCurrentMonthDate(new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 1))} style={{ width: 40, height: 40, borderRadius: 12, border: T.cardBorder, background: T.cardBg, cursor: "pointer", fontWeight: "bold" }}>→</button>
-                 <button onClick={() => setCurrentMonthDate(new Date())} style={{ height: 40, padding: "0 16px", borderRadius: 12, border: "none", background: T.bg, color: T.textDark, cursor: "pointer", fontWeight: "600", fontSize: 13 }}>Hari Ini</button>
+                 <button type="button" onClick={() => setCurrentMonthDate(new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 1))} style={{ width: 40, height: 40, borderRadius: 12, border: T.cardBorder, background: T.cardBg, cursor: "pointer", fontWeight: "bold" }}>→</button>
+                 <button type="button" onClick={() => setCurrentMonthDate(new Date())} style={{ height: 40, padding: "0 16px", borderRadius: 12, border: "none", background: T.bg, color: T.textDark, cursor: "pointer", fontWeight: "600", fontSize: 13 }}>Hari Ini</button>
                </div>
              </div>
              
-             <div style={{ flex: 1, padding: 24, display: "flex", flexDirection: "column" }}>
+             <div className="resp-calendar-scroll" style={{ flex: 1, padding: 24, display: "flex", flexDirection: "column" }}>
+                <div className="resp-calendar-inner">
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 12, marginBottom: 12 }}>
                   {["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"].map(d => (
                     <div key={d} style={{ textAlign: "center", fontSize: 12, fontWeight: "700", color: T.textGray, textTransform: "uppercase" }}>{d}</div>
@@ -624,7 +625,7 @@ export default function EmployeeDashboard() {
                       });
                       
                       cells.push(
-                        <div key={day} style={{ border: drops.length > 0 ? `2px solid ${T.primary}` : T.cardBorder, borderRadius: 12, minHeight: 120, padding: "8px", background: isToday ? "#eff6ff" : (drops.length > 0 ? "#eff6ff" : "white"), display: "flex", flexDirection: "column", gap: 4, transition: "transform 0.1s", cursor: "pointer" }}
+                        <div key={day} className="resp-calendar-cell" style={{ border: drops.length > 0 ? `2px solid ${T.primary}` : T.cardBorder, borderRadius: 12, minHeight: 120, padding: "8px", background: isToday ? "#eff6ff" : (drops.length > 0 ? "#eff6ff" : "white"), display: "flex", flexDirection: "column", gap: 4, transition: "transform 0.1s", cursor: "pointer" }}
                              onMouseEnter={e => e.currentTarget.style.transform = "scale(1.02)"}
                              onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
                           <div style={{ fontSize: 14, fontWeight: isToday || drops.length > 0 ? "800" : "600", color: isToday ? T.primary : T.textDark, textAlign: "right", marginBottom: 4 }}>
@@ -642,6 +643,7 @@ export default function EmployeeDashboard() {
                     }
                     return cells;
                   })()}
+                </div>
                 </div>
              </div>
            </div>

@@ -114,7 +114,7 @@ export default function NewLeave() {
       </div>
 
       {/* Form Area */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <div className="resp-content" style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         
         {/* TOPBAR */}
         <div className="resp-form-topbar" style={{ padding: "40px 40px 24px", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
@@ -131,7 +131,7 @@ export default function NewLeave() {
         </div>
 
         <div className="resp-form-body" style={{ flex: 1, padding: "0 40px 40px", overflowX: "hidden", overflowY: "auto" }}>
-          <div style={{ maxWidth: 700, background: "white", borderRadius: 12, border: T.cardBorder, padding: 32 }}>
+          <div className="resp-form-card resp-card-fluid" style={{ maxWidth: 700, margin: "0 auto", background: "white", borderRadius: 12, border: T.cardBorder, padding: 32 }}>
 
             {error && <div style={{ background: "#fef2f2", color: T.red, padding: "12px 16px", borderRadius: 8, fontSize: 13, fontWeight: "500", marginBottom: 24 }}>{error}</div>}
             {success && <div style={{ background: "#f0fdf4", color: T.green, padding: "12px 16px", borderRadius: 8, fontSize: 13, fontWeight: "500", marginBottom: 24 }}>{success}</div>}
@@ -150,7 +150,7 @@ export default function NewLeave() {
               </select>
             </div>
 
-            <div className="resp-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+            <div className="resp-grid-2 resp-grid-2--equal" style={{ marginBottom: 20 }}>
               <div>
                 <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
                   Tanggal Mulai <span style={{ color: T.red }}>*</span>
@@ -226,7 +226,7 @@ export default function NewLeave() {
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", borderTop: T.cardBorder, paddingTop: 24 }}>
+            <div className="resp-form-actions" style={{ display: "flex", gap: 12, justifyContent: "flex-end", flexWrap: "wrap", borderTop: T.cardBorder, paddingTop: 24 }}>
               <Button disableRipple variant="bordered" onPress={() => navigate("/dashboard")} style={{ fontSize: 14, fontWeight: "600", borderRadius: 8, border: T.cardBorder, color: T.textDark, padding: "0 24px", height: 44 }}>
                 Batal
               </Button>

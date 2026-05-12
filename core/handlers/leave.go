@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -124,6 +125,12 @@ func CreateLeaveRequest_(w http.ResponseWriter, r *http.Request) {
 	reason := r.FormValue("reason")
 
 	leaveTypeID, _ := strconv.Atoi(leaveTypeIDStr)
+	if leaveTypeID <= 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Pilih jenis cuti"})
+		return
+	}
 
 	var att *dleave.AttachmentInput
 	a, formErr := parseMultipartAttachment(r, "attachment")
@@ -158,8 +165,9 @@ func CreateLeaveRequest_(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(map[string]string{"error": "Rentang tanggal tidak valid"})
 			return
 		}
+		fmt.Println("CREATE LEAVE 500 ERROR:", err) // Added for debugging
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Gagal mengajukan cuti"})
+		json.NewEncoder(w).Encode(map[string]string{"error": "Internal Server Error: " + err.Error()})
 		return
 	}
 
@@ -250,8 +258,8 @@ func GetMyLeaves(w http.ResponseWriter, r *http.Request) {
 func GetMyBalances(w http.ResponseWriter, r *http.Request) {
 	userID := int32(r.Context().Value(middleware.UserIDKey).(float64))
 
-	// Gunakan tahun ini sebagai default
-	balances, err := LeaveService.MyBalances(r.Context(), userID, 2024)
+	year := int32(time.Now().Year())
+	balances, err := LeaveService.MyBalances(r.Context(), userID, year)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)

@@ -40,6 +40,9 @@ func (s *LeaveService) SubmitRequest(ctx context.Context, userID int32, leaveTyp
 		return leave.LeaveRequest{}, ErrValidation
 	}
 	end, err := time.Parse("2006-01-02", endStr)
+	if err != nil {
+		return leave.LeaveRequest{}, ErrValidation
+	}
 	days, err := leave.ComputeTotalDays(start, end)
 	if err != nil {
 		return leave.LeaveRequest{}, err

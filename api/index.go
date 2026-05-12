@@ -23,7 +23,7 @@ func registerAPIRoutes(router chi.Router) {
 	router.Get("/leave-types", handlers.GetLeaveTypes)
 
 	router.Route("/employee", func(r chi.Router) {
-		r.Use(mw.Auth)
+		r.Use(mw.Auth, mw.AuditLogMiddleware)
 		r.Get("/leaves", handlers.GetMyLeaves)
 		r.Get("/leaves/{id}/attachment", handlers.GetLeaveAttachmentEmployee)
 		r.Post("/leaves", handlers.CreateLeaveRequest_)
@@ -33,7 +33,7 @@ func registerAPIRoutes(router chi.Router) {
 	})
 
 	router.Route("/hrd", func(r chi.Router) {
-		r.Use(mw.Auth, mw.Role("HRD"))
+		r.Use(mw.Auth, mw.Role("HRD"), mw.AuditLogMiddleware)
 		r.Get("/leaves/advanced", handlers.GetAdvancedLeaves)
 		r.Get("/leaves/{id}/attachment", handlers.GetLeaveAttachmentHR)
 		r.Put("/leaves/{id}/status", handlers.UpdateLeaveStatus)

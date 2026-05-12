@@ -7,12 +7,158 @@
   min-height: 100vh;
 }
 
+/* Grid desktop — nilai di sini; di mobile @media meng-override (inline style mem-beat media query) */
+.resp-grid-2 {
+  display: grid;
+  grid-template-columns: 2.5fr 1.5fr;
+  gap: 24px;
+}
+.resp-grid-2.resp-grid-2--equal {
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.resp-grid-2.resp-grid-2--hrd {
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+.resp-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.resp-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.resp-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.resp-card-fluid {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Kalender: scroll horizontal di layar sempit alih-alih sel yang terlalu kecil */
+.resp-calendar-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
+.resp-calendar-inner {
+  min-width: min(100%, 720px);
+}
+@media (max-width: 768px) {
+  .resp-calendar-inner {
+    min-width: 640px;
+  }
+  .resp-calendar-toolbar {
+    padding: 16px !important;
+  }
+  .resp-calendar-scroll {
+    padding: 12px !important;
+  }
+  .resp-calendar-cell {
+    min-height: 88px !important;
+    padding: 6px !important;
+  }
+  .resp-modal-detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .resp-form-actions {
+    flex-direction: column-reverse !important;
+    align-items: stretch !important;
+  }
+  .resp-form-actions > * {
+    width: 100% !important;
+    flex: none !important;
+  }
+  .resp-modal-footer {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .resp-modal-footer > * {
+    width: 100% !important;
+    flex: none !important;
+  }
+}
+
+.resp-modal-footer {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.resp-info-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 20px;
+}
+
+/* Baris antrean HRD: tombol turun ke baris berikutnya */
+.resp-hrd-pending-row {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+@media (max-width: 768px) {
+  .resp-hrd-pending-row {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  .resp-hrd-pending-actions {
+    justify-content: flex-end;
+    width: 100%;
+  }
+}
+
+/* Toolbar halaman cuti HRD */
+.resp-hrd-leaves-toolbar {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+@media (max-width: 768px) {
+  .resp-hrd-leaves-toolbar {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  .resp-hrd-leaves-toolbar > div:last-child {
+    width: 100%;
+    flex-direction: column;
+  }
+  .resp-hrd-leaves-toolbar > div:last-child button {
+    width: 100%;
+  }
+}
+
+/* Dropdown notifikasi tidak meluber dari viewport */
+.resp-notif-panel {
+  width: min(320px, calc(100vw - 32px));
+  max-width: calc(100vw - 16px);
+  right: 0;
+  left: auto;
+}
+@media (max-width: 480px) {
+  .resp-notif-panel {
+    position: fixed !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    top: 72px;
+  }
+}
+
 body {
   font-family: 'Inter', sans-serif;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
   background-color: #f8fafc;
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
 }
 
 ::-webkit-scrollbar {
@@ -169,6 +315,33 @@ body {
   .resp-content {
     padding: 16px !important;
   }
+
+  .resp-card-pad {
+    padding: 16px !important;
+  }
+
+  .resp-form-card {
+    padding: 16px !important;
+    border-radius: 10px !important;
+  }
+
+  .resp-modal-shell {
+    border-radius: 16px !important;
+    margin: auto !important;
+    width: calc(100% - 24px) !important;
+    max-width: 100% !important;
+  }
+
+  .resp-modal-overlay {
+    padding: 12px !important;
+    align-items: flex-end !important;
+    padding-bottom: max(12px, env(safe-area-inset-bottom, 12px)) !important;
+  }
+  @supports (padding: max(0px)) {
+    .resp-modal-overlay {
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
+    }
+  }
   .resp-header {
     flex-direction: column !important;
     align-items: flex-start !important;
@@ -224,7 +397,7 @@ body {
     padding: 0 16px;
   }
   .resp-table-wrapper table {
-    min-width: 700px;
+    min-width: 640px;
   }
   
   /* Make cards look better on mobile */
@@ -242,6 +415,10 @@ body {
 }
 
 @media (max-width: 480px) {
+  .resp-table-wrapper table {
+    min-width: 520px;
+  }
+
   .resp-grid-4 {
     grid-template-columns: 1fr !important;
   }

@@ -459,7 +459,7 @@ export default function HrdDashboard() {
       </div>
 
       {/* MAIN CONTENT KLASIK (Layout Kanan) */}
-      <div className="resp-content" style={{ flex: 1, overflowY: "auto" }}>
+      <div className="resp-content" style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
         
         {/* TOP NAVBAR */}
         <div className="resp-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
@@ -513,7 +513,7 @@ export default function HrdDashboard() {
         {activePage === "dashboard" && (
           <>
             {/* STATS KOTAK 4 ADMIN LTE STYLE */}
-            <div className="resp-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 40 }}>
+            <div className="resp-grid-4" style={{ marginBottom: 40 }}>
               
               <div style={{ background: "#00c0ef", color: "white", padding: "20px 20px", borderRadius: 4, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
                  <div style={{ zIndex: 2 }}>
@@ -558,7 +558,7 @@ export default function HrdDashboard() {
             </div>
 
             {/* INSIGHTS & ANALYTICS SECTION */}
-            <div className="resp-grid-2" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24, marginBottom: 40 }}>
+            <div className="resp-grid-2 resp-grid-2--hrd" style={{ marginBottom: 40 }}>
               {/* ANTREAN CUTI TERBARU */}
               <div className="premium-shadow" style={{ background: T.cardBg, borderRadius: 16, border: T.cardBorder, padding: 24, display: "flex", flexDirection: "column" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
@@ -574,7 +574,7 @@ export default function HrdDashboard() {
                        <span>Tidak ada pengajuan cuti saat ini.</span>
                     </div>
                   ) : pending.map((l, idx) => (
-                    <div key={l.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px", border: T.cardBorder, borderRadius: 12, transition: "background 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"} onMouseLeave={e => e.currentTarget.style.background = "white"}>
+                    <div key={l.id} className="resp-hrd-pending-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px", border: T.cardBorder, borderRadius: 12, transition: "background 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"} onMouseLeave={e => e.currentTarget.style.background = "white"}>
                       
                       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                         <div style={{ width: 40, height: 40, borderRadius: "50%", background: T.primary, color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: "700", flexShrink: 0 }}>
@@ -586,7 +586,7 @@ export default function HrdDashboard() {
                         </div>
                       </div>
 
-                      <div style={{ display: "flex", gap: 6 }}>
+                      <div className="resp-hrd-pending-actions" style={{ display: "flex", gap: 6 }}>
                           <button onClick={() => openAction(l, "detail")} title="Lihat Detail" style={{ width: 34, height: 34, borderRadius: 8, background: "#f1f5f9", color: T.textDark, border: "none", cursor: "pointer", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", transition: "transform 0.1s" }} onMouseEnter={e=>e.currentTarget.style.transform="scale(1.1)"} onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}>👁️</button>
                           <button onClick={() => openAction(l, "approved")} title="Setujui" style={{ width: 34, height: 34, borderRadius: 8, background: "#10b981", color: "white", border: "none", cursor: "pointer", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", transition: "transform 0.1s" }} onMouseEnter={e=>e.currentTarget.style.transform="scale(1.1)"} onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}>✓</button>
                           <button onClick={() => openAction(l, "rejected")} title="Tolak" style={{ width: 34, height: 34, borderRadius: 8, background: T.red, color: "white", border: "none", cursor: "pointer", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", transition: "transform 0.1s" }} onMouseEnter={e=>e.currentTarget.style.transform="scale(1.1)"} onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}>✕</button>
@@ -632,7 +632,7 @@ export default function HrdDashboard() {
 
         {activePage === "leaves" && (
            <div style={{ background: T.cardBg, borderRadius: 12, border: T.cardBorder }}>
-             <div style={{ padding: "20px 24px", borderBottom: T.cardBorder, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+             <div className="resp-hrd-leaves-toolbar" style={{ padding: "20px 24px", borderBottom: T.cardBorder, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                <div style={{ flex: 1 }}></div>
                <div style={{ display: "flex", gap: 12 }}>
                  <Button disableRipple size="sm" onPress={() => setManualModalOpen(true)} style={{ background: T.primary, color: "white", fontWeight: "700", height: 38, padding: "0 16px", borderRadius: 10 }}>
@@ -693,19 +693,20 @@ export default function HrdDashboard() {
 
         {activePage === "calendar" && (
            <div style={{ background: T.cardBg, borderRadius: 16, border: T.cardBorder, minHeight: 600, display: "flex", flexDirection: "column", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" }}>
-             <div style={{ padding: "24px 32px", borderBottom: T.cardBorder, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div></div>
-               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                 <button onClick={() => setCurrentMonthDate(new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() - 1, 1))} style={{ width: 40, height: 40, borderRadius: 12, border: T.cardBorder, background: T.cardBg, cursor: "pointer", fontWeight: "bold" }}>←</button>
-                 <span style={{ fontSize: 16, fontWeight: "700", width: 140, textAlign: "center" }}>
+             <div className="resp-calendar-toolbar" style={{ padding: "24px 32px", borderBottom: T.cardBorder, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+                <div style={{ minWidth: 0 }} />
+               <div style={{ display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
+                 <button type="button" onClick={() => setCurrentMonthDate(new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() - 1, 1))} style={{ width: 40, height: 40, borderRadius: 12, border: T.cardBorder, background: T.cardBg, cursor: "pointer", fontWeight: "bold" }}>←</button>
+                 <span style={{ fontSize: 16, fontWeight: "700", minWidth: 120, textAlign: "center" }}>
                    {currentMonthDate.toLocaleDateString("id-ID", { month: "long", year: "numeric" })}
                  </span>
-                 <button onClick={() => setCurrentMonthDate(new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 1))} style={{ width: 40, height: 40, borderRadius: 12, border: T.cardBorder, background: T.cardBg, cursor: "pointer", fontWeight: "bold" }}>→</button>
-                 <button onClick={() => setCurrentMonthDate(new Date())} style={{ height: 40, padding: "0 16px", borderRadius: 12, border: "none", background: T.bg, color: T.textDark, cursor: "pointer", fontWeight: "600", fontSize: 13 }}>Hari Ini</button>
+                 <button type="button" onClick={() => setCurrentMonthDate(new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 1))} style={{ width: 40, height: 40, borderRadius: 12, border: T.cardBorder, background: T.cardBg, cursor: "pointer", fontWeight: "bold" }}>→</button>
+                 <button type="button" onClick={() => setCurrentMonthDate(new Date())} style={{ height: 40, padding: "0 16px", borderRadius: 12, border: "none", background: T.bg, color: T.textDark, cursor: "pointer", fontWeight: "600", fontSize: 13 }}>Hari Ini</button>
                </div>
              </div>
              
-             <div style={{ flex: 1, padding: 24, display: "flex", flexDirection: "column" }}>
+             <div className="resp-calendar-scroll" style={{ flex: 1, padding: 24, display: "flex", flexDirection: "column" }}>
+                <div className="resp-calendar-inner">
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 12, marginBottom: 12 }}>
                   {["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"].map(d => (
                     <div key={d} style={{ textAlign: "center", fontSize: 12, fontWeight: "700", color: T.textGray, textTransform: "uppercase" }}>{d}</div>
@@ -735,7 +736,7 @@ export default function HrdDashboard() {
                       });
                       
                       cells.push(
-                        <div key={day} style={{ borderRadius: 12, minHeight: 120, padding: "8px", background: isToday ? "#eff6ff" : "white", border: isToday ? `2px solid ${T.primary}` : T.cardBorder, display: "flex", flexDirection: "column", gap: 4, transition: "transform 0.1s", cursor: "pointer" }}
+                        <div key={day} className="resp-calendar-cell" style={{ borderRadius: 12, minHeight: 120, padding: "8px", background: isToday ? "#eff6ff" : "white", border: isToday ? `2px solid ${T.primary}` : T.cardBorder, display: "flex", flexDirection: "column", gap: 4, transition: "transform 0.1s", cursor: "pointer" }}
                              onMouseEnter={e => e.currentTarget.style.transform = "scale(1.02)"}
                              onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
                           <div style={{ fontSize: 14, fontWeight: isToday ? "800" : "600", color: isToday ? T.primary : T.textDark, textAlign: "right", marginBottom: 4 }}>
@@ -756,6 +757,7 @@ export default function HrdDashboard() {
                     }
                     return cells;
                   })()}
+                </div>
                 </div>
              </div>
            </div>
@@ -920,8 +922,8 @@ export default function HrdDashboard() {
 
       {/* MODALS */}
       {modalOpen && selected && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, backdropFilter: "blur(4px)", padding: 20 }}>
-          <div style={{ background: T.cardBg, borderRadius: 24, width: 460, maxWidth: "100%", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.15), 0 10px 10px -5px rgba(0,0,0,0.06)" }}>
+        <div className="resp-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, backdropFilter: "blur(4px)", padding: 20 }}>
+          <div className="resp-modal-shell" style={{ background: T.cardBg, borderRadius: 24, width: 460, maxWidth: "100%", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.15), 0 10px 10px -5px rgba(0,0,0,0.06)" }}>
              {/* Header — tetap di atas */}
              <div style={{ padding: "24px 32px 20px", borderBottom: "1px solid #e5e7eb", flexShrink: 0 }}>
                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -938,7 +940,7 @@ export default function HrdDashboard() {
                     <p style={{ fontSize: 16, fontWeight: "800", color: T.textDark, margin: "0 0 4px 0" }}>{selected.employee_name}</p>
                     <p style={{ fontSize: 13, fontWeight: "500", color: T.textGray, margin: 0 }}>{selected.employee_department || "-"}</p>
                  </div>
-                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                 <div className="resp-modal-detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                     <div><p style={{ fontSize: 11, fontWeight: "700", color: T.textGray, margin: "0 0 4px 0", textTransform: "uppercase" }}>Tipe Cuti</p><p style={{ fontSize: 13, fontWeight: "600", color: T.textDark, margin: 0 }}>{selected.leave_type_name || "Cuti"}</p></div>
                     <div><p style={{ fontSize: 11, fontWeight: "700", color: T.textGray, margin: "0 0 4px 0", textTransform: "uppercase" }}>Durasi</p><p style={{ fontSize: 13, fontWeight: "600", color: T.textDark, margin: 0 }}>{selected.total_days} Hari</p></div>
                     <div><p style={{ fontSize: 11, fontWeight: "700", color: T.textGray, margin: "0 0 4px 0", textTransform: "uppercase" }}>Periode</p><p style={{ fontSize: 13, fontWeight: "600", color: T.textDark, margin: 0 }}>{selected.start_date?.slice(0, 10)} sd {selected.end_date?.slice(0, 10)}</p></div>
@@ -979,7 +981,7 @@ export default function HrdDashboard() {
                )}
              </div>
              {/* Footer — tetap di bawah */}
-             <div style={{ padding: "20px 32px 24px", borderTop: "1px solid #e5e7eb", flexShrink: 0, display: "flex", gap: 12 }}>
+             <div className="resp-form-actions" style={{ padding: "20px 32px 24px", borderTop: "1px solid #e5e7eb", flexShrink: 0, display: "flex", gap: 12, flexWrap: "wrap" }}>
                {actionType !== "detail" ? (
                  <>
                     <Button disableRipple variant="bordered" onPress={() => setModalOpen(false)} style={{ fontSize: 13, fontWeight: "700", borderRadius: 12, border: T.cardBorder, color: T.textGray, height: 44, flex: 1 }}>Batal</Button>
@@ -994,8 +996,8 @@ export default function HrdDashboard() {
       )}
 
       {editModalOpen && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, backdropFilter: "blur(4px)", padding: 20 }}>
-          <div style={{ background: T.cardBg, borderRadius: 24, padding: "32px", width: 440, maxWidth: "100%", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)" }}>
+        <div className="resp-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, backdropFilter: "blur(4px)", padding: 20 }}>
+          <div className="resp-modal-shell" style={{ background: T.cardBg, borderRadius: 24, padding: "32px", width: 440, maxWidth: "100%", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
               <h2 style={{ fontSize: 20, fontWeight: "800", color: T.textDark, margin: 0 }}>Edit Karyawan</h2>
               <button onClick={() => setEditModalOpen(false)} style={{ background: T.bg, border: "none", fontSize: 16, width: 32, height: 32, borderRadius: 16, cursor: "pointer"}}>✕</button>
@@ -1016,7 +1018,7 @@ export default function HrdDashboard() {
                 </select>
               </div>
             </div>
-            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 32 }}>
+            <div className="resp-form-actions" style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 32 }}>
               <Button disableRipple onClick={() => setEditModalOpen(false)} style={{ flex: 1, background: T.cardBg, border: T.cardBorder, color: T.textGray, height: 48, borderRadius: 12, fontWeight: "600" }}>Batal</Button>
               <Button disableRipple onPress={handleEdit} style={{ flex: 1, background: T.primary, color: "white", height: 48, borderRadius: 12, fontWeight: "600" }}>Simpan Data</Button>
             </div>
@@ -1025,14 +1027,14 @@ export default function HrdDashboard() {
       )}
 
       {detailModalOpen && detailEmp && (
-         <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, backdropFilter: "blur(4px)", padding: 20 }}>
-           <div style={{ background: T.cardBg, borderRadius: 24, padding: "32px", width: 640, maxWidth: "100%", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)" }}>
+         <div className="resp-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, backdropFilter: "blur(4px)", padding: 20 }}>
+           <div className="resp-modal-shell" style={{ background: T.cardBg, borderRadius: 24, padding: "32px", width: 640, maxWidth: "100%", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)" }}>
              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
                 <h2 style={{ fontSize: 20, fontWeight: "800", color: T.textDark, margin: 0 }}>Profil Karyawan</h2>
                 <button onClick={() => setDetailModalOpen(false)} style={{ background: T.bg, border: "none", fontSize: 16, width: 32, height: 32, borderRadius: 16, cursor: "pointer"}}>✕</button>
              </div>
              <div style={{ flex: 1, overflowY: "auto", paddingRight: 10 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, background: T.bg, padding: 20, borderRadius: 16 }}>
+                <div className="resp-modal-detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, background: T.bg, padding: 20, borderRadius: 16 }}>
                    <div><p style={{ fontSize: 11, fontWeight: "700", color: T.textGray, margin: "0 0 4px 0", textTransform: "uppercase" }}>Nama Lengkap</p><p style={{ fontSize: 14, fontWeight: "600", color: T.textDark, margin: 0 }}>{detailEmp.full_name}</p></div>
                    <div><p style={{ fontSize: 11, fontWeight: "700", color: T.textGray, margin: "0 0 4px 0", textTransform: "uppercase" }}>Email Login</p><p style={{ fontSize: 14, fontWeight: "600", color: T.textDark, margin: 0 }}>{detailEmp.email}</p></div>
                    <div><p style={{ fontSize: 11, fontWeight: "700", color: T.textGray, margin: "0 0 4px 0", textTransform: "uppercase" }}>Nomor HP</p><p style={{ fontSize: 14, fontWeight: "600", color: T.textDark, margin: 0 }}>{detailEmp.phone || "-"}</p></div>
@@ -1047,8 +1049,8 @@ export default function HrdDashboard() {
       )}
 
       {previewOpen && selected && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10000, backdropFilter: "blur(4px)", padding: 20 }}>
-          <div style={{ background: T.cardBg, borderRadius: 24, padding: "32px", width: 500, maxWidth: "100%", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)" }}>
+        <div className="resp-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10000, backdropFilter: "blur(4px)", padding: 20 }}>
+          <div className="resp-modal-shell" style={{ background: T.cardBg, borderRadius: 24, padding: "32px", width: 500, maxWidth: "100%", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
               <div>
                 <h2 style={{ fontSize: 18, fontWeight: "800", color: T.textDark, margin: 0 }}>Pratinjau Lampiran</h2>
@@ -1082,7 +1084,7 @@ export default function HrdDashboard() {
               )}
             </div>
 
-            <div style={{ marginTop: 24, display: "flex", gap: 12 }}>
+            <div className="resp-modal-footer" style={{ marginTop: 24, display: "flex", gap: 12, flexWrap: "wrap" }}>
                <a 
                   href={previewAttachmentUrl || "#"}
                   download={selected.attachment_filename || "lampiran-cuti"}
@@ -1096,8 +1098,8 @@ export default function HrdDashboard() {
       )}
 
       {manualModalOpen && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, backdropFilter: "blur(4px)", padding: 20 }}>
-          <div style={{ background: T.cardBg, borderRadius: 24, padding: "32px", width: 500, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)" }}>
+        <div className="resp-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, backdropFilter: "blur(4px)", padding: 20 }}>
+          <div className="resp-modal-shell" style={{ background: T.cardBg, borderRadius: 24, padding: "32px", width: 500, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <div>
                 <h2 style={{ fontSize: 20, fontWeight: "800", color: T.textDark, margin: 0 }}>Input Cuti Manual</h2>
@@ -1147,7 +1149,7 @@ export default function HrdDashboard() {
                 {!manualForm.leave_type_id && manualForm._leaveName && <p style={{ color: T.red, fontSize: 11, margin: "4px 0 0 0" }}>⚠️ Tipe cuti tidak valid. Harus sesuai daftar!</p>}
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div className="resp-grid-2 resp-grid-2--equal" style={{ gap: 16 }}>
                 <div>
                   <p style={{ fontSize: 12, fontWeight: "700", color: T.textGray, margin: "0 0 8px 0" }}>TGL MULAI</p>
                   <input type="date" value={manualForm.start_date} onChange={e => setManualForm({...manualForm, start_date: e.target.value})} style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: T.cardBorder, outline: "none", color: T.textDark, background: T.bg, boxSizing: "border-box" }} />
@@ -1164,8 +1166,7 @@ export default function HrdDashboard() {
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
-              <Button disableRipple onClick={() => setManualModalOpen(false)} style={{ flex: 1, background: T.cardBg, border: T.cardBorder, color: T.textGray, height: 48, borderRadius: 12, fontWeight: "600" }}>Batal</Button>
+            <div className="resp-form-actions" style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
               <Button disableRipple onPress={handleManualSubmit} isLoading={manualLoading} style={{ flex: 1, background: T.primary, color: "white", height: 48, borderRadius: 12, fontWeight: "600" }}>Simpan & Setujui Otomatis</Button>
             </div>
           </div>
@@ -1174,8 +1175,8 @@ export default function HrdDashboard() {
 
       {/* MODAL TAMBAH KARYAWAN */}
       {addModalOpen && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, backdropFilter: "blur(4px)", padding: 20 }}>
-          <div style={{ background: T.cardBg, borderRadius: 24, padding: "32px", width: 500, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)" }}>
+        <div className="resp-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, backdropFilter: "blur(4px)", padding: 20 }}>
+          <div className="resp-modal-shell" style={{ background: T.cardBg, borderRadius: 24, padding: "32px", width: 500, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <div>
                 <h2 style={{ fontSize: 20, fontWeight: "800", color: T.textDark, margin: 0 }}>Tambah Data Karyawan</h2>
@@ -1223,7 +1224,7 @@ export default function HrdDashboard() {
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
+            <div className="resp-form-actions" style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
               <Button disableRipple onClick={() => setAddModalOpen(false)} style={{ flex: 1, background: T.cardBg, border: T.cardBorder, color: T.textGray, height: 48, borderRadius: 12, fontWeight: "600" }}>Batal</Button>
               <Button disableRipple onPress={handleAddSubmit} isLoading={addLoading} style={{ flex: 1, background: T.primary, color: "white", height: 48, borderRadius: 12, fontWeight: "600" }}>Simpan Data Karyawan</Button>
             </div>

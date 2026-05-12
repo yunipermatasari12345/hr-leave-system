@@ -40,7 +40,10 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#f1f5f9] items-center justify-center p-6 font-['Inter',sans-serif]">
+    <div
+      className="flex min-h-screen bg-[#f1f5f9] items-center justify-center p-6 font-['Inter',sans-serif]"
+      style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom, 0px))", paddingTop: "max(1.5rem, env(safe-area-inset-top, 0px))" }}
+    >
       <div className="bg-white rounded-[20px] shadow-[0_20px_50px_rgba(0,0,0,0.04)] w-full max-w-[360px] p-8 relative border border-slate-100">
         
         {/* Back Arrow - Made smaller and subtler */}
