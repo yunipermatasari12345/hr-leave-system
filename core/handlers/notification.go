@@ -13,21 +13,26 @@ import (
 var NotificationRepo notification.Repository
 
 func GetMyNotifications(w http.ResponseWriter, r *http.Request) {
-	userIDStr := r.Context().Value(middleware.UserIDKey)
-	var userID int32
-	switch v := userIDStr.(type) {
-	case float64:
-		userID = int32(v)
-	case int32:
-		userID = v
-	default:
+	userID, ok := middleware.UserIDFromContext(r.Context())
+	if !ok {
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(map[string]string{"error": "Sesi tidak valid"})
+		return
+	}
+
+	if NotificationRepo == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(map[string]string{"error": "Layanan notifikasi tidak tersedia"})
 		return
 	}
 
 	notifs, err := NotificationRepo.ListByUser(r.Context(), userID)
 	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(map[string]string{"error": "Gagal mengambil data notifikasi"})
 		return
 	}
 

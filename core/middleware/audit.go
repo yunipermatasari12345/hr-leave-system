@@ -40,16 +40,8 @@ func AuditLogMiddleware(next http.Handler) http.Handler {
 			}
 
 			var userID sql.NullInt32
-			val := r.Context().Value(UserIDKey)
-			if val != nil {
-				switch v := val.(type) {
-				case float64:
-					userID = sql.NullInt32{Int32: int32(v), Valid: true}
-				case int32:
-					userID = sql.NullInt32{Int32: v, Valid: true}
-				case int:
-					userID = sql.NullInt32{Int32: int32(v), Valid: true}
-				}
+			if uid, ok := UserIDFromContext(r.Context()); ok {
+				userID = sql.NullInt32{Int32: uid, Valid: true}
 			}
 			log.Printf("[Audit-Debug] UserID found in context: %v\n", userID)
 

@@ -145,7 +145,13 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func Me(w http.ResponseWriter, r *http.Request) {
-	userID := int32(r.Context().Value(middleware.UserIDKey).(float64))
+	userID, ok := middleware.UserIDFromContext(r.Context())
+	if !ok {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Sesi tidak valid, silakan login ulang"})
+		return
+	}
 
 	// Get employee details
 	emp, err := EmployeeService.GetByUserID(r.Context(), userID)

@@ -8,12 +8,15 @@ import (
 	dleave "hr-leave-system/core/domain/leave"
 	"hr-leave-system/core/middleware"
 	"io"
+	"log"
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/lib/pq"
 )
 
 const maxAttachmentBytes = 10 << 20
@@ -113,18 +116,75 @@ func parseMultipartAttachment(r *http.Request, field string) (*dleave.Attachment
 	return &dleave.AttachmentInput{Data: raw, ContentType: ctype, Filename: filepath.Base(fname)}, nil
 }
 
+func requireUserIDJSON(w http.ResponseWriter, r *http.Request) (int32, bool) {
+	id, ok := middleware.UserIDFromContext(r.Context())
+	if !ok {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(map[string]string{"error": "Sesi tidak valid, silakan login ulang"})
+		return 0, false
+	}
+	return id, true
+}
+
+type createLeaveJSONBody struct {
+	LeaveTypeID int32  `json:"leave_type_id"`
+	StartDate   string `json:"start_date"`
+	EndDate     string `json:"end_date"`
+	Reason      string `json:"reason"`
+}
+
 func CreateLeaveRequest_(w http.ResponseWriter, r *http.Request) {
-	userID := int32(r.Context().Value(middleware.UserIDKey).(float64))
+	userID, ok := requireUserIDJSON(w, r)
+	if !ok {
+		return
+	}
 
-	// Parse multipart form (max 10MB)
-	r.ParseMultipartForm(maxAttachmentBytes)
+	var leaveTypeID int32
+	var startDate, endDate, reason string
+	var att *dleave.AttachmentInput
 
-	leaveTypeIDStr := r.FormValue("leave_type_id")
-	startDate := r.FormValue("start_date")
-	endDate := r.FormValue("end_date")
-	reason := r.FormValue("reason")
+	ct := strings.ToLower(r.Header.Get("Content-Type"))
+	if strings.Contains(ct, "application/json") {
+		var body createLeaveJSONBody
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]string{"error": "Format JSON tidak valid"})
+			return
+		}
+		leaveTypeID = body.LeaveTypeID
+		startDate = strings.TrimSpace(body.StartDate)
+		endDate = strings.TrimSpace(body.EndDate)
+		reason = strings.TrimSpace(body.Reason)
+		att = nil
+	} else {
+		if err := r.ParseMultipartForm(maxAttachmentBytes); err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]string{"error": "Form pengajuan tidak valid. Coba kirim ulang atau kurangi ukuran lampiran."})
+			return
+		}
+		leaveTypeIDStr := r.FormValue("leave_type_id")
+		startDate = r.FormValue("start_date")
+		endDate = r.FormValue("end_date")
+		reason = r.FormValue("reason")
+		parsed, _ := strconv.Atoi(leaveTypeIDStr)
+		leaveTypeID = int32(parsed)
 
-	leaveTypeID, _ := strconv.Atoi(leaveTypeIDStr)
+		a, formErr := parseMultipartAttachment(r, "attachment")
+		if formErr != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": "File lampiran tidak valid atau terlalu besar"})
+			return
+		}
+		att = a
+		if att == nil || len(att.Data) == 0 {
+			att = nil
+		}
+	}
+
 	if leaveTypeID <= 0 {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
@@ -132,27 +192,13 @@ func CreateLeaveRequest_(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var att *dleave.AttachmentInput
-	a, formErr := parseMultipartAttachment(r, "attachment")
-	if formErr != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "File lampiran tidak valid atau terlalu besar"})
-		return
-	}
-	att = a
-
 	attachmentURL := ""
-	if att == nil || len(att.Data) == 0 {
-		att = nil
-	}
-
-	created, err := LeaveService.SubmitRequest(r.Context(), userID, int32(leaveTypeID), startDate, endDate, reason, attachmentURL, att)
+	created, err := LeaveService.SubmitRequest(r.Context(), userID, leaveTypeID, startDate, endDate, reason, attachmentURL, att)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		if errors.Is(err, application.ErrEmployeeNotFound) {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Data karyawan tidak ditemukan"})
+			json.NewEncoder(w).Encode(map[string]string{"error": "Akun Anda belum punya data karyawan di sistem. Minta HRD menambahkan data karyawan untuk email Anda."})
 			return
 		}
 		if errors.Is(err, application.ErrValidation) {
@@ -162,12 +208,26 @@ func CreateLeaveRequest_(w http.ResponseWriter, r *http.Request) {
 		}
 		if errors.Is(err, dleave.ErrInvalidDateRange) {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Rentang tanggal tidak valid"})
+			json.NewEncoder(w).Encode(map[string]string{"error": "Rentang tanggal tidak valid: harus ada minimal satu hari kerja (bukan hanya Sabtu/Minggu)."})
 			return
 		}
-		fmt.Println("CREATE LEAVE 500 ERROR:", err) // Added for debugging
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) {
+			switch pqErr.Code {
+			case "23503":
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(map[string]string{"error": "Jenis cuti tidak dikenali atau data tidak cocok. Muat ulang halaman dan pilih jenis cuti lagi."})
+				return
+			case "23514":
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(map[string]string{"error": "Data cuti tidak memenuhi aturan database. Hubungi HRD."})
+				return
+			}
+		}
+		log.Printf("CREATE LEAVE error: %v", err)
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Internal Server Error: " + err.Error()})
+		json.NewEncoder(w).Encode(map[string]string{"error": "Gagal mengajukan cuti: " + err.Error()})
 		return
 	}
 
@@ -185,7 +245,10 @@ func GetLeaveAttachmentEmployee(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{"error": "ID tidak valid"})
 		return
 	}
-	userID := int32(r.Context().Value(middleware.UserIDKey).(float64))
+	userID, ok := requireUserIDJSON(w, r)
+	if !ok {
+		return
+	}
 	data, ctype, fname, err := LeaveService.GetAttachment(r.Context(), userID, int32(id), false)
 	writeAttachment(w, err, ctype, fname, data)
 }
@@ -199,7 +262,10 @@ func GetLeaveAttachmentHR(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{"error": "ID tidak valid"})
 		return
 	}
-	userID := int32(r.Context().Value(middleware.UserIDKey).(float64))
+	userID, ok := requireUserIDJSON(w, r)
+	if !ok {
+		return
+	}
 	data, ctype, fname, err := LeaveService.GetAttachment(r.Context(), userID, int32(id), true)
 	writeAttachment(w, err, ctype, fname, data)
 }
@@ -232,7 +298,10 @@ func writeAttachment(w http.ResponseWriter, err error, ctype, fname string, data
 }
 
 func GetMyLeaves(w http.ResponseWriter, r *http.Request) {
-	userID := int32(r.Context().Value(middleware.UserIDKey).(float64))
+	userID, ok := requireUserIDJSON(w, r)
+	if !ok {
+		return
+	}
 	leaves, err := LeaveService.MyRequests(r.Context(), userID)
 	if err != nil {
 		if errors.Is(err, application.ErrEmployeeNotFound) {
@@ -256,7 +325,10 @@ func GetMyLeaves(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetMyBalances(w http.ResponseWriter, r *http.Request) {
-	userID := int32(r.Context().Value(middleware.UserIDKey).(float64))
+	userID, ok := requireUserIDJSON(w, r)
+	if !ok {
+		return
+	}
 
 	year := int32(time.Now().Year())
 	balances, err := LeaveService.MyBalances(r.Context(), userID, year)
@@ -291,7 +363,10 @@ func UpdateLeaveStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := int32(r.Context().Value(middleware.UserIDKey).(float64))
+	userID, ok := requireUserIDJSON(w, r)
+	if !ok {
+		return
+	}
 	var req UpdateLeaveStatusRequest
 	json.NewDecoder(r.Body).Decode(&req)
 
@@ -348,7 +423,10 @@ func DeleteLeaveRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateManualLeaveHR(w http.ResponseWriter, r *http.Request) {
-	hrUserID := int32(r.Context().Value(middleware.UserIDKey).(float64))
+	hrUserID, ok := requireUserIDJSON(w, r)
+	if !ok {
+		return
+	}
 
 	r.ParseMultipartForm(maxAttachmentBytes)
 

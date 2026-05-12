@@ -2,8 +2,10 @@ package middleware
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -15,6 +17,44 @@ const UserIDKey contextKey = "userID"
 const UserRoleKey contextKey = "userRole"
 
 var JwtSecret = []byte("HR_LEAVE_SECRET_KEY_2024")
+
+// UserIDFromContext membaca user_id dari context JWT (tipe klaim bisa bervariasi).
+func UserIDFromContext(ctx context.Context) (int32, bool) {
+	val := ctx.Value(UserIDKey)
+	if val == nil {
+		return 0, false
+	}
+	switch v := val.(type) {
+	case float64:
+		if v <= 0 || v > 2147483647 {
+			return 0, false
+		}
+		return int32(v), true
+	case int32:
+		return v, true
+	case int:
+		return int32(v), true
+	case int64:
+		if v <= 0 || v > 2147483647 {
+			return 0, false
+		}
+		return int32(v), true
+	case json.Number:
+		n, err := v.Int64()
+		if err != nil || n <= 0 || n > 2147483647 {
+			return 0, false
+		}
+		return int32(n), true
+	case string:
+		n, err := strconv.ParseInt(strings.TrimSpace(v), 10, 32)
+		if err != nil || n < 0 {
+			return 0, false
+		}
+		return int32(n), true
+	default:
+		return 0, false
+	}
+}
 
 func JWTMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -109,12 +109,19 @@ export default function EmployeeDashboard() {
   const handleSubmitLeave = async () => {
     if (!leaveForm.leave_type_id || !leaveForm.start_date || !leaveForm.end_date || !leaveForm.reason) { setLeaveError("Semua field wajib diisi!"); return; }
     if (new Date(leaveForm.end_date) < new Date(leaveForm.start_date)) { setLeaveError("Tanggal selesai tidak boleh sebelum tanggal mulai!"); return; }
+    if (totalDays() <= 0) {
+      setLeaveError("Pilih tanggal yang memuat minimal satu hari kerja (bukan hanya akhir pekan).");
+      return;
+    }
     setLeaveLoading(true); setLeaveError(""); setLeaveSuccess("");
     try {
-      const formData = new FormData();
-      Object.keys(leaveForm).forEach(k => formData.append(k, leaveForm[k]));
-      if (attachmentFile) formData.append("attachment", attachmentFile);
-      await leaveApi.createRequest(formData);
+      await leaveApi.createRequest({
+        leave_type_id: leaveForm.leave_type_id,
+        start_date: leaveForm.start_date,
+        end_date: leaveForm.end_date,
+        reason: leaveForm.reason,
+        attachment: attachmentFile || undefined,
+      });
       setLeaveSuccess("Pengajuan berhasil dikirim! Menunggu persetujuan HRD.");
       fetchLeaves(); fetchBalances();
       setTimeout(() => { setActivePage("leaves"); setLeaveForm({ leave_type_id: "", start_date: "", end_date: "", reason: "" }); setAttachmentFile(null); setLeaveSuccess(""); }, 2000);

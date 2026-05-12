@@ -10,9 +10,29 @@ export const leaveApi = {
   getMyBalances() {
     return apiClient.get("/employee/leave-balances").then((r) => r.data);
   },
-  createRequest(payload) {
-    const config = {};
-    return apiClient.post("/employee/leaves", payload, config).then((r) => r.data);
+  /** Tanpa file: JSON (lebih andal). Dengan file: multipart. */
+  createRequest({ leave_type_id, start_date, end_date, reason, attachment }) {
+    if (attachment) {
+      const fd = new FormData();
+      fd.append("leave_type_id", String(leave_type_id));
+      fd.append("start_date", start_date);
+      fd.append("end_date", end_date);
+      fd.append("reason", reason);
+      fd.append("attachment", attachment);
+      return apiClient.post("/employee/leaves", fd).then((r) => r.data);
+    }
+    return apiClient
+      .post(
+        "/employee/leaves",
+        {
+          leave_type_id: Number(leave_type_id),
+          start_date,
+          end_date,
+          reason,
+        },
+        { headers: { "Content-Type": "application/json" } },
+      )
+      .then((r) => r.data);
   },
   getMyNotifications() {
     return apiClient.get("/employee/notifications").then((r) => r.data);

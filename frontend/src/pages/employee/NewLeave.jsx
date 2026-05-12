@@ -55,17 +55,19 @@ export default function NewLeave() {
     if (new Date(form.end_date) < new Date(form.start_date)) {
       setError("Tanggal selesai tidak boleh sebelum tanggal mulai!"); return;
     }
+    if (totalDays() <= 0) {
+      setError("Pilih tanggal yang memuat minimal satu hari kerja (bukan hanya akhir pekan).");
+      return;
+    }
     setLoading(true); setError(""); setSuccess("");
     try {
-      const formData = new FormData();
-      formData.append("leave_type_id", form.leave_type_id);
-      formData.append("start_date", form.start_date);
-      formData.append("end_date", form.end_date);
-      formData.append("reason", form.reason);
-      if (attachmentFile) {
-        formData.append("attachment", attachmentFile);
-      }
-      await leaveApi.createRequest(formData);
+      await leaveApi.createRequest({
+        leave_type_id: form.leave_type_id,
+        start_date: form.start_date,
+        end_date: form.end_date,
+        reason: form.reason,
+        attachment: attachmentFile || undefined,
+      });
       setSuccess("Pengajuan berhasil dikirim! Menunggu persetujuan HRD.");
       setTimeout(() => navigate("/dashboard"), 2000);
     } catch (e) {
