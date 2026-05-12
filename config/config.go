@@ -14,6 +14,7 @@ import (
 )
 
 var DB *sql.DB
+var InitError error
 
 func InitDB() {
 	dsn := os.Getenv("DATABASE_URL")
