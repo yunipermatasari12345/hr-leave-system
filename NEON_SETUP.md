@@ -26,9 +26,10 @@ Jalankan file SQL **berurutan** pada database baru (SQL Editor Neon atau `psql`)
 | 2 | `db/migrations/002_enterprise_features.sql` |
 | 3 | `db/migrations/003_add_attachment.sql` |
 | 4 | `db/migrations/004_audit_trail.sql` |
-| 5 | `db/migrations/004_leave_attachment_binary.sql` |
+| 5 | `db/migrations/005_leave_attachment_binary.sql` |
 
-> Catatan: ada dua file bernomor `004_`; urutan di atas: dulu audit trail, lalu lampiran BYTEA.
+> Catatan: Gunakan urutan di atas; dulu audit trail, lalu lampiran BYTEA.
+
 
 ## 4. (Opsional) Pindahkan data dari project Neon lama
 
