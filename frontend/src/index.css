@@ -236,9 +236,14 @@ body {
     min-height: auto !important;
     border-right: none !important;
     border-bottom: 1px solid #e5e7eb !important;
-    padding: 16px !important;
+    padding: 12px 16px !important;
     display: flex !important;
     flex-direction: column !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
   }
   
   .sidebar-logo {
@@ -247,12 +252,13 @@ body {
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
+    width: 100% !important;
   }
   .sidebar-logo img {
-    height: 40px !important;
+    height: 32px !important;
   }
   .sidebar-logo h1 {
-    font-size: 20px !important;
+    font-size: 18px !important;
   }
 
   .mobile-menu-btn {
@@ -268,6 +274,10 @@ body {
     display: flex !important;
     flex-direction: column !important;
     margin-top: 16px !important;
+    background: white !important;
+    border-radius: 12px !important;
+    padding: 8px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
   }
 
   .sidebar-menu {
@@ -277,7 +287,7 @@ body {
     padding: 0 !important;
     margin: 0 !important;
     white-space: normal !important;
-    gap: 8px !important;
+    gap: 4px !important;
   }
   .sidebar-menu > div {
     margin-bottom: 0 !important;
