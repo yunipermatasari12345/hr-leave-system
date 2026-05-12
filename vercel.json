@@ -17,5 +17,7 @@
     { "src": "/api/(.*)", "dest": "/api/index.go" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
-  ]
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false
 }
