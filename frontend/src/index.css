@@ -479,3 +479,14 @@ body {
   transform: translateY(-4px);
   box-shadow: 0 12px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
 }
+/* Mobile Tap Optimization */
+@media (max-width: 768px) {
+    button, a, .clickable {
+        cursor: pointer;
+        touch-action: manipulation;
+        min-height: 44px;
+    }
+    .sidebar-active {
+        z-index: 9999 !important;
+    }
+}
