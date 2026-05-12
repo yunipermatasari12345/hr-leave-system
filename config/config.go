@@ -17,21 +17,13 @@ var DB *sql.DB
 var InitError error
 
 func InitDB() {
-	dsn := os.Getenv("DATABASE_URL")
-	if dsn == "" {
+	dsnRaw := os.Getenv("DATABASE_URL")
+	if dsnRaw == "" {
 		InitError = fmt.Errorf("DATABASE_URL tidak ditemukan di environment variables")
 		log.Println(InitError)
 		return
 	}
-
-	// Tambahkan timeout ke DSN jika belum ada
-	if !strings.Contains(dsn, "connect_timeout") {
-		if strings.Contains(dsn, "?") {
-			dsn += "&connect_timeout=10"
-		} else {
-			dsn += "?connect_timeout=10"
-		}
-	}
+	dsn := augmentPostgresURL(strings.TrimSpace(dsnRaw))
 
 	var err error
 	DB, err = sql.Open("postgres", dsn)
