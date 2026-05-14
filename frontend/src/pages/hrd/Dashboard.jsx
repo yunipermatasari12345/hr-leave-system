@@ -313,6 +313,28 @@ export default function HrdDashboard() {
     }
   };
 
+    } catch (err) {
+      alert(err.response?.data?.error || "Gagal memperbarui role");
+    }
+  };
+
+  const handleExportExcel = async () => {
+    if (leaves.length === 0) {
+      alert("Tidak ada data untuk diekspor");
+      return;
+    }
+    setIsExporting(true);
+    try {
+      await exportLeavesWithImages(leaves, API_BASE_URL);
+      setSuccessModal({ open: true, title: "Ekspor Berhasil", message: "File Excel premium dengan format lengkap telah berhasil diunduh." });
+    } catch (err) {
+      console.error(err);
+      alert("Gagal mengekspor data Excel");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleManualSubmit = async () => {
     if (!manualForm.employee_id || !manualForm.leave_type_id || !manualForm.start_date || !manualForm.end_date || !manualForm.reason) {
       setManualError("Semua field wajib diisi!"); return;
@@ -881,35 +903,93 @@ export default function HrdDashboard() {
         )}
 
         {activePage === "reports" && (
-           <div style={{ background: T.cardBg, borderRadius: 12, border: T.cardBorder }}>
-             <div style={{ padding: "20px 24px", borderBottom: T.cardBorder, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-               <div></div>
-               <Button size="sm" onClick={exportReportsToExcel} style={{ background: T.cardBg, border: T.cardBorder, color: T.textDark, fontWeight: "600", borderRadius: 6 }}>Export (XLSX)</Button>
+           <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+             {/* SUMMARY CARDS REPORTS */}
+             <div className="resp-grid-3">
+                <div style={{ background: T.cardBg, borderRadius: 16, border: T.cardBorder, padding: 24, borderLeft: `6px solid ${T.primary}` }}>
+                   <p style={{ margin: "0 0 8px 0", fontSize: 12, fontWeight: "700", color: T.textGray, textTransform: "uppercase" }}>Total Cuti Disetujui</p>
+                   <h3 style={{ margin: 0, fontSize: 24, fontWeight: "800", color: T.textDark }}>{reports.reduce((sum, r) => sum + r.total_leaves, 0)} <span style={{fontSize: 14, fontWeight: "500", color: T.textGray}}>Transaksi</span></h3>
+                </div>
+                <div style={{ background: T.cardBg, borderRadius: 16, border: T.cardBorder, padding: 24, borderLeft: `6px solid ${T.green}` }}>
+                   <p style={{ margin: "0 0 8px 0", fontSize: 12, fontWeight: "700", color: T.textGray, textTransform: "uppercase" }}>Total Hari Istirahat</p>
+                   <h3 style={{ margin: 0, fontSize: 24, fontWeight: "800", color: T.textDark }}>{reports.reduce((sum, r) => sum + r.total_days, 0)} <span style={{fontSize: 14, fontWeight: "500", color: T.textGray}}>Hari Kerja</span></h3>
+                </div>
+                <div style={{ background: T.cardBg, borderRadius: 16, border: T.cardBorder, padding: 24, borderLeft: `6px solid ${T.yellow}` }}>
+                   <p style={{ margin: "0 0 8px 0", fontSize: 12, fontWeight: "700", color: T.textGray, textTransform: "uppercase" }}>Dep. Paling Aktif</p>
+                   <h3 style={{ margin: 0, fontSize: 20, fontWeight: "800", color: T.textDark, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {reports.length > 0 ? reports.reduce((prev, current) => (prev.total_leaves > current.total_leaves) ? prev : current).department : "-"}
+                   </h3>
+                </div>
              </div>
-             <div className="resp-table-wrapper">
-             <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
-               <thead>
-                 <tr>
-                   <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase" }}>Departemen</th>
-                   <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Total Pengajuan ACC</th>
-                   <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Total Durasi Cuti</th>
-                 </tr>
-               </thead>
-               <tbody>
-                 {reports.map((r, i) => (
-                   <tr key={i} style={{ borderBottom: T.cardBorder }}>
-                      <td style={{ padding: "16px 24px", fontSize: 14, color: T.textDark, fontWeight: "600" }}>{r.department}</td>
-                      <td style={{ padding: "16px 24px", fontSize: 13, color: T.textGray, textAlign: "center" }}>{r.total_leaves} Transaksi</td>
-                      <td style={{ padding: "16px 24px", fontSize: 13, color: T.primary, fontWeight: "600", textAlign: "center" }}>{r.total_days} Hari</td>
+
+             <div className="resp-grid-2" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
+                {/* CHART SECTION */}
+                <div style={{ background: T.cardBg, borderRadius: 16, border: T.cardBorder, padding: 24 }}>
+                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+                      <h3 style={{ margin: 0, fontSize: 16, fontWeight: "800", color: T.textDark }}>Analisis Cuti per Departemen</h3>
+                   </div>
+                   <div style={{ height: 300, width: "100%" }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                         <BarChart data={reports}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? "#334155" : "#e2e8f0"} />
+                            <XAxis dataKey="department" axisLine={false} tickLine={false} tick={{fill: T.textGray, fontSize: 12}} />
+                            <YAxis axisLine={false} tickLine={false} tick={{fill: T.textGray, fontSize: 12}} />
+                            <Tooltip 
+                               contentStyle={{ background: T.cardBg, border: T.cardBorder, borderRadius: 12, boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)" }}
+                               itemStyle={{ color: T.primary, fontWeight: "bold" }}
+                            />
+                            <Bar dataKey="total_leaves" fill={T.primary} radius={[6, 6, 0, 0]} barSize={40} />
+                         </BarChart>
+                      </ResponsiveContainer>
+                   </div>
+                </div>
+
+                {/* ACTION CARD */}
+                <div style={{ background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)", borderRadius: 16, padding: 32, color: "white", display: "flex", flexDirection: "column", justifyContent: "center", position: "relative", overflow: "hidden" }}>
+                   <div style={{ position: "absolute", right: -20, bottom: -20, fontSize: 120, opacity: 0.1 }}>??</div>
+                   <h3 style={{ margin: "0 0 16px 0", fontSize: 20, fontWeight: "800" }}>Siap untuk Laporan Bulanan?</h3>
+                   <p style={{ margin: "0 0 32px 0", fontSize: 14, opacity: 0.8, lineHeight: 1.6 }}>Ekspor seluruh riwayat pengajuan cuti ke format Excel premium untuk memudahkan rekapitulasi gaji dan audit tahunan.</p>
+                   <Button 
+                      disableRipple 
+                      onPress={handleExportExcel}
+                      isLoading={isExporting}
+                      style={{ background: T.primary, color: "white", fontWeight: "800", borderRadius: 12, height: 52, fontSize: 15 }}
+                   >
+                      {isExporting ? "? Memproses Excel..." : "?? Ekspor Laporan Lengkap (.xlsx)"}
+                   </Button>
+                </div>
+             </div>
+
+             {/* TABLE SECTION */}
+             <div style={{ background: T.cardBg, borderRadius: 16, border: T.cardBorder }}>
+               <div style={{ padding: "20px 24px", borderBottom: T.cardBorder, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                 <h3 style={{ margin: 0, fontSize: 16, fontWeight: "800", color: T.textDark }}>Data Rekapitulasi Departemen</h3>
+                 <Button size="sm" onClick={exportReportsToExcel} style={{ background: "transparent", border: T.cardBorder, color: T.textDark, fontWeight: "600", borderRadius: 8, height: 36 }}>Ringkasan Departemen (.xlsx)</Button>
+               </div>
+               <div className="resp-table-wrapper">
+               <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+                 <thead>
+                   <tr>
+                     <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase" }}>Departemen</th>
+                     <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Total Pengajuan ACC</th>
+                     <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Total Durasi Cuti</th>
                    </tr>
-                 ))}
-                 {reports.length === 0 && <tr><td colSpan="3" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: T.textGray }}>Tidak ada data.</td></tr>}
-               </tbody>
-             </table>
+                 </thead>
+                 <tbody>
+                   {reports.map((r, i) => (
+                     <tr key={i} style={{ borderBottom: T.cardBorder }}>
+                        <td style={{ padding: "16px 24px", fontSize: 14, color: T.textDark, fontWeight: "600" }}>{r.department}</td>
+                        <td style={{ padding: "16px 24px", fontSize: 13, color: T.textGray, textAlign: "center" }}>{r.total_leaves} Transaksi</td>
+                        <td style={{ padding: "16px 24px", fontSize: 13, color: T.primary, fontWeight: "600", textAlign: "center" }}>{r.total_days} Hari</td>
+                     </tr>
+                   ))}
+                   {reports.length === 0 && <tr><td colSpan="3" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: T.textGray }}>Tidak ada data.</td></tr>}
+                 </tbody>
+               </table>
+               </div>
              </div>
            </div>
-        )}
-
+         )}
         {activePage === "audit" && (
            <div style={{ background: T.cardBg, borderRadius: 12, border: T.cardBorder }}>
              <div style={{ padding: "20px 24px", borderBottom: T.cardBorder, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1305,3 +1385,8 @@ export default function HrdDashboard() {
     </div>
   );
 }
+
+
+
+
+
