@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Textarea } from "@heroui/react";
+import { Button, Textarea, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from "@heroui/react";
 import { leaveApi } from "../../api/leaveApi";
 import { STORAGE_KEYS } from "../../constants/storage";
 
@@ -13,6 +13,7 @@ export default function NewLeave() {
   const [attachmentFile, setAttachmentFile] = useState(null);
   const [form, setForm] = useState({ leave_type_id: "", start_date: "", end_date: "", reason: "" });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const name = localStorage.getItem(STORAGE_KEYS.name) || "Karyawan";
   const dept = localStorage.getItem(STORAGE_KEYS.department) || "Grup Umum";
@@ -69,7 +70,8 @@ export default function NewLeave() {
         attachment: attachmentFile || undefined,
       });
       setSuccess("Pengajuan berhasil dikirim! Menunggu persetujuan HRD.");
-      setTimeout(() => navigate("/dashboard"), 2000);
+      onOpen(); // Tampilkan modal sukses
+      // setTimeout(() => navigate("/dashboard"), 2000); // Hapus auto-redirect agar user bisa klik OK
     } catch (e) {
       // Tampilkan error detail dari backend jika ada
       let backendMsg = e?.response?.data?.error || e?.response?.data?.message || e?.message || "Gagal mengajukan cuti";
@@ -244,6 +246,49 @@ export default function NewLeave() {
           </div>
         </div>
       </div>
+      {/* MODAL SUKSES PREMIUM */}
+      <Modal 
+        isOpen={isOpen} 
+        onOpenChange={onOpenChange}
+        isDismissable={false}
+        hideCloseButton
+        backdrop="blur"
+        placement="center"
+        motionProps={{
+          variants: {
+            enter: { y: 0, opacity: 1, transition: { duration: 0.3, ease: "easeOut" } },
+            exit: { y: 20, opacity: 0, transition: { duration: 0.2, ease: "easeIn" } },
+          }
+        }}
+        classNames={{
+          base: "border-[#e5e7eb] border-1",
+          header: "border-b-[1px] border-[#f1f5f9]",
+          footer: "border-t-[1px] border-[#f1f5f9]",
+        }}
+      >
+        <ModalContent>
+          <ModalBody className="py-10 flex flex-col items-center text-center">
+            <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mb-6 animate-bounce-subtle shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+              <span style={{ fontSize: 40 }}>✅</span>
+            </div>
+            <h3 className="text-2xl font-bold text-slate-800 mb-2">Pengajuan Terkirim!</h3>
+            <p className="text-slate-500 text-sm leading-relaxed max-w-[280px]">
+              Formulir pengajuan cuti Anda telah berhasil dikirim dan sedang dalam proses peninjauan oleh tim HRD.
+            </p>
+          </ModalBody>
+          <ModalFooter className="flex flex-col gap-2 p-6">
+            <Button 
+              className="w-full bg-blue-600 text-white font-semibold h-12 shadow-lg shadow-blue-200"
+              onPress={() => navigate("/dashboard")}
+            >
+              Kembali ke Dashboard
+            </Button>
+            <p className="text-[11px] text-slate-400 text-center mt-2">
+              Sistem Otomatis Appskep HR Management
+            </p>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   );
 }
