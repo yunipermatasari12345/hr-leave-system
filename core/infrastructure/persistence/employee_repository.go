@@ -146,29 +146,26 @@ func (r *employeeRepository) Delete(ctx context.Context, id int32) error {
 	if err != nil { return err }
 	defer tx.Rollback()
 
-	// Ambil user_id dari employee
+	// 1. Ambil user_id dari employee
 	var userID int32
 	err = tx.QueryRowContext(ctx, "SELECT user_id FROM employees WHERE id = $1", id).Scan(&userID)
 	if err != nil { return err }
 
-	// Hapus notifications user ini
+	// 2. Bersihkan tabel-tabel yang bergantung pada user_id
 	if _, err := tx.ExecContext(ctx, "DELETE FROM notifications WHERE user_id = $1", userID); err != nil { return err }
 
-	// Update leave_requests di mana employee ini bertindak sebagai reviewer menjadi NULL
+	// 3. Bersihkan tabel-tabel yang bergantung pada employee_id
+	// Set NULL dulu untuk reviewed_by agar tidak error saat menghapus employee
 	if _, err := tx.ExecContext(ctx, "UPDATE leave_requests SET reviewed_by = NULL WHERE reviewed_by = $1", id); err != nil { return err }
-
-	// Hapus history, requests, balances
-	if _, err := tx.ExecContext(ctx, "DELETE FROM leave_histories WHERE leave_request_id IN (SELECT id FROM leave_requests WHERE employee_id = $1)", id); err != nil { return err }
+	
+	// Hapus pengajuan cuti dan saldo cuti
 	if _, err := tx.ExecContext(ctx, "DELETE FROM leave_requests WHERE employee_id = $1", id); err != nil { return err }
 	if _, err := tx.ExecContext(ctx, "DELETE FROM leave_balances WHERE employee_id = $1", id); err != nil { return err }
 	
-	// Set null untuk user di tabel leave_histories supaya tidak FK constraint
-	if _, err := tx.ExecContext(ctx, "UPDATE leave_histories SET actor_id = NULL WHERE actor_id = $1", userID); err != nil { return err }
-
-	// Hapus employee itu sendiri
+	// 4. Hapus employee itu sendiri
 	if _, err := tx.ExecContext(ctx, "DELETE FROM employees WHERE id = $1", id); err != nil { return err }
 
-	// Hapus user di tabel users untuk membersihkan akses otentikasi
+	// 5. Terakhir, hapus user di tabel users
 	if _, err := tx.ExecContext(ctx, "DELETE FROM users WHERE id = $1", userID); err != nil { return err }
 
 	return tx.Commit()
