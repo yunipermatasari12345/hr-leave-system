@@ -165,3 +165,39 @@ func Me(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(emp)
 }
+
+func UpdateUserRole(w http.ResponseWriter, r *http.Request) {
+	// 1. Cek apakah yang meminta adalah admin
+	userRole, _ := middleware.UserRoleFromContext(r.Context())
+	if strings.ToLower(fmt.Sprintf("%v", userRole)) != "admin" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Hanya Admin yang dapat mengubah role secara dinamis"})
+		return
+	}
+
+	// 2. Decode request body
+	var req struct {
+		UserID int32  `json:"user_id"`
+		Role   string `json:"role"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Format request tidak valid"})
+		return
+	}
+
+	// 3. Eksekusi update
+	err := AuthService.UpdateUserRole(r.Context(), req.UserID, req.Role)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Gagal memperbarui role: " + err.Error()})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "Role berhasil diperbarui secara dinamis"})
+}
+

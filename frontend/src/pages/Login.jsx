@@ -27,7 +27,8 @@ export default function Login() {
       localStorage.setItem(STORAGE_KEYS.department, data.department || "");
       localStorage.setItem(STORAGE_KEYS.position, data.position || "");
 
-      if ((data.role || "").toLowerCase() === "hrd") navigate("/hrd/dashboard");
+      const userRole = (data.role || "").toLowerCase();
+      if (userRole === "hrd" || userRole === "admin") navigate("/hrd/dashboard");
       else navigate("/dashboard");
     } catch (e) {
       setError(

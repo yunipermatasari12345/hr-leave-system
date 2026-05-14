@@ -13,4 +13,7 @@ export const employeeApi = {
   deleteForHR(id) {
     return apiClient.delete(`/hrd/employees/${id}`);
   },
+  updateRole(userId, role) {
+    return apiClient.put("/hrd/employees/role", { user_id: userId, role }).then((r) => r.data);
+  },
 };

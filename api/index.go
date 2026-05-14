@@ -44,6 +44,7 @@ func registerAPIRoutes(router chi.Router) {
 		r.Get("/employees", handlers.GetAllEmployees)
 		r.Post("/employees", handlers.CreateEmployee)
 		r.Put("/employees/{id}", handlers.UpdateEmployee)
+		r.Put("/employees/role", handlers.UpdateUserRole)
 		r.Delete("/employees/{id}", handlers.DeleteEmployee)
 
 		r.Get("/dashboard/stats", handlers.GetDashboardStats)

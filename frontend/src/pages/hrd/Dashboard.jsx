@@ -61,6 +61,7 @@ export default function HrdDashboard() {
   const [activePage, setActivePage] = useState("dashboard");
   const navigate = useNavigate();
   const name = localStorage.getItem(STORAGE_KEYS.name) || "HRD Admin";
+  const myRole = localStorage.getItem(STORAGE_KEYS.role) || "hrd";
 
   // Lock scroll background saat ada modal terbuka
   useEffect(() => {
@@ -291,6 +292,19 @@ export default function HrdDashboard() {
       await employeeApi.updateForHR(editForm.id, editForm);
       setEditModalOpen(false); fetchEmployees();
     } catch { alert("Gagal update karyawan"); }
+  };
+
+  const handleUpdateRole = async (userId, newRole) => {
+    const confirmMsg = `Yakin ingin mengubah role karyawan ini menjadi ${newRole.toUpperCase()}?`;
+    if (!window.confirm(confirmMsg)) return;
+    
+    try {
+      await employeeApi.updateRole(userId, newRole);
+      alert("Role berhasil diperbarui!");
+      fetchEmployees();
+    } catch (err) {
+      alert(err.response?.data?.error || "Gagal memperbarui role");
+    }
   };
 
   const handleManualSubmit = async () => {
@@ -819,7 +833,21 @@ export default function HrdDashboard() {
                          <td style={{ padding: "12px", borderRight: "1px solid #e2e8f0" }}>{emp.full_name}</td>
                          <td style={{ padding: "12px", borderRight: "1px solid #e2e8f0" }}>{emp.phone || "0812983198"}</td>
                          <td style={{ padding: "12px", borderRight: "1px solid #e2e8f0" }}>{emp.department || "IT"}</td>
-                         <td style={{ padding: "12px", borderRight: "1px solid #e2e8f0" }}>{emp.role === "hrd" ? "Admin" : emp.position || "Pegawai"}</td>
+                         <td style={{ padding: "12px", borderRight: "1px solid #e2e8f0" }}>
+                            {myRole === "admin" ? (
+                              <select 
+                                value={emp.role} 
+                                onChange={(e) => handleUpdateRole(emp.user_id || emp.id, e.target.value)}
+                                style={{ padding: "4px 8px", borderRadius: 6, border: "1px solid #cbd5e1", fontSize: 11, fontWeight: "600", cursor: "pointer", background: emp.role === 'hrd' ? '#f5f3ff' : 'white', color: emp.role === 'hrd' ? '#7c3aed' : '#475569' }}
+                              >
+                                <option value="employee">Pegawai</option>
+                                <option value="hrd">Admin (HRD)</option>
+                                <option value="admin">Super Admin</option>
+                              </select>
+                            ) : (
+                              emp.role === "hrd" ? "Admin" : emp.role === "admin" ? "Super Admin" : "Pegawai"
+                            )}
+                          </td>
                          <td style={{ padding: "12px", display: "flex", gap: 4, justifyContent: "center" }}>
                            <button onClick={(e) => { e.stopPropagation(); openDetail(emp); }} style={{ background: "#3b82f6", color: "white", border: "none", borderRadius: 4, padding: "4px 8px", cursor: "pointer", fontSize: 11, fontWeight: "500" }}>Detail</button>
                            <button onClick={(e) => { e.stopPropagation(); openEdit(emp); }} style={{ background: "#eab308", color: "white", border: "none", borderRadius: 4, padding: "4px 8px", cursor: "pointer", fontSize: 11, fontWeight: "500" }}>Edit</button>

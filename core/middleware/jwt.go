@@ -56,6 +56,16 @@ func UserIDFromContext(ctx context.Context) (int32, bool) {
 	}
 }
 
+// UserRoleFromContext membaca role dari context JWT.
+func UserRoleFromContext(ctx context.Context) (string, bool) {
+	val := ctx.Value(UserRoleKey)
+	if val == nil {
+		return "", false
+	}
+	return fmt.Sprintf("%v", val), true
+}
+
+
 func JWTMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Ambil token dari header
@@ -114,9 +124,11 @@ func Role(requiredRole string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			role := r.Context().Value(UserRoleKey)
+			userRole := strings.ToLower(fmt.Sprintf("%v", role))
 			
-			// Normalisasi role (biasanya case-insensitive di sistem kita)
-			if role == nil || strings.ToLower(fmt.Sprintf("%v", role)) != strings.ToLower(requiredRole) {
+			// Jika role adalah 'admin', dia boleh akses semua (Super User)
+			// Atau jika role sesuai dengan yang diminta
+			if role == nil || (userRole != strings.ToLower(requiredRole) && userRole != "admin") {
 				http.Error(w, `{"error":"Akses ditolak, butuh role `+requiredRole+`"}`, http.StatusForbidden)
 				return
 			}

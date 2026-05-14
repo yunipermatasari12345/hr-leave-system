@@ -157,6 +157,15 @@ func (s *AuthService) CreateEmployeeAccount(ctx context.Context, email, fullName
 	return emp, nil
 }
 
+// UpdateUserRole mengubah role user secara dinamis (Admin Only)
+func (s *AuthService) UpdateUserRole(ctx context.Context, userID int32, newRole string) error {
+	if newRole == "" {
+		return errors.New("role tidak boleh kosong")
+	}
+	return s.users.UpdateRole(ctx, userID, newRole)
+}
+
+
 // IsEmailRegistered mengecek apakah email sudah terdaftar di sistem lokal
 func (s *AuthService) IsEmailRegistered(ctx context.Context, email string) (bool, string, error) {
 	normalizedEmail := strings.ToLower(strings.TrimSpace(email))
