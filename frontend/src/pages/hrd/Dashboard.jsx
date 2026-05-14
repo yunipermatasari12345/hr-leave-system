@@ -1286,8 +1286,8 @@ export default function HrdDashboard() {
       {/* SUCCESS MODAL REUSABLE */}
       {successModal.open && (
         <div className="resp-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10001, backdropFilter: "blur(6px)", padding: 20 }}>
-          <div className="resp-modal-shell success-bounce" style={{ background: "white", borderRadius: 28, padding: "40px 32px", width: 400, maxWidth: "100%", textAlign: "center", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.15)" }}>
-            <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#dcfce7", color: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, margin: "0 auto 24px", animation: "bounceSubtle 2s infinite" }}>
+          <div className="resp-modal-shell animate-bounce-subtle" style={{ background: "white", borderRadius: 28, padding: "40px 32px", width: 400, maxWidth: "100%", textAlign: "center", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.15)" }}>
+            <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#dcfce7", color: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, margin: "0 auto 24px" }}>
               ✓
             </div>
             <h2 style={{ fontSize: 22, fontWeight: "800", color: "#1e293b", margin: "0 0 12px 0" }}>{successModal.title}</h2>
