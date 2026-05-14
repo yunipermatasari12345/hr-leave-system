@@ -55,6 +55,7 @@ export default function HrdDashboard() {
   const [modalAttachmentMime, setModalAttachmentMime] = useState("");
   const [previewAttachmentUrl, setPreviewAttachmentUrl] = useState(null);
   const [previewAttachmentMime, setPreviewAttachmentMime] = useState("");
+  const [successModal, setSuccessModal] = useState({ open: false, title: "", message: "" });
   const modalAttachCleanupRef = useRef(null);
   const previewAttachCleanupRef = useRef(null);
 
@@ -157,7 +158,9 @@ export default function HrdDashboard() {
   const handleAction = async () => {
     try {
       await leaveApi.updateStatusHR(selected.id, { status: actionType, hrd_note: hrdNote });
-      setModalOpen(false); fetchLeaves(); fetchDashboardStats(); fetchEmployees();
+      setModalOpen(false); 
+      setSuccessModal({ open: true, title: "Status Diperbarui", message: `Pengajuan cuti telah berhasil di-${actionType === 'approved' ? 'setujui' : 'tolak'}.` });
+      fetchLeaves(); fetchDashboardStats(); fetchEmployees();
     } catch { alert("Gagal update status"); }
   };
 
@@ -272,6 +275,7 @@ export default function HrdDashboard() {
     if (window.confirm(`Yakin ingin menghapus karyawan ${empName}? Data pengajuan cutinya juga mungkin terhapus atau menjadi yatim.`)) {
       try {
         await employeeApi.deleteForHR(id);
+        setSuccessModal({ open: true, title: "Karyawan Dihapus", message: `Data karyawan ${empName} telah berhasil dihapus dari sistem.` });
         fetchEmployees(); fetchDashboardStats();
       } catch (err) { alert("Gagal menghapus karyawan."); }
     }
@@ -290,7 +294,9 @@ export default function HrdDashboard() {
   const handleEdit = async () => {
     try {
       await employeeApi.updateForHR(editForm.id, editForm);
-      setEditModalOpen(false); fetchEmployees();
+      setEditModalOpen(false); 
+      setSuccessModal({ open: true, title: "Data Diperbarui", message: "Informasi karyawan telah berhasil diperbarui." });
+      fetchEmployees();
     } catch { alert("Gagal update karyawan"); }
   };
 
@@ -300,7 +306,7 @@ export default function HrdDashboard() {
     
     try {
       await employeeApi.updateRole(userId, newRole);
-      alert("Role berhasil diperbarui!");
+      setSuccessModal({ open: true, title: "Role Diperbarui", message: `Akses karyawan telah berhasil diubah menjadi ${newRole.toUpperCase()}.` });
       fetchEmployees();
     } catch (err) {
       alert(err.response?.data?.error || "Gagal memperbarui role");
@@ -320,6 +326,7 @@ export default function HrdDashboard() {
       setManualModalOpen(false);
       setManualForm({ employee_id: "", leave_type_id: "", start_date: "", end_date: "", reason: "" });
       setManualFile(null);
+      setSuccessModal({ open: true, title: "Cuti Manual Berhasil", message: "Data pengajuan cuti manual telah berhasil disimpan." });
       fetchLeaves();
       fetchDashboardStats();
       fetchEmployees();
@@ -408,13 +415,10 @@ export default function HrdDashboard() {
     setAddLoading(true); setAddError(""); setAddSuccess("");
     try {
       await employeeApi.createForHR(addForm);
-      setAddSuccess("Karyawan berhasil ditambahkan!");
+      setAddModalOpen(false);
+      setAddForm({ email: "", full_name: "", department: "", position: "", phone: "", role: "employee" });
+      setSuccessModal({ open: true, title: "Karyawan Ditambahkan", message: "Akun karyawan baru telah berhasil dibuat dan didaftarkan." });
       fetchEmployees();
-      setTimeout(() => {
-        setAddModalOpen(false);
-        setAddSuccess("");
-        setAddForm({ email: "", full_name: "", department: "", position: "", phone: "", role: "employee" });
-      }, 1500);
     } catch (e) {
       setAddError(e.response?.data?.error || "Gagal menambahkan karyawan");
     } finally { setAddLoading(false); }
@@ -1041,8 +1045,7 @@ export default function HrdDashboard() {
               <div><p style={{ fontSize: 12, fontWeight: "700", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Nama Lengkap</p><input value={editForm.full_name} onChange={e => setEditForm({...editForm, full_name: e.target.value})} style={{ width: "100%", padding: "14px", borderRadius: 12, border: T.cardBorder, outline: "none", color: T.textDark, background: T.bg }} /></div>
               <div><p style={{ fontSize: 12, fontWeight: "700", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Departemen</p><input value={editForm.department} onChange={e => setEditForm({...editForm, department: e.target.value})} list="dept-list" style={{ width: "100%", padding: "14px", borderRadius: 12, border: T.cardBorder, outline: "none", color: T.textDark, background: T.bg }} /></div>
               <div><p style={{ fontSize: 12, fontWeight: "700", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Posisi / Jabatan</p><input value={editForm.position} onChange={e => setEditForm({...editForm, position: e.target.value})} list="pos-list" style={{ width: "100%", padding: "14px", borderRadius: 12, border: T.cardBorder, outline: "none", color: T.textDark, background: T.bg }} /></div>
-              <div>
-                <p style={{ fontSize: 12, fontWeight: "700", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Jabatan Sistem (Role)</p>
+              <div><p style={{ fontSize: 12, fontWeight: "700", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Jabatan Sistem (Role)</p>
                 <select 
                   value={editForm.role} 
                   onChange={e => setEditForm({...editForm, role: e.target.value})} 
@@ -1050,6 +1053,7 @@ export default function HrdDashboard() {
                 >
                   <option value="employee">Karyawan (Akses Biasa)</option>
                   <option value="hrd">Staff HRD (Akses Dashboard HRD)</option>
+                  <option value="admin">Super Admin (Akses Penuh)</option>
                 </select>
               </div>
             </div>
@@ -1238,17 +1242,29 @@ export default function HrdDashboard() {
               </div>
               <div>
                 <p style={{ fontSize: 12, fontWeight: "700", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Departemen <span style={{ color: T.red }}>*</span></p>
-                <select value={addForm.department} onChange={e => setAddForm({...addForm, department: e.target.value})} style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: T.cardBorder, outline: "none", color: T.textDark, background: T.bg, boxSizing: "border-box" }}>
-                  <option value="">Pilih Departemen</option>
-                  {DEPT_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
+                <input 
+                  list="dept-list"
+                  value={addForm.department} 
+                  onChange={e => setAddForm({...addForm, department: e.target.value})} 
+                  placeholder="Ketik atau pilih departemen..."
+                  style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: T.cardBorder, outline: "none", color: T.textDark, background: T.bg, boxSizing: "border-box" }} 
+                />
+                <datalist id="dept-list">
+                  {DEPT_OPTIONS.map(d => <option key={d} value={d} />)}
+                </datalist>
               </div>
               <div>
                 <p style={{ fontSize: 12, fontWeight: "700", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Jabatan <span style={{ color: T.red }}>*</span></p>
-                <select value={addForm.position} onChange={e => setAddForm({...addForm, position: e.target.value})} style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: T.cardBorder, outline: "none", color: T.textDark, background: T.bg, boxSizing: "border-box" }}>
-                  <option value="">Pilih Jabatan</option>
-                  {POS_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
-                </select>
+                <input 
+                  list="pos-list"
+                  value={addForm.position} 
+                  onChange={e => setAddForm({...addForm, position: e.target.value})} 
+                  placeholder="Ketik atau pilih jabatan..."
+                  style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: T.cardBorder, outline: "none", color: T.textDark, background: T.bg, boxSizing: "border-box" }} 
+                />
+                <datalist id="pos-list">
+                  {POS_OPTIONS.map(p => <option key={p} value={p} />)}
+                </datalist>
               </div>
               <div>
                 <p style={{ fontSize: 12, fontWeight: "700", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Hak Akses Sistem <span style={{ color: T.red }}>*</span></p>
@@ -1263,6 +1279,26 @@ export default function HrdDashboard() {
               <Button disableRipple onClick={() => setAddModalOpen(false)} style={{ flex: 1, background: T.cardBg, border: T.cardBorder, color: T.textGray, height: 48, borderRadius: 12, fontWeight: "600" }}>Batal</Button>
               <Button disableRipple onPress={handleAddSubmit} isLoading={addLoading} style={{ flex: 1, background: T.primary, color: "white", height: 48, borderRadius: 12, fontWeight: "600" }}>Simpan Data Karyawan</Button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* SUCCESS MODAL REUSABLE */}
+      {successModal.open && (
+        <div className="resp-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10001, backdropFilter: "blur(6px)", padding: 20 }}>
+          <div className="resp-modal-shell success-bounce" style={{ background: "white", borderRadius: 28, padding: "40px 32px", width: 400, maxWidth: "100%", textAlign: "center", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.15)" }}>
+            <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#dcfce7", color: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, margin: "0 auto 24px", animation: "bounceSubtle 2s infinite" }}>
+              ✓
+            </div>
+            <h2 style={{ fontSize: 22, fontWeight: "800", color: "#1e293b", margin: "0 0 12px 0" }}>{successModal.title}</h2>
+            <p style={{ fontSize: 14, color: "#64748b", margin: "0 0 32px 0", lineHeight: 1.6 }}>{successModal.message}</p>
+            <Button 
+              disableRipple 
+              onPress={() => setSuccessModal({ ...successModal, open: false })} 
+              style={{ width: "100%", background: "#1e293b", color: "white", height: 52, borderRadius: 16, fontWeight: "700", fontSize: 15 }}
+            >
+              Oke, Mengerti
+            </Button>
           </div>
         </div>
       )}
