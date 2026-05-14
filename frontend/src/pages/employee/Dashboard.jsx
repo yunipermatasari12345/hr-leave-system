@@ -28,6 +28,7 @@ export default function EmployeeDashboard() {
   const [leaveLoading, setLeaveLoading] = useState(false);
   const [leaveError, setLeaveError] = useState("");
   const [leaveSuccess, setLeaveSuccess] = useState("");
+  const [successModal, setSuccessModal] = useState({ open: false, title: "", message: "" });
 
   const openMyAttachment = async (l) => {
     try {
@@ -130,14 +131,11 @@ export default function EmployeeDashboard() {
         reason: leaveForm.reason,
         attachment: attachmentFile || undefined,
       });
-      setLeaveSuccess("Pengajuan berhasil dikirim! Menunggu persetujuan HRD.");
+      setSuccessModal({ open: true, title: "Pengajuan Terkirim!", message: "Formulir pengajuan cuti Anda telah berhasil dikirim dan sedang dalam proses peninjauan oleh tim HRD." });
       fetchLeaves(); fetchBalances();
-      setTimeout(() => { 
-        setIsLeaveModalOpen(false);
-        setLeaveForm({ leave_type_id: "", start_date: "", end_date: "", reason: "" }); 
-        setAttachmentFile(null); 
-        setLeaveSuccess(""); 
-      }, 2000);
+      setIsLeaveModalOpen(false);
+      setLeaveForm({ leave_type_id: "", start_date: "", end_date: "", reason: "" }); 
+      setAttachmentFile(null); 
     } catch (e) {
       setLeaveError(e.response?.data?.error || "Gagal mengajukan cuti");
     } finally { setLeaveLoading(false); }
@@ -389,7 +387,6 @@ export default function EmployeeDashboard() {
               </div>
 
               {leaveError && <div style={{ background: "#fef2f2", color: T.red, padding: "12px 16px", borderRadius: 8, fontSize: 13, fontWeight: "500", marginBottom: 24 }}>{leaveError}</div>}
-              {leaveSuccess && <div style={{ background: "#f0fdf4", color: T.green, padding: "12px 16px", borderRadius: 8, fontSize: 13, fontWeight: "500", marginBottom: 24 }}>{leaveSuccess}</div>}
 
               <div style={{ marginBottom: 20 }}>
                 <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
@@ -645,6 +642,26 @@ export default function EmployeeDashboard() {
         )}
 
       </div>
+
+      {/* SUCCESS MODAL REUSABLE */}
+      {successModal.open && (
+        <div className="resp-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10001, backdropFilter: "blur(6px)", padding: 20 }}>
+          <div className="resp-modal-shell success-bounce" style={{ background: "white", borderRadius: 28, padding: "40px 32px", width: 400, maxWidth: "100%", textAlign: "center", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.15)" }}>
+            <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#dcfce7", color: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, margin: "0 auto 24px", animation: "bounceSubtle 2s infinite" }}>
+              ✓
+            </div>
+            <h2 style={{ fontSize: 22, fontWeight: "800", color: "#1e293b", margin: "0 0 12px 0" }}>{successModal.title}</h2>
+            <p style={{ fontSize: 14, color: "#64748b", margin: "0 0 32px 0", lineHeight: 1.6 }}>{successModal.message}</p>
+            <Button 
+              disableRipple 
+              onPress={() => setSuccessModal({ ...successModal, open: false })} 
+              style={{ width: "100%", background: "#1e293b", color: "white", height: 52, borderRadius: 16, fontWeight: "700", fontSize: 15 }}
+            >
+              Oke, Mengerti
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
