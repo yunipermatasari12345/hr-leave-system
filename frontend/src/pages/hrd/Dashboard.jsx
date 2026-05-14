@@ -817,7 +817,7 @@ export default function HrdDashboard() {
                    <thead>
                      <tr style={{ borderBottom: "2px solid #e2e8f0", background: "white" }}>
                        <th style={{ padding: "12px", borderRight: "1px solid #e2e8f0", fontWeight: "700", cursor: "pointer" }}>No <span style={{ fontSize: 10 }}>▲</span></th>
-                       <th style={{ padding: "12px", borderRight: "1px solid #e2e8f0", fontWeight: "700", cursor: "pointer" }}>NPP <span style={{ fontSize: 10, color: "#cbd5e1" }}>◆</span></th>
+                       <th style={{ padding: "12px", borderRight: "1px solid #e2e8f0", fontWeight: "700", cursor: "pointer" }}>Email <span style={{ fontSize: 10, color: "#cbd5e1" }}>◆</span></th>
                        <th style={{ padding: "12px", borderRight: "1px solid #e2e8f0", fontWeight: "700", cursor: "pointer" }}>Nama <span style={{ fontSize: 10, color: "#cbd5e1" }}>◆</span></th>
                        <th style={{ padding: "12px", borderRight: "1px solid #e2e8f0", fontWeight: "700", cursor: "pointer" }}>Telepon <span style={{ fontSize: 10, color: "#cbd5e1" }}>◆</span></th>
                        <th style={{ padding: "12px", borderRight: "1px solid #e2e8f0", fontWeight: "700", cursor: "pointer" }}>Divisi <span style={{ fontSize: 10, color: "#cbd5e1" }}>◆</span></th>
@@ -829,7 +829,7 @@ export default function HrdDashboard() {
                      {employees.map((emp, index) => (
                        <tr key={emp.id} style={{ borderBottom: "1px solid #e2e8f0", background: index % 2 !== 0 ? "#f8fafc" : "white" }}>
                          <td style={{ padding: "12px", borderRight: "1px solid #e2e8f0" }}>{index + 1}</td>
-                         <td style={{ padding: "12px", borderRight: "1px solid #e2e8f0" }}>{emp.email.split('@')[0]}</td>
+                         <td style={{ padding: "12px", borderRight: "1px solid #e2e8f0" }}>{emp.email}</td>
                          <td style={{ padding: "12px", borderRight: "1px solid #e2e8f0" }}>{emp.full_name}</td>
                          <td style={{ padding: "12px", borderRight: "1px solid #e2e8f0" }}>{emp.phone || "0812983198"}</td>
                          <td style={{ padding: "12px", borderRight: "1px solid #e2e8f0" }}>{emp.department || "IT"}</td>
