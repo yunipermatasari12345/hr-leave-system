@@ -16,7 +16,6 @@ import {
   fetchLeaveAttachmentWithMeta,
   isImageAttachmentHint,
 } from "../../utils/leaveAttachmentFetch";
-
 export default function HrdDashboard() {
   const [leaves, setLeaves] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -28,6 +27,19 @@ export default function HrdDashboard() {
   const [isStatusOpen, setIsStatusOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const filteredLeaves = leaves.filter(l => 
+    (l.employee_name || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (l.employee_department || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (l.reason || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const filteredEmployees = employees.filter(emp => 
+    (emp.full_name || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (emp.email || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (emp.department || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (emp.position || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
   const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
   
   const [manualModalOpen, setManualModalOpen] = useState(false);
@@ -38,19 +50,15 @@ export default function HrdDashboard() {
   
   const DEPT_OPTIONS = ["Product", "Bisnis", "Kreatif"];
   const POS_OPTIONS = ["Coordinator of appsgizi", "Marketing", "Admin Officer", "Co Manager", "Manager"];
-
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editForm, setEditForm] = useState({ id: "", full_name: "", department: "", position: "", phone: "", role: "" });
-
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [addForm, setAddForm] = useState({ email: "", full_name: "", department: "", position: "", phone: "", role: "employee" });
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState("");
   const [addSuccess, setAddSuccess] = useState("");
-
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailEmp, setDetailEmp] = useState(null);
-
   const [modalAttachmentUrl, setModalAttachmentUrl] = useState(null);
   const [modalAttachmentMime, setModalAttachmentMime] = useState("");
   const [previewAttachmentUrl, setPreviewAttachmentUrl] = useState(null);
@@ -58,30 +66,25 @@ export default function HrdDashboard() {
   const [successModal, setSuccessModal] = useState({ open: false, title: "", message: "" });
   const modalAttachCleanupRef = useRef(null);
   const previewAttachCleanupRef = useRef(null);
-
   const [activePage, setActivePage] = useState("dashboard");
   const navigate = useNavigate();
   const name = localStorage.getItem(STORAGE_KEYS.name) || "HRD Admin";
   const myRole = localStorage.getItem(STORAGE_KEYS.role) || "hrd";
-
   // Lock scroll background saat ada modal terbuka
   useEffect(() => {
     const anyModalOpen = modalOpen || editModalOpen || detailModalOpen || previewOpen || manualModalOpen;
     document.body.style.overflow = anyModalOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [modalOpen, editModalOpen, detailModalOpen, previewOpen, manualModalOpen]);
-
   const [stats, setStats] = useState({ total_employees: 0, pending_today: 0, total_approved: 0, total_rejected: 0, total_pending: 0 });
   const [monthlyStats, setMonthlyStats] = useState([]);
   const [reports, setReports] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [positions, setPositions] = useState([]);
   const [leaveTypes, setLeaveTypes] = useState([]);
-
   const [filterStatus, setFilterStatus] = useState("");
   const [filterDept, setFilterDept] = useState("");
   const [auditLogs, setAuditLogs] = useState([]);
-
   useEffect(() => {
     const fetchData = () => {
       if (activePage === "dashboard") fetchDashboardStats();
@@ -100,7 +103,6 @@ export default function HrdDashboard() {
     const interval = setInterval(fetchData, 3000);
     return () => clearInterval(interval);
   }, [activePage, filterStatus, filterDept]);
-
   const fetchDashboardStats = async () => {
     try {
       const statsData = await reportingApi.dashboardStats();
@@ -109,21 +111,18 @@ export default function HrdDashboard() {
       setMonthlyStats(monthData || []);
     } catch {}
   };
-
   const fetchLeaves = async () => {
     try {
       const data = await leaveApi.getAdvancedForHR({ status: filterStatus, department: filterDept });
       setLeaves(data || []);
     } catch { setLeaves([]); }
   };
-
   const fetchEmployees = async () => {
     try {
       const data = await employeeApi.listForHR();
       setEmployees(data || []);
     } catch { setEmployees([]); }
   };
-
   const fetchMasterData = async () => {
     try {
       const d = await reportingApi.departments();
@@ -134,21 +133,18 @@ export default function HrdDashboard() {
       setLeaveTypes(lt || []);
     } catch {}
   };
-
   const fetchReports = async () => {
     try {
       const data = await reportingApi.leaveRecapPerDepartment();
       setReports(data || []);
     } catch {}
   };
-
   const fetchAuditLogs = async () => {
     try {
       const data = await auditApi.getAuditLogs();
       setAuditLogs(data || []);
     } catch {}
   };
-
   const openAction = (leave, type) => {
     setModalAttachmentUrl(null);
     setModalAttachmentMime("");
@@ -162,12 +158,10 @@ export default function HrdDashboard() {
       fetchLeaves(); fetchDashboardStats(); fetchEmployees();
     } catch { alert("Gagal update status"); }
   };
-
   const handleDeleteLeave = async (leave) => {
     const confirmMsg = leave.status === 'approved' 
       ? `Yakin ingin menghapus pengajuan dari ${leave.employee_name}? Saldo cuti (${leave.total_days} hari) akan DIKEMBALIKAN otomatis.`
       : `Yakin ingin menghapus pengajuan dari ${leave.employee_name}?`;
-
     if (!window.confirm(confirmMsg)) return;
     try {
       await leaveApi.deleteLeave(leave.id);
@@ -176,14 +170,12 @@ export default function HrdDashboard() {
       fetchEmployees(); // Sinkronkan daftar karyawan agar saldo terbaru muncul
     } catch { alert("Gagal menghapus pengajuan cuti."); }
   };
-
   const openPreview = (leave) => {
     setPreviewAttachmentUrl(null);
     setPreviewAttachmentMime("");
     setSelected(leave);
     setPreviewOpen(true);
   };
-
   useEffect(() => {
     modalAttachCleanupRef.current?.();
     modalAttachCleanupRef.current = null;
@@ -226,7 +218,6 @@ export default function HrdDashboard() {
       modalAttachCleanupRef.current = null;
     };
   }, [modalOpen, selected?.id, selected?.has_attachment, selected?.attachment_url]);
-
   useEffect(() => {
     previewAttachCleanupRef.current?.();
     previewAttachCleanupRef.current = null;
@@ -279,17 +270,14 @@ export default function HrdDashboard() {
       } catch (err) { alert("Gagal menghapus karyawan."); }
     }
   };
-
   const openEdit = (emp) => {
     setEditForm({ id: emp.id, full_name: emp.full_name, department: emp.department, position: emp.position, phone: emp.phone || "", role: emp.role || "employee" });
     setEditModalOpen(true);
   };
-
   const openDetail = (emp) => {
     setDetailEmp(emp);
     setDetailModalOpen(true);
   };
-
   const handleEdit = async () => {
     try {
       await employeeApi.updateForHR(editForm.id, editForm);
@@ -298,7 +286,6 @@ export default function HrdDashboard() {
       fetchEmployees();
     } catch { alert("Gagal update karyawan"); }
   };
-
   const handleUpdateRole = async (userId, newRole) => {
     const confirmMsg = `Yakin ingin mengubah role karyawan ini menjadi ${newRole.toUpperCase()}?`;
     if (!window.confirm(confirmMsg)) return;
@@ -311,7 +298,6 @@ export default function HrdDashboard() {
       alert(err.response?.data?.error || "Gagal memperbarui role");
     }
   };
-
   const handleExportExcel = async () => {
     if (leaves.length === 0) {
       alert("Tidak ada data untuk diekspor");
@@ -328,7 +314,6 @@ export default function HrdDashboard() {
       setIsExporting(false);
     }
   };
-
   const handleManualSubmit = async () => {
     if (!manualForm.employee_id || !manualForm.leave_type_id || !manualForm.start_date || !manualForm.end_date || !manualForm.reason) {
       setManualError("Semua field wajib diisi!"); return;
@@ -352,9 +337,7 @@ export default function HrdDashboard() {
       setManualLoading(false);
     }
   };
-
   const handleLogout = () => { localStorage.clear(); navigate("/login"); };
-
   const exportLeavesToExcel = async () => {
     if (isExporting) return;
     setIsExporting(true);
@@ -367,7 +350,6 @@ export default function HrdDashboard() {
       setIsExporting(false);
     }
   };
-
   const exportReportsToExcel = () => {
     if (!computedReports || computedReports.length === 0) {
       alert("Tidak ada data laporan untuk diekspor.");
@@ -382,18 +364,15 @@ export default function HrdDashboard() {
     XLSX.utils.book_append_sheet(wb, ws, "Rekap Laporan");
     XLSX.writeFile(wb, `Laporan_Rekap_Departemen_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
-
   const pending = leaves.filter(l => l.status === "pending");
   const approved = leaves.filter(l => l.status === "approved" || l.status === "disetujui");
   const rejected = leaves.filter(l => l.status === "rejected");
-
   // Dynamic live computation of department recap reports for 100% real-time synchronization
   const computedReports = (() => {
     const map = {};
     DEPT_OPTIONS.forEach(dept => {
       map[dept.toLowerCase()] = { department: dept, total_leaves: 0, total_days: 0 };
     });
-
     leaves.forEach(l => {
       const statusVal = (l.status || "").toLowerCase();
       if (statusVal === "approved" || statusVal === "disetujui") {
@@ -406,24 +385,19 @@ export default function HrdDashboard() {
         map[key].total_days += Number(l.total_days || 0);
       }
     });
-
     return Object.values(map);
   })();
-
   const todayStr = new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-
   const activeTabStyle = { bg: "#eff6ff", text: "#1d4ed8" };
   
   const savedTheme = localStorage.getItem("hr_theme");
   const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
   const [isDarkMode, setIsDarkMode] = useState(savedTheme ? savedTheme === "dark" : systemDark);
-
   const toggleTheme = () => {
     const next = !isDarkMode;
     setIsDarkMode(next);
     localStorage.setItem("hr_theme", next ? "dark" : "light");
   };
-
   const mode = isDarkMode ? "dark" : "light";
   const T = { 
     bg: mode === "dark" ? "#0f172a" : "#f8fafc", 
@@ -439,9 +413,7 @@ export default function HrdDashboard() {
     yellow: mode === "dark" ? "#d97706" : "#f59e0b",
     highlightBg: mode === "dark" ? "#1e3a8a" : "#eff6ff"
   };
-
   const statusStyle = { pending: { bg: "#fef3c7", color: "#d97706", label: "Menunggu" }, approved: { bg: "#dcfce7", color: "#166534", label: "Disetujui" }, rejected: { bg: "#fee2e2", color: "#991b1b", label: "Ditolak" }, disetujui: { bg: "#dcfce7", color: "#166534", label: "Disetujui" } };
-
   const MenuItem = ({ id, label, icon, onClick }) => {
     const isActive = activePage === id;
     return (
@@ -472,7 +444,6 @@ export default function HrdDashboard() {
       </div>
     );
   };
-
   const handleAddSubmit = async () => {
     if (!addForm.email || !addForm.full_name || !addForm.department || !addForm.position || !addForm.role) {
       setAddError("Semua field wajib diisi kecuali nomor HP!"); return;
@@ -488,7 +459,6 @@ export default function HrdDashboard() {
       setAddError(e.response?.data?.error || "Gagal menambahkan karyawan");
     } finally { setAddLoading(false); }
   };
-
   return (
     <div className={`resp-layout font-['Plus_Jakarta_Sans',sans-serif] ${isDarkMode ? "dark" : ""} w-full`} style={{ display: "flex", minHeight: "100vh", background: T.bg, color: T.textDark, transition: "background 0.3s, color 0.3s" }}>
       
@@ -513,7 +483,6 @@ export default function HrdDashboard() {
             <MenuItem id="reports" label="Laporan Ekspor" icon="📊" />
             <MenuItem id="audit" label="Audit Trail" icon="🛡️" />
           </div>
-
           {/* RINGKASAN DATA COLLAPSIBLE */}
           <div className="sidebar-status" style={{ padding: "0 20px", marginTop: 24 }}>
             <div onClick={() => setIsStatusOpen(!isStatusOpen)} style={{ background: isDarkMode ? "rgba(30, 41, 59, 0.4)" : "rgba(241, 245, 249, 0.6)", borderRadius: 16, padding: "16px 20px", border: T.cardBorder, cursor: "pointer", transition: "all 0.3s ease" }}>
@@ -536,7 +505,6 @@ export default function HrdDashboard() {
               )}
             </div>
           </div>
-
           <div className="sidebar-profile" style={{ marginTop: "auto", padding: "24px", borderTop: T.cardBorder }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
               <div style={{ width: 38, height: 38, borderRadius: "50%", background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: "800", boxShadow: "0 4px 10px rgba(37, 99, 235, 0.2)" }}>HR</div>
@@ -551,36 +519,115 @@ export default function HrdDashboard() {
           </div>
         </div>
       </div>
-
       {/* MAIN CONTENT AREA */}
       <div className="resp-content" style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "40px" }}>
-        
         {/* HEADER */}
         <div className="resp-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 36, flexWrap: "wrap", gap: 16 }}>
            <div>
-             <h2 style={{ fontSize: 24, fontWeight: "800", color: T.textDark, margin: "0 0 6px 0", letterSpacing: -0.5 }}>
-               {activePage === "dashboard" && "Dashboard Overview"}
-               {activePage === "leaves" && "Manajemen Pengajuan Cuti"}
-               {activePage === "calendar" && "Kalender Penjadwalan Cuti"}
-               {activePage === "employees" && "Manajemen Data Karyawan"}
-               {activePage === "reports" && "Analisis & Laporan Ekspor"}
-               {activePage === "audit" && "Audit Trail & Keamanan"}
-             </h2>
-             <p style={{ fontSize: 13, color: T.textGray, margin: 0, fontWeight: "600" }}>📅 &nbsp; {todayStr}</p>
+              {/* Enterprise Breadcrumb */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, fontWeight: "700", color: T.textGray, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1.5 }}>
+                 <span>PT APPSKEP</span>
+                 <span style={{ fontSize: 10, opacity: 0.5 }}>/</span>
+                 <span>HR Portal</span>
+                 <span style={{ fontSize: 10, opacity: 0.5 }}>/</span>
+                 <span style={{ color: T.primary }}>
+                    {activePage === "dashboard" && "Dashboard Overview"}
+                    {activePage === "leaves" && "Manajemen Cuti"}
+                    {activePage === "calendar" && "Kalender Cuti"}
+                    {activePage === "employees" && "Data Karyawan"}
+                    {activePage === "reports" && "Laporan & Ekspor"}
+                    {activePage === "audit" && "Audit Trail"}
+                 </span>
+              </div>
+              
+              <h2 style={{ fontSize: 26, fontWeight: "900", color: T.textDark, margin: "0 0 6px 0", letterSpacing: -0.8, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                {activePage === "dashboard" && "Dashboard Overview"}
+                {activePage === "leaves" && "Manajemen Pengajuan Cuti"}
+                {activePage === "calendar" && "Kalender Penjadwalan Cuti"}
+                {activePage === "employees" && "Manajemen Data Karyawan"}
+                {activePage === "reports" && "Analisis & Laporan Ekspor"}
+                {activePage === "audit" && "Audit Trail & Keamanan"}
+                
+                {/* Server Live Status Dot Badge */}
+                <span className="status-pill status-approved" style={{ fontSize: 9, padding: "4px 10px", textTransform: "uppercase", letterSpacing: 0.5, border: "1px solid rgba(16, 185, 129, 0.15)", background: "rgba(16, 185, 129, 0.05)" }}>
+                   <span className="status-dot"></span>
+                   LIVE DB CONNECTED
+                </span>
+              </h2>
+              <p style={{ fontSize: 13, color: T.textGray, margin: 0, fontWeight: "600", display: "flex", alignItems: "center", gap: 6 }}>
+                 📅 &nbsp; {todayStr}
+              </p>
            </div>
            <div className="resp-header-right" style={{ display: "flex", alignItems: "center", gap: 16 }}>
              
+             {/* Global Search Bar - Signature Enterprise feature */}
+             {(activePage === "leaves" || activePage === "employees" || activePage === "dashboard") && (
+               <div style={{ position: "relative", minWidth: 260 }}>
+                  <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 14, opacity: 0.5 }}>🔍</span>
+                  <input 
+                     type="text" 
+                     value={searchQuery}
+                     onChange={e => setSearchQuery(e.target.value)}
+                     placeholder={`Cari ${(activePage === "employees" ? "karyawan" : "pengajuan")}...`} 
+                     style={{ 
+                        width: "100%", 
+                        padding: "10px 16px 10px 38px", 
+                        borderRadius: 14, 
+                        border: T.cardBorder, 
+                        background: T.cardBg, 
+                        color: T.textDark, 
+                        fontSize: 13, 
+                        fontWeight: "600", 
+                        outline: "none", 
+                        boxSizing: "border-box", 
+                        transition: "all 0.25s ease",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.01)"
+                     }}
+                     onFocus={e => {
+                        e.target.style.borderColor = T.primary;
+                        e.target.style.boxShadow = `0 0 0 3px rgba(37,99,235,0.08)`;
+                     }}
+                     onBlur={e => {
+                        e.target.style.borderColor = "";
+                        e.target.style.boxShadow = "0 2px 8px rgba(0,0,0,0.01)";
+                     }}
+                  />
+                  {searchQuery && (
+                     <button onClick={() => setSearchQuery("")} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", border: "none", background: "transparent", color: T.textGray, cursor: "pointer", fontSize: 12, fontWeight: "800" }}>✕</button>
+                  )}
+               </div>
+             )}
              {/* THEME TOGGLE BUTTON */}
              <button onClick={toggleTheme} style={{ background: T.cardBg, border: T.cardBorder, padding: "8px 16px", borderRadius: 20, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, color: T.textDark, fontWeight: "700", fontSize: 13, boxShadow: "0 2px 8px rgba(0,0,0,0.02)", transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"} onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
                <span style={{ fontSize: 16 }}>{isDarkMode ? "☀️" : "🌙"}</span>
                {isDarkMode ? "Light Mode" : "Dark Mode"}
              </button>
-
-             <button style={{ width: 44, height: 44, borderRadius: 12, border: T.cardBorder, background: T.cardBg, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, color: T.textDark }}>
-               🔔
-               <span style={{ width: 8, height: 8, borderRadius: 4, background: T.red }} />
-             </button>
-
+             <div style={{ position: "relative" }}>
+                <button onClick={() => setIsNotifOpen(!isNotifOpen)} style={{ position: "relative", width: 44, height: 44, borderRadius: 12, border: T.cardBorder, background: T.cardBg, cursor: "pointer", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", fontSize: 18, color: T.textDark }}>
+                  🔔
+                  {pending.length > 0 && <span style={{ position: "absolute", top: 11, right: 11, width: 8, height: 8, borderRadius: 4, background: T.red }} />}
+                </button>
+                {isNotifOpen && (
+                  <div className="resp-notif-panel glass-card" style={{ position: "absolute", top: 54, right: 0, width: 320, borderRadius: 20, border: T.cardBorder, boxShadow: "0 20px 40px -15px rgba(0,0,0,0.15)", zIndex: 100, padding: 20 }}>
+                    <h4 style={{ margin: "0 0 16px 0", fontSize: 14, fontWeight: "800", color: T.textDark, borderBottom: "1px dashed rgba(148, 163, 184, 0.2)", paddingBottom: 10 }}>Pemberitahuan Cuti Baru</h4>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 14, maxHeight: 300, overflowY: "auto" }}>
+                      {pending.length > 0 ? pending.slice(0, 5).map((l, i) => (
+                        <div key={i} style={{ display: "flex", gap: 12, paddingBottom: 12, borderBottom: i === pending.slice(0, 5).length - 1 ? "none" : "1px solid rgba(148, 163, 184, 0.1)" }}>
+                          <div style={{ width: 8, height: 8, borderRadius: 50, background: T.primary, marginTop: 5, flexShrink: 0 }}></div>
+                          <div style={{ flex: 1, textAlign: "left" }}>
+                            <p style={{ margin: "0 0 2px 0", fontSize: 13, color: T.textDark, fontWeight: "800" }}>{l.employee_name}</p>
+                            <p style={{ margin: "0 0 8px 0", fontSize: 11, color: T.textGray, fontWeight: "500", lineHeight: 1.4 }}>Mengajukan {l.leave_type_name || "cuti"} ({l.total_days} Hari Kerja)</p>
+                            <div style={{ display: "flex", gap: 6 }}>
+                              <button onClick={() => { setIsNotifOpen(false); openAction(l, "approved"); }} style={{ padding: "4px 8px", borderRadius: 6, background: T.primary, color: "white", border: "none", cursor: "pointer", fontSize: 10, fontWeight: "800" }}>Setujui</button>
+                              <button onClick={() => { setIsNotifOpen(false); openAction(l, "rejected"); }} style={{ padding: "4px 8px", borderRadius: 6, background: T.red, color: "white", border: "none", cursor: "pointer", fontSize: 10, fontWeight: "800" }}>Tolak</button>
+                            </div>
+                          </div>
+                        </div>
+                      )) : <p style={{ fontSize: 12, color: T.textGray, textAlign: "center", margin: "10px 0" }}>Belum ada pengajuan baru.</p>}
+                    </div>
+                  </div>
+                )}
+             </div>
              {activePage === "employees" && (
                <Button disableRipple onPress={() => setAddModalOpen(true)} className="glow-btn shadow-[0_4px_15px_rgba(37,99,235,0.25)]" style={{ background: T.primary, color: "white", fontWeight: "700", borderRadius: 12, height: 44, padding: "0 20px" }}>
                  + Tambah Karyawan
@@ -588,7 +635,6 @@ export default function HrdDashboard() {
              )}
            </div>
          </div>
-
          {/* WELCOME BANNER (Dashboard only) */}
          {activePage === "dashboard" && (
            <div className="resp-welcome-banner animate-fade-in-up" style={{ background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #4f46e5 100%)", borderRadius: 20, padding: "36px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32, position: "relative", overflow: "hidden", boxShadow: "0 15px 35px rgba(37,99,235,0.2)", flexWrap: "wrap", gap: 20 }}>
@@ -611,7 +657,6 @@ export default function HrdDashboard() {
              </div>
            </div>
          )}
-
          {activePage === "dashboard" && (
            <>
              {/* STATS KOTAK (Uplifted with Premium Gradient Accents) */}
@@ -626,7 +671,6 @@ export default function HrdDashboard() {
                     👥
                   </div>
                </div>
-
                <div className="gradient-emerald-glow premium-card-hover rounded-2xl animate-fade-in-up" style={{ padding: "24px", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 8px 30px rgba(0, 0, 0, 0.02)" }}>
                   <div style={{ zIndex: 2 }}>
                     <p style={{ fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5, margin: "0 0 4px 0", color: T.textGray }}>Cuti Disetujui</p>
@@ -636,7 +680,6 @@ export default function HrdDashboard() {
                     ✅
                   </div>
                </div>
-
                <div className="gradient-yellow-glow premium-card-hover rounded-2xl animate-fade-in-up" style={{ padding: "24px", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 8px 30px rgba(0, 0, 0, 0.02)" }}>
                   <div style={{ zIndex: 2 }}>
                     <p style={{ fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5, margin: "0 0 4px 0", color: T.textGray }}>Menunggu Review</p>
@@ -646,7 +689,6 @@ export default function HrdDashboard() {
                     ⏳
                   </div>
                </div>
-
                <div className="gradient-red-glow premium-card-hover rounded-2xl animate-fade-in-up" style={{ padding: "24px", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 8px 30px rgba(0, 0, 0, 0.02)" }}>
                   <div style={{ zIndex: 2 }}>
                     <p style={{ fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5, margin: "0 0 4px 0", color: T.textGray }}>Cuti Ditolak</p>
@@ -656,9 +698,7 @@ export default function HrdDashboard() {
                     ❌
                   </div>
                </div>
-
              </div>
-
              {/* TWO COLUMN INSIGHTS */}
              <div className="resp-grid-2" style={{ gap: 24, marginBottom: 24 }}>
                
@@ -687,7 +727,6 @@ export default function HrdDashboard() {
                            <p style={{ margin: "3px 0 0 0", fontSize: 11, color: T.textGray, fontWeight: "600" }}>{l.start_date?.slice(0,10)} s/d {l.end_date?.slice(0,10)} <span style={{ color: "#2563eb", fontWeight: "800", background: "rgba(37,99,235,0.06)", padding: "2px 6px", borderRadius: 6, marginLeft: 6 }}>{l.total_days} Hari</span></p>
                          </div>
                        </div>
-
                        <div style={{ display: "flex", gap: 6 }}>
                            <button onClick={() => openAction(l, "detail")} title="Lihat Detail" style={{ width: 34, height: 34, borderRadius: 10, background: T.bg, color: T.textDark, border: T.cardBorder, cursor: "pointer", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>👁️</button>
                            <button onClick={() => openAction(l, "approved")} title="Setujui" style={{ width: 34, height: 34, borderRadius: 10, background: T.green, color: "white", border: "none", cursor: "pointer", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>✓</button>
@@ -697,7 +736,6 @@ export default function HrdDashboard() {
                    ))}
                  </div>
                </div>
-
                {/* SEDANG CUTI HARI INI */}
                <div className="glass-card" style={{ borderRadius: 20, border: T.cardBorder, overflow: "hidden", boxShadow: "0 10px 30px rgba(0,0,0,0.01)" }}>
                  <div style={{ padding: "20px 24px", borderBottom: "1px dashed rgba(148, 163, 184, 0.2)" }}>
@@ -736,11 +774,9 @@ export default function HrdDashboard() {
                    })()}
                  </div>
                </div>
-
              </div>
            </>
          )}
-
          {activePage === "leaves" && (
             <div className="glass-card animate-fade-in-up" style={{ borderRadius: 20, border: T.cardBorder, overflow: "hidden" }}>
               <div className="resp-hrd-leaves-toolbar" style={{ padding: "20px 24px", borderBottom: "1px dashed rgba(148, 163, 184, 0.2)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
@@ -774,7 +810,7 @@ export default function HrdDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {leaves.map(l => (
+                  {filteredLeaves.map(l => (
                     <tr key={l.id} style={{ borderBottom: T.cardBorder }}>
                       <td style={{ padding: "16px 24px", fontSize: 13, color: T.textDark, fontWeight: "700" }}>{l.employee_name}<br/><span style={{fontSize: 11, color: T.textGray, fontWeight: "600"}}>{l.employee_department}</span></td>
                       <td style={{ padding: "16px 24px", fontSize: 12, color: T.textGray, fontWeight: "600" }}>{l.start_date.slice(0,10)} s/d {l.end_date.slice(0,10)} <br/><span style={{fontSize: 11, color: T.textLight, fontWeight: "800"}}>({l.total_days} Hari Kerja)</span></td>
@@ -804,13 +840,12 @@ export default function HrdDashboard() {
                       </td>
                     </tr>
                   ))}
-                  {leaves.length === 0 && <tr><td colSpan="5" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: T.textGray, fontWeight: "600" }}>Belum ada pengajuan cuti.</td></tr>}
+                  {filteredLeaves.length === 0 && <tr><td colSpan="5" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: T.textGray, fontWeight: "600" }}>Belum ada pengajuan cuti.</td></tr>}
                 </tbody>
               </table>
               </div>
             </div>
          )}
-
          {activePage === "calendar" && (
             <div className="glass-card animate-fade-in-up" style={{ borderRadius: 20, border: T.cardBorder, minHeight: 600, display: "flex", flexDirection: "column" }}>
               <div className="resp-calendar-toolbar" style={{ padding: "24px 32px", borderBottom: "1px dashed rgba(148, 163, 184, 0.2)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
@@ -884,7 +919,6 @@ export default function HrdDashboard() {
               </div>
             </div>
          )}
-
          {activePage === "employees" && (
             <div className="glass-card animate-fade-in-up" style={{ borderRadius: 20, border: T.cardBorder, overflow: "hidden" }}>
               <div style={{ padding: "20px 24px", borderBottom: "1px dashed rgba(148, 163, 184, 0.2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -902,7 +936,7 @@ export default function HrdDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {employees.map((emp) => (
+                    {filteredEmployees.map((emp) => (
                       <tr key={emp.id} style={{ borderBottom: T.cardBorder }}>
                         <td style={{ padding: "16px 24px", fontSize: 13, color: T.textDark, fontWeight: "700" }}>{emp.full_name}<br/><span style={{fontSize: 11, color: T.textGray, fontWeight: "600"}}>{emp.department} · {emp.position}</span></td>
                         <td style={{ padding: "16px 24px", fontSize: 13, color: T.textGray, fontWeight: "600" }}>{emp.email}</td>
@@ -932,13 +966,12 @@ export default function HrdDashboard() {
                         </td>
                       </tr>
                     ))}
-                    {employees.length === 0 && <tr><td colSpan="5" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: T.textGray, fontWeight: "600" }}>Belum ada data karyawan.</td></tr>}
+                    {filteredEmployees.length === 0 && <tr><td colSpan="5" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: T.textGray, fontWeight: "600" }}>Belum ada data karyawan.</td></tr>}
                   </tbody>
                 </table>
               </div>
             </div>
          )}
-
          {activePage === "reports" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 32 }} className="animate-fade-in-up">
               {/* SUMMARY CARDS REPORTS */}
@@ -958,7 +991,6 @@ export default function HrdDashboard() {
                     </h3>
                  </div>
               </div>
-
               <div className="resp-grid-2" style={{ gridTemplateColumns: "1.5fr 1fr", gap: 24 }}>
                  {/* CHART SECTION */}
                  <div className="glass-card" style={{ borderRadius: 20, border: T.cardBorder, padding: 24 }}>
@@ -978,7 +1010,6 @@ export default function HrdDashboard() {
                        </ResponsiveContainer>
                     </div>
                  </div>
-
                  {/* ACTION CARD */}
                  <div style={{ background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)", borderRadius: 20, padding: 32, color: "white", display: "flex", flexDirection: "column", justifyContent: "center", position: "relative", overflow: "hidden", border: isDarkMode ? "1px solid #334155" : "none" }}>
                     <div style={{ position: "absolute", right: -20, bottom: -20, fontSize: 120, opacity: 0.08 }}>📊</div>
@@ -995,7 +1026,6 @@ export default function HrdDashboard() {
                     </Button>
                  </div>
               </div>
-
               {/* TABLE SECTION */}
               <div className="glass-card" style={{ borderRadius: 20, border: T.cardBorder, overflow: "hidden" }}>
                 <div style={{ padding: "20px 24px", borderBottom: "1px dashed rgba(148, 163, 184, 0.2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1026,7 +1056,6 @@ export default function HrdDashboard() {
               </div>
             </div>
          )}
-
          {activePage === "audit" && (
             <div className="glass-card animate-fade-in-up" style={{ borderRadius: 20, border: T.cardBorder, overflow: "hidden" }}>
               <div style={{ padding: "20px 24px", borderBottom: "1px dashed rgba(148, 163, 184, 0.2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1070,9 +1099,7 @@ export default function HrdDashboard() {
               </div>
             </div>
          )}
-
        </div>
-
        {/* MODALS */}
        {modalOpen && selected && (
          <div className="resp-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, backdropFilter: "blur(5px)", padding: 20 }}>
@@ -1083,7 +1110,6 @@ export default function HrdDashboard() {
                </h3>
                <button onClick={() => setModalOpen(false)} style={{ background: T.bg, border: "none", fontSize: 14, cursor: "pointer", color: T.textGray, width: 28, height: 28, borderRadius: "50%" }}>✕</button>
              </div>
-
              <div style={{ background: T.bg, borderRadius: 16, padding: "20px", marginBottom: 24, border: T.cardBorder }}>
                <div style={{ marginBottom: 16 }}>
                   <p style={{ fontSize: 16, fontWeight: "800", color: T.textDark, margin: "0 0 4px 0" }}>{selected.employee_name}</p>
@@ -1096,12 +1122,10 @@ export default function HrdDashboard() {
                   <div><p style={{ fontSize: 11, fontWeight: "700", color: T.textGray, margin: "0 0 4px 0", textTransform: "uppercase" }}>Periode</p><p style={{ fontSize: 13, fontWeight: "700", color: T.textDark, margin: 0 }}>{selected.start_date?.slice(0, 10)} sd {selected.end_date?.slice(0, 10)}</p></div>
                   <div><p style={{ fontSize: 11, fontWeight: "700", color: T.textGray, margin: "0 0 4px 0", textTransform: "uppercase" }}>Status</p><p style={{ fontSize: 13, fontWeight: "800", color: selected.status === "approved" || selected.status === "disetujui" ? T.green : selected.status === "rejected" ? T.red : T.yellow, margin: 0, textTransform: "uppercase" }}>{selected.status}</p></div>
                </div>
-
                <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px dashed rgba(148,163,184,0.2)" }}>
                   <p style={{ fontSize: 11, fontWeight: "700", color: T.textGray, margin: "0 0 4px 0", textTransform: "uppercase" }}>Alasan Cuti</p>
                   <p style={{ fontSize: 13, fontWeight: "600", color: T.textDark, margin: 0, lineHeight: 1.5 }}>{selected.reason || "-"}</p>
                </div>
-
                {leaveRowHasAttachment(selected) && (
                   <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px dashed rgba(148,163,184,0.2)" }}>
                      <p style={{ fontSize: 11, fontWeight: "700", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Lampiran Pendukung</p>
@@ -1125,14 +1149,12 @@ export default function HrdDashboard() {
                   </div>
                )}
              </div>
-
              {actionType !== "detail" && (
                <div style={{ marginBottom: 24 }}>
                   <label style={{ display: "block", fontSize: 11, fontWeight: "800", color: T.textGray, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>Catatan Peninjauan HRD</label>
                   <textarea placeholder="Tuliskan catatan persetujuan atau penolakan..." value={hrdNote} onChange={(e) => setHrdNote(e.target.value)} style={{ width: "100%", padding: "14px", borderRadius: 12, border: T.cardBorder, outline: "none", color: T.textDark, background: T.bg, minHeight: 80, resize: "none", boxSizing: "border-box", fontFamily: "inherit", fontWeight: "600", fontSize: 13 }} />
                </div>
              )}
-
              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
                {actionType !== "detail" ? (
                  <>
@@ -1146,7 +1168,6 @@ export default function HrdDashboard() {
            </div>
          </div>
        )}
-
        {editModalOpen && (
          <div className="resp-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, backdropFilter: "blur(5px)", padding: 20 }}>
            <div className="glass-card" style={{ width: "100%", maxWidth: 460, borderRadius: 24, padding: 32, boxShadow: "0 30px 60px -15px rgba(0,0,0,0.3)" }}>
@@ -1179,7 +1200,6 @@ export default function HrdDashboard() {
            </div>
          </div>
        )}
-
        {detailModalOpen && detailEmp && (
           <div className="resp-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, backdropFilter: "blur(5px)", padding: 20 }}>
             <div className="glass-card" style={{ width: "100%", maxWidth: 540, borderRadius: 24, padding: 32, boxShadow: "0 30px 60px -15px rgba(0,0,0,0.3)" }}>
@@ -1201,7 +1221,6 @@ export default function HrdDashboard() {
             </div>
           </div>
        )}
-
        {previewOpen && selected && (
          <div className="resp-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10000, backdropFilter: "blur(5px)", padding: 20 }}>
            <div className="glass-card" style={{ width: "100%", maxWidth: 500, borderRadius: 24, padding: 32, boxShadow: "0 30px 60px -15px rgba(0,0,0,0.3)" }}>
@@ -1237,7 +1256,6 @@ export default function HrdDashboard() {
                  </div>
                )}
              </div>
-
              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <a 
                    href={previewAttachmentUrl || "#"}
@@ -1251,7 +1269,6 @@ export default function HrdDashboard() {
            </div>
          </div>
        )}
-
        {manualModalOpen && (
          <div className="resp-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, backdropFilter: "blur(5px)", padding: 20 }}>
            <div className="glass-card" style={{ width: "100%", maxWidth: 500, borderRadius: 24, padding: 32, boxShadow: "0 30px 60px -15px rgba(0,0,0,0.3)", maxHeight: "90vh", overflowY: "auto" }}>
@@ -1264,7 +1281,6 @@ export default function HrdDashboard() {
              </div>
              
              {manualError && <div style={{ background: "rgba(239,68,68,0.08)", color: T.red, padding: "12px 16px", borderRadius: 12, fontSize: 13, fontWeight: "700", marginBottom: 20, border: "1px solid rgba(239,68,68,0.15)" }}>⚠️ {manualError}</div>}
-
              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                <div>
                  <p style={{ fontSize: 11, fontWeight: "800", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Pilih Karyawan</p>
@@ -1284,7 +1300,6 @@ export default function HrdDashboard() {
                  </datalist>
                  {!manualForm.employee_id && manualForm._empName && <p style={{ color: T.red, fontSize: 11, margin: "4px 0 0 0", fontWeight: "700" }}>⚠️ Karyawan belum terdaftar sistem.</p>}
                </div>
-
                <div>
                  <p style={{ fontSize: 11, fontWeight: "800", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Jenis Cuti</p>
                  <input 
@@ -1303,7 +1318,6 @@ export default function HrdDashboard() {
                  </datalist>
                  {!manualForm.leave_type_id && manualForm._leaveName && <p style={{ color: T.red, fontSize: 11, margin: "4px 0 0 0", fontWeight: "700" }}>⚠️ Jenis cuti tidak valid.</p>}
                </div>
-
                <div className="resp-grid-2" style={{ gap: 16 }}>
                  <div>
                    <p style={{ fontSize: 11, fontWeight: "800", color: T.textGray, margin: "0 0 8px 0" }}>TANGGAL MULAI</p>
@@ -1314,13 +1328,11 @@ export default function HrdDashboard() {
                    <input type="date" value={manualForm.end_date} onChange={e => setManualForm({...manualForm, end_date: e.target.value})} style={{ width: "100%", padding: "11px 14px", borderRadius: 12, border: T.cardBorder, outline: "none", color: T.textDark, background: T.bg, boxSizing: "border-box", fontWeight: "600" }} />
                  </div>
                </div>
-
                <div>
                  <p style={{ fontSize: 11, fontWeight: "800", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Alasan Cuti</p>
                  <textarea value={manualForm.reason} onChange={e => setManualForm({...manualForm, reason: e.target.value})} style={{ width: "100%", padding: "14px", borderRadius: 12, border: T.cardBorder, outline: "none", color: T.textDark, background: T.bg, minHeight: 80, boxSizing: "border-box", resize: "none", fontFamily: "inherit", fontWeight: "600", fontSize: 13 }} placeholder="Tuliskan keterangan cuti manual..." />
                </div>
              </div>
-
              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 28 }}>
                <Button disableRipple onPress={() => setManualModalOpen(false)} style={{ background: "white", border: T.cardBorder, color: T.textDark, height: 44, borderRadius: 12, fontWeight: "700" }}>Batal</Button>
                <Button disableRipple onPress={handleManualSubmit} isLoading={manualLoading} className="glow-btn" style={{ background: T.primary, color: "white", height: 44, borderRadius: 12, fontWeight: "700" }}>Simpan & Setujui</Button>
@@ -1328,7 +1340,6 @@ export default function HrdDashboard() {
            </div>
          </div>
        )}
-
        {/* MODAL TAMBAH KARYAWAN */}
        {addModalOpen && (
          <div className="resp-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, backdropFilter: "blur(5px)", padding: 20 }}>
@@ -1342,7 +1353,6 @@ export default function HrdDashboard() {
              </div>
              
              {addError && <div style={{ background: "rgba(239,68,68,0.08)", color: T.red, padding: "12px 16px", borderRadius: 12, fontSize: 13, fontWeight: "700", marginBottom: 20, border: "1px solid rgba(239,68,68,0.15)" }}>{addError}</div>}
-
              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                <div>
                  <p style={{ fontSize: 11, fontWeight: "800", color: T.textGray, margin: "0 0 8px 0", textTransform: "uppercase" }}>Nama Lengkap <span style={{ color: T.red }}>*</span></p>
@@ -1390,7 +1400,6 @@ export default function HrdDashboard() {
                  </select>
                </div>
              </div>
-
              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 28 }}>
                <Button disableRipple onClick={() => setAddModalOpen(false)} style={{ flex: 1, background: "white", border: T.cardBorder, color: T.textDark, height: 44, borderRadius: 12, fontWeight: "700" }}>Batal</Button>
                <Button disableRipple onPress={handleAddSubmit} isLoading={addLoading} className="glow-btn" style={{ flex: 1, background: T.primary, color: "white", height: 44, borderRadius: 12, fontWeight: "700" }}>Dafrtarkan Karyawan</Button>
@@ -1398,7 +1407,6 @@ export default function HrdDashboard() {
            </div>
          </div>
        )}
-
        {/* SUCCESS MODAL REUSABLE */}
        {successModal.open && (
          <div className="resp-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10001, backdropFilter: "blur(6px)", padding: 20 }}>
