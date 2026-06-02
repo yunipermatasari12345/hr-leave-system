@@ -74,50 +74,54 @@ export default function Login() {
 
             {/* Form Fields */}
             <div className="flex flex-col gap-5">
-              <div className="relative">
-                <Input
-                  type="email"
-                  placeholder="name@company.com"
-                  label="Email Kantor"
-                  labelPlacement="outside"
-                  value={email}
-                  onValueChange={setEmail}
-                  variant="bordered"
-                  radius="lg"
-                  classNames={{
-                    label: "text-slate-300 font-bold text-xs mb-2",
-                    inputWrapper: "border border-slate-700/60 hover:border-slate-500 focus-within:!border-blue-500 bg-slate-900/60 shadow-none h-[48px] px-4 transition-all duration-300",
-                    input: "text-[14px] font-medium text-white placeholder:text-slate-500 outline-none"
-                  }}
-                />
+              <div className="flex flex-col gap-1.5 text-left">
+                <label className="text-slate-300 font-bold text-xs pl-1">Email Kantor</label>
+                <div className="relative flex items-center">
+                  <span className="absolute left-4 text-slate-500 pointer-events-none">
+                    <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206" />
+                    </svg>
+                  </span>
+                  <input
+                    type="email"
+                    required
+                    placeholder="name@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full h-[50px] pl-11 pr-4 rounded-2xl bg-slate-950/60 border border-slate-800 text-white placeholder:text-slate-500 font-medium text-[14px] outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-300"
+                  />
+                </div>
               </div>
 
-              <div className="relative">
-                <Input
-                  type={showPass ? "text" : "password"}
-                  placeholder="Masukkan Password"
-                  label="Password"
-                  labelPlacement="outside"
-                  value={password}
-                  onValueChange={setPassword}
-                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                  variant="bordered"
-                  radius="lg"
-                  classNames={{
-                    label: "text-slate-300 font-bold text-xs mb-2",
-                    inputWrapper: "border border-slate-700/60 hover:border-slate-500 focus-within:!border-blue-500 bg-slate-900/60 shadow-none h-[48px] px-4 transition-all duration-300",
-                    input: "text-[14px] font-medium text-white placeholder:text-slate-500 outline-none"
-                  }}
-                  endContent={
-                    <button type="button" onClick={() => setShowPass(!showPass)} className="text-slate-500 hover:text-slate-300 outline-none pr-1 cursor-pointer transition-colors">
-                      {showPass ? (
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                      ) : (
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                      )}
-                    </button>
-                  }
-                />
+              <div className="flex flex-col gap-1.5 text-left">
+                <label className="text-slate-300 font-bold text-xs pl-1">Password</label>
+                <div className="relative flex items-center">
+                  <span className="absolute left-4 text-slate-500 pointer-events-none">
+                    <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </span>
+                  <input
+                    type={showPass ? "text" : "password"}
+                    required
+                    placeholder="Masukkan Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                    className="w-full h-[50px] pl-11 pr-11 rounded-2xl bg-slate-950/60 border border-slate-800 text-white placeholder:text-slate-500 font-medium text-[14px] outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-300"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPass(!showPass)} 
+                    className="absolute right-4 text-slate-500 hover:text-slate-300 outline-none cursor-pointer transition-colors"
+                  >
+                    {showPass ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="flex justify-end -mt-1.5">

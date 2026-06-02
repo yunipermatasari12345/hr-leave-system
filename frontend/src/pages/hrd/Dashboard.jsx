@@ -369,11 +369,11 @@ export default function HrdDashboard() {
   };
 
   const exportReportsToExcel = () => {
-    if (!reports || reports.length === 0) {
+    if (!computedReports || computedReports.length === 0) {
       alert("Tidak ada data laporan untuk diekspor.");
       return;
     }
-    const ws = XLSX.utils.json_to_sheet(reports.map(r => ({
+    const ws = XLSX.utils.json_to_sheet(computedReports.map(r => ({
       Departemen: (r.department || "N/A").toUpperCase(), 
       "Total Pengajuan Disetujui": r.total_leaves, 
       "Total Hari Cuti": r.total_days
@@ -386,6 +386,30 @@ export default function HrdDashboard() {
   const pending = leaves.filter(l => l.status === "pending");
   const approved = leaves.filter(l => l.status === "approved" || l.status === "disetujui");
   const rejected = leaves.filter(l => l.status === "rejected");
+
+  // Dynamic live computation of department recap reports for 100% real-time synchronization
+  const computedReports = (() => {
+    const map = {};
+    DEPT_OPTIONS.forEach(dept => {
+      map[dept.toLowerCase()] = { department: dept, total_leaves: 0, total_days: 0 };
+    });
+
+    leaves.forEach(l => {
+      const statusVal = (l.status || "").toLowerCase();
+      if (statusVal === "approved" || statusVal === "disetujui") {
+        const dept = l.employee_department || l.department || "Product";
+        const key = dept.toLowerCase();
+        if (!map[key]) {
+          map[key] = { department: dept, total_leaves: 0, total_days: 0 };
+        }
+        map[key].total_leaves += 1;
+        map[key].total_days += Number(l.total_days || 0);
+      }
+    });
+
+    return Object.values(map);
+  })();
+
   const todayStr = new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   const activeTabStyle = { bg: "#eff6ff", text: "#1d4ed8" };
@@ -506,7 +530,7 @@ export default function HrdDashboard() {
                     <span>Karyawan</span> <b>{employees.length} Orang</b>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, color: T.textDark }}>
-                    <span>Dep. Aktif</span> <b>{reports.length} Depart.</b>
+                    <span>Dep. Aktif</span> <b>{computedReports.length} Depart.</b>
                   </div>
                 </div>
               )}
@@ -921,16 +945,16 @@ export default function HrdDashboard() {
               <div className="resp-grid-3" style={{ gap: 20 }}>
                  <div className="glass-card premium-card-hover" style={{ borderRadius: 20, border: T.cardBorder, padding: 24, borderLeft: `6px solid ${T.primary}` }}>
                     <p style={{ margin: "0 0 8px 0", fontSize: 11, fontWeight: "800", color: T.textGray, textTransform: "uppercase", letterSpacing: 0.5 }}>Total Cuti Disetujui</p>
-                    <h3 style={{ margin: 0, fontSize: 24, fontWeight: "900", color: T.textDark }}>{reports.reduce((sum, r) => sum + r.total_leaves, 0)} <span style={{fontSize: 14, fontWeight: "600", color: T.textGray}}>Transaksi</span></h3>
+                    <h3 style={{ margin: 0, fontSize: 24, fontWeight: "900", color: T.textDark }}>{computedReports.reduce((sum, r) => sum + r.total_leaves, 0)} <span style={{fontSize: 14, fontWeight: "600", color: T.textGray}}>Transaksi</span></h3>
                  </div>
                  <div className="glass-card premium-card-hover" style={{ borderRadius: 20, border: T.cardBorder, padding: 24, borderLeft: `6px solid ${T.green}` }}>
                     <p style={{ margin: "0 0 8px 0", fontSize: 11, fontWeight: "800", color: T.textGray, textTransform: "uppercase", letterSpacing: 0.5 }}>Total Hari Istirahat</p>
-                    <h3 style={{ margin: 0, fontSize: 24, fontWeight: "900", color: T.textDark }}>{reports.reduce((sum, r) => sum + r.total_days, 0)} <span style={{fontSize: 14, fontWeight: "600", color: T.textGray}}>Hari Kerja</span></h3>
+                    <h3 style={{ margin: 0, fontSize: 24, fontWeight: "900", color: T.textDark }}>{computedReports.reduce((sum, r) => sum + r.total_days, 0)} <span style={{fontSize: 14, fontWeight: "600", color: T.textGray}}>Hari Kerja</span></h3>
                  </div>
                  <div className="glass-card premium-card-hover" style={{ borderRadius: 20, border: T.cardBorder, padding: 24, borderLeft: `6px solid ${T.yellow}` }}>
                     <p style={{ margin: "0 0 8px 0", fontSize: 11, fontWeight: "800", color: T.textGray, textTransform: "uppercase", letterSpacing: 0.5 }}>Dep. Paling Aktif</p>
                     <h3 style={{ margin: 0, fontSize: 20, fontWeight: "900", color: T.textDark, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                       {reports.length > 0 ? reports.reduce((prev, current) => (prev.total_leaves > current.total_leaves) ? prev : current).department : "-"}
+                       {computedReports.length > 0 ? computedReports.reduce((prev, current) => (prev.total_leaves > current.total_leaves) ? prev : current).department : "-"}
                     </h3>
                  </div>
               </div>
@@ -941,7 +965,7 @@ export default function HrdDashboard() {
                     <h3 style={{ margin: "0 0 24px 0", fontSize: 15, fontWeight: "800", color: T.textDark }}>Analisis Cuti per Departemen</h3>
                     <div style={{ height: 300, width: "100%" }}>
                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={reports}>
+                          <BarChart data={computedReports}>
                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? "#334155" : "#e2e8f0"} />
                              <XAxis dataKey="department" axisLine={false} tickLine={false} tick={{fill: T.textGray, fontSize: 12, fontWeight: "600"}} />
                              <YAxis axisLine={false} tickLine={false} tick={{fill: T.textGray, fontSize: 12, fontWeight: "600"}} />
@@ -988,14 +1012,14 @@ export default function HrdDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {reports.map((r, i) => (
+                    {computedReports.map((r, i) => (
                       <tr key={i} style={{ borderBottom: T.cardBorder }}>
                          <td style={{ padding: "16px 24px", fontSize: 13, color: T.textDark, fontWeight: "700" }}>{r.department}</td>
                          <td style={{ padding: "16px 24px", fontSize: 13, color: T.textGray, textAlign: "center", fontWeight: "600" }}>{r.total_leaves} Transaksi</td>
                          <td style={{ padding: "16px 24px", fontSize: 13, color: T.primary, fontWeight: "800", textAlign: "center" }}>{r.total_days} Hari</td>
                       </tr>
                     ))}
-                    {reports.length === 0 && <tr><td colSpan="3" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: T.textGray, fontWeight: "600" }}>Tidak ada data rekapitulasi.</td></tr>}
+                    {computedReports.length === 0 && <tr><td colSpan="3" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: T.textGray, fontWeight: "600" }}>Tidak ada data rekapitulasi.</td></tr>}
                   </tbody>
                 </table>
                 </div>
