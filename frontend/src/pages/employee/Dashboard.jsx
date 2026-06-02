@@ -120,8 +120,6 @@ export default function EmployeeDashboard() {
       return;
     }
 
-    // Validasi kuota dihapus agar karyawan bebas mengajukan cuti kapan saja
-
     setLeaveLoading(true); setLeaveError(""); setLeaveSuccess("");
     try {
       await leaveApi.createRequest({
@@ -173,25 +171,51 @@ export default function EmployeeDashboard() {
 
   const today = new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   
-  // Calculate total balance for all leave types combined
   const sisaCuti = balances?.reduce((sum, b) => sum + (b.remaining_days || 0), 0) || 0;
   const totalTerpakai = balances?.reduce((sum, b) => sum + (b.used_days || 0), 0) || 0;
   const kuotaTotal = balances?.reduce((sum, b) => sum + (b.total_days || 0), 0) || 0;
 
-  const MenuItem = ({ id, label, icon, onClick }) => (
-    <div onClick={() => { if(id === "new_leave") setIsLeaveModalOpen(true); else if(onClick) onClick(); else setActivePage(id); setIsMobileMenuOpen(false); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 8, cursor: "pointer", background: activePage === id ? activeTabStyle.bg : "transparent", color: activePage === id ? activeTabStyle.text : T.textGray, fontWeight: activePage === id ? "600" : "500", fontSize: 14, transition: "background 0.2s", marginBottom: 4 }}>
-      <span style={{ fontSize: 16 }}>{icon}</span> {label}
-    </div>
-  );
+  const MenuItem = ({ id, label, icon, onClick }) => {
+    const isActive = activePage === id;
+    return (
+      <div 
+        onClick={() => { 
+          if(id === "new_leave") setIsLeaveModalOpen(true); 
+          else if(onClick) onClick(); 
+          else setActivePage(id); 
+          setIsMobileMenuOpen(false); 
+        }} 
+        style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          gap: 12, 
+          padding: "12px 16px", 
+          borderRadius: 12, 
+          cursor: "pointer", 
+          background: isActive ? "rgba(37, 99, 235, 0.08)" : "transparent", 
+          color: isActive ? T.primary : T.textGray, 
+          fontWeight: isActive ? "800" : "600", 
+          fontSize: 13, 
+          transition: "all 0.2s ease", 
+          marginBottom: 6,
+          border: isActive ? `1px solid rgba(37, 99, 235, 0.15)` : "1px solid transparent"
+        }}
+        className="premium-menu-item"
+      >
+        <span style={{ fontSize: 16, opacity: isActive ? 1 : 0.8 }}>{icon}</span> {label}
+      </div>
+    );
+  };
 
   return (
-    <div className="resp-layout" style={{ display: "flex", minHeight: "100vh", background: T.bg }}>
-      {/* SIDEBAR KLASIK (Desain Talenta) */}
-      <div className="resp-sidebar" style={{ width: 260, background: T.sidebar, borderRight: T.cardBorder, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
-        <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 1, justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <img src="/logo.png" alt="Logo" style={{ height: 80, width: "auto", objectFit: "contain" }} onError={(e) => { e.target.style.display='none'; }} />
-            <h1 style={{ color: "#03070cff", fontSize: 28, fontWeight: "900", margin: 0, letterSpacing: -0.3 }}>appskep</h1>
+    <div className={`resp-layout font-['Plus_Jakarta_Sans',sans-serif] ${isDarkMode ? "dark" : ""} w-full`} style={{ display: "flex", minHeight: "100vh", background: T.bg, color: T.textDark, transition: "background 0.3s, color 0.3s" }}>
+      
+      {/* SIDEBAR KLASIK (Visually Uplifted to Premium Glassmorphic) */}
+      <div className="resp-sidebar glass-card" style={{ width: 260, borderRight: T.cardBorder, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
+        <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 12, justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>AS</div>
+            <h1 style={{ color: T.textDark, fontSize: 18, fontWeight: "800", margin: 0, letterSpacing: -0.5 }}>appskep</h1>
           </div>
           <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: T.textDark }}>
              {isMobileMenuOpen ? "✕" : "☰"}
@@ -200,468 +224,476 @@ export default function EmployeeDashboard() {
         
         <div className={`sidebar-collapsible ${isMobileMenuOpen ? "open" : ""}`} style={{ display: "flex", flexDirection: "column", flex: 1 }}>
           <div className="sidebar-menu" style={{ display: "flex", flexDirection: "column", padding: "0 16px" }}>
-          <MenuItem id="dashboard" label="Dashboard Utama" icon="❖" />
-          <MenuItem id="new_leave" label="Ajukan Cuti Baru" icon="➕" />
-          <MenuItem id="leaves" label="Riwayat Cuti" icon="📄" />
-          <MenuItem id="calendar" label="Kalender Saya" icon="📅" />
-          <MenuItem id="info" label="Informasi Cuti" icon="ℹ️" />
-        </div>
+            <MenuItem id="dashboard" label="Dashboard Utama" icon="❖" />
+            <MenuItem id="new_leave" label="Ajukan Cuti Baru" icon="➕" />
+            <MenuItem id="leaves" label="Riwayat Cuti" icon="📄" />
+            <MenuItem id="calendar" label="Kalender Saya" icon="📅" />
+            <MenuItem id="info" label="Informasi Cuti" icon="ℹ️" />
+          </div>
 
-        {/* STATUS CUTI COLLAPSIBLE */}
-        <div className="sidebar-status" style={{ padding: "0 20px", marginTop: 24 }}>
-          <div onClick={() => setIsStatusOpen(!isStatusOpen)} style={{ background: T.bg, borderRadius: 12, padding: "16px 20px", border: T.cardBorder, cursor: "pointer", transition: "all 0.3s ease" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 16 }}>📊</span>
-                <p style={{ fontSize: 12, fontWeight: "700", color: T.textGray, margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Status Cuti 2026</p>
-              </div>
-              <span style={{ fontSize: 12, color: T.textLight, transform: isStatusOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s" }}>▼</span>
-            </div>
-            {isStatusOpen && (
-              <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px dashed #e2e8f0", display: "flex", flexDirection: "column", gap: 16 }}>
-                <div><p style={{ fontSize: 10, fontWeight: "700", color: T.textLight, margin: "0 0 4px 0", textTransform: "uppercase" }}>Karyawan</p><p style={{ fontSize: 13, fontWeight: "600", color: T.textDark, margin: 0 }}>{name}</p></div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <div><p style={{ fontSize: 10, fontWeight: "700", color: T.textLight, margin: "0 0 4px 0", textTransform: "uppercase" }}>Terpakai</p><p style={{ fontSize: 13, fontWeight: "700", color: T.primary, margin: 0 }}>{totalTerpakai} HARI</p></div>
-                  <div><p style={{ fontSize: 10, fontWeight: "700", color: T.textLight, margin: "0 0 4px 0", textTransform: "uppercase" }}>Sisa</p><p style={{ fontSize: 13, fontWeight: "700", color: T.textDark, margin: 0 }}>{sisaCuti} HARI</p></div>
+          {/* STATUS CUTI COLLAPSIBLE (Bespoke Glassmorphism) */}
+          <div className="sidebar-status" style={{ padding: "0 20px", marginTop: 24 }}>
+            <div onClick={() => setIsStatusOpen(!isStatusOpen)} style={{ background: isDarkMode ? "rgba(30, 41, 59, 0.4)" : "rgba(241, 245, 249, 0.6)", borderRadius: 16, padding: "16px 20px", border: T.cardBorder, cursor: "pointer", transition: "all 0.3s ease" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 16 }}>📊</span>
+                  <p style={{ fontSize: 11, fontWeight: "800", color: T.textGray, margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Kuota Cuti 2026</p>
                 </div>
-                <div style={{ height: 6, background: "#e2e8f0", borderRadius: 3, overflow: "hidden" }}><div style={{ width: `${(totalTerpakai / (kuotaTotal || 1)) * 100}%`, height: "100%", background: T.primary, borderRadius: 3 }}></div></div>
+                <span style={{ fontSize: 12, color: T.textLight, transform: isStatusOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s" }}>▼</span>
               </div>
-            )}
-          </div>
-        </div>
-
-        <div className="sidebar-profile" style={{ marginTop: "auto", padding: "24px", borderTop: T.cardBorder }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-            <div style={{ width: 36, height: 36, borderRadius: "50%", background: T.yellow, color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: "bold" }}>{name.substring(0,2).toUpperCase()}</div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 13, fontWeight: "600", color: T.textDark, margin: "0 0 2px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
-              <p style={{ fontSize: 11, fontWeight: "500", color: T.textGray, margin: 0 }}>{pos} · {dept}</p>
+              {isStatusOpen && (
+                <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px dashed rgba(148, 163, 184, 0.2)", display: "flex", flexDirection: "column", gap: 16 }}>
+                  <div><p style={{ fontSize: 9, fontWeight: "800", color: T.textLight, margin: "0 0 4px 0", textTransform: "uppercase" }}>Karyawan</p><p style={{ fontSize: 13, fontWeight: "700", color: T.textDark, margin: 0 }}>{name}</p></div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div><p style={{ fontSize: 9, fontWeight: "800", color: T.textLight, margin: "0 0 4px 0", textTransform: "uppercase" }}>Terpakai</p><p style={{ fontSize: 13, fontWeight: "800", color: T.primary, margin: 0 }}>{totalTerpakai} HARI</p></div>
+                    <div><p style={{ fontSize: 9, fontWeight: "800", color: T.textLight, margin: "0 0 4px 0", textTransform: "uppercase" }}>Sisa</p><p style={{ fontSize: 13, fontWeight: "800", color: T.textDark, margin: 0 }}>{sisaCuti} HARI</p></div>
+                  </div>
+                  <div style={{ height: 6, background: isDarkMode ? "#334155" : "#e2e8f0", borderRadius: 3, overflow: "hidden" }}>
+                    <div style={{ width: `${(totalTerpakai / (kuotaTotal || 1)) * 100}%`, height: "100%", background: T.primary, borderRadius: 3 }}></div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-          <Button disableRipple onPress={handleLogout} style={{ width: "100%", background: "transparent", border: "none", color: T.textGray, fontWeight: "600", fontSize: 13, justifyContent: "flex-start", padding: 0 }} onMouseEnter={(e)=>e.currentTarget.style.color=T.red} onMouseLeave={(e)=>e.currentTarget.style.color=T.textGray}>
-            <span style={{ marginRight: 8, fontSize: 16 }}>🚪</span> Keluar
-          </Button>
-        </div>
+
+          <div className="sidebar-profile" style={{ marginTop: "auto", padding: "24px", borderTop: T.cardBorder }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+              <div style={{ width: 38, height: 38, borderRadius: "50%", background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: "800", boxShadow: "0 4px 10px rgba(245, 158, 11, 0.2)" }}>{name.substring(0,2).toUpperCase()}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 13, fontWeight: "700", color: T.textDark, margin: "0 0 2px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
+                <p style={{ fontSize: 11, fontWeight: "600", color: T.textGray, margin: 0 }}>{pos} · {dept}</p>
+              </div>
+            </div>
+            <Button disableRipple onPress={handleLogout} style={{ width: "100%", background: "rgba(239, 68, 68, 0.08)", border: "none", color: T.red, fontWeight: "700", fontSize: 13, borderRadius: 10, height: 38 }} onMouseEnter={(e)=>e.currentTarget.style.background="rgba(239, 68, 68, 0.15)"} onMouseLeave={(e)=>e.currentTarget.style.background="rgba(239, 68, 68, 0.08)"}>
+              🚪 &nbsp; Keluar
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* MAIN CONTENT KLASIK (Layout Kanan) */}
-      <div className="resp-content" style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
+      {/* MAIN CONTENT AREA */}
+      <div className="resp-content" style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "40px" }}>
         
-        {/* HEADER KLASIK */}
-        <div className="resp-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
+        {/* HEADER */}
+        <div className="resp-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 36, flexWrap: "wrap", gap: 16 }}>
            <div>
-             <h2 style={{ fontSize: 24, fontWeight: "700", color: T.textDark, margin: "0 0 8px 0" }}>Selamat datang, {name.split(' ')[0]}!</h2>
-             <p style={{ fontSize: 13, color: T.textGray, margin: 0 }}>📅 &nbsp; {today}</p>
+             <h2 style={{ fontSize: 24, fontWeight: "800", color: T.textDark, margin: "0 0 6px 0", letterSpacing: -0.5 }}>Selamat datang, {name.split(' ')[0]}!</h2>
+             <p style={{ fontSize: 13, color: T.textGray, margin: 0, fontWeight: "600" }}>📅 &nbsp; {today}</p>
            </div>
            <div className="resp-header-right" style={{ display: "flex", alignItems: "center", gap: 16 }}>
              
              {/* THEME TOGGLE BUTTON */}
-             <button onClick={toggleTheme} style={{ background: T.cardBg, border: T.cardBorder, padding: "8px 16px", borderRadius: 20, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, color: T.textDark, fontWeight: "600", fontSize: 13, boxShadow: "0 2px 4px rgba(0,0,0,0.02)", transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"} onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
+             <button onClick={toggleTheme} style={{ background: T.cardBg, border: T.cardBorder, padding: "8px 16px", borderRadius: 20, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, color: T.textDark, fontWeight: "700", fontSize: 13, boxShadow: "0 2px 8px rgba(0,0,0,0.02)", transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"} onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
                <span style={{ fontSize: 16 }}>{isDarkMode ? "☀️" : "🌙"}</span>
-               {isDarkMode ? "Mode Terang" : "Mode Gelap"}
+               {isDarkMode ? "Light Mode" : "Dark Mode"}
              </button>
 
              <div style={{ position: "relative" }}>
-               <button onClick={() => setIsNotifOpen(!isNotifOpen)} style={{ position: "relative", width: 44, height: 44, borderRadius: 8, border: T.cardBorder, background: T.cardBg, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
+               <button onClick={() => setIsNotifOpen(!isNotifOpen)} style={{ position: "relative", width: 44, height: 44, borderRadius: 12, border: T.cardBorder, background: T.cardBg, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, color: T.textDark }}>
                  🔔
-                 {notifications.length > 0 && <span style={{ position: "absolute", top: 10, right: 10, width: 8, height: 8, borderRadius: 4, background: T.red }} />}
+                 {notifications.length > 0 && <span style={{ position: "absolute", top: 11, right: 11, width: 8, height: 8, borderRadius: 4, background: T.red }} />}
                </button>
                {isNotifOpen && (
-                 <div className="resp-notif-panel" style={{ position: "absolute", top: 54, background: T.cardBg, borderRadius: 12, border: T.cardBorder, boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)", zIndex: 100, padding: 16 }}>
-                   <h4 style={{ margin: "0 0 12px 0", fontSize: 14, fontWeight: "600", color: T.textDark }}>Pemberitahuan Terbaru</h4>
-                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                     {notifications.length > 0 ? notifications.slice(0, 5).map((n, i) => (
-                       <div key={i} style={{ display: "flex", gap: 12, paddingBottom: 12, borderBottom: i === notifications.slice(0, 5).length - 1 ? "none" : T.cardBorder }}>
-                         <div style={{ width: 8, height: 8, borderRadius: 4, background: n.is_read ? T.textLight : T.primary, marginTop: 4 }}></div>
+                 <div className="resp-notif-panel glass-card" style={{ position: "absolute", top: 54, right: 0, width: 320, borderRadius: 20, border: T.cardBorder, boxShadow: "0 20px 40px -15px rgba(0,0,0,0.15)", zIndex: 100, padding: 20 }}>
+                   <h4 style={{ margin: "0 0 16px 0", fontSize: 14, fontWeight: "800", color: T.textDark, borderBottom: "1px dashed rgba(148, 163, 184, 0.2)", paddingBottom: 10 }}>Pemberitahuan</h4>
+                   <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                     {notifications.length > 0 ? notifications.slice(0, 4).map((n, i) => (
+                       <div key={i} style={{ display: "flex", gap: 12, paddingBottom: 12, borderBottom: i === notifications.slice(0, 4).length - 1 ? "none" : "1px solid rgba(148, 163, 184, 0.1)" }}>
+                         <div style={{ width: 8, height: 8, borderRadius: 50, background: n.is_read ? T.textLight : T.primary, marginTop: 5, flexShrink: 0 }}></div>
                          <div>
-                           <p style={{ margin: "0 0 2px 0", fontSize: 13, color: T.textDark, fontWeight: n.is_read ? "500" : "600" }}>{n.title}</p>
-                           <p style={{ margin: 0, fontSize: 12, color: T.textGray }}>{n.message}</p>
+                           <p style={{ margin: "0 0 2px 0", fontSize: 13, color: T.textDark, fontWeight: n.is_read ? "600" : "800" }}>{n.title}</p>
+                           <p style={{ margin: 0, fontSize: 11, color: T.textGray, fontWeight: "500", lineHeight: 1.4 }}>{n.message}</p>
                          </div>
                        </div>
-                     )) : <p style={{ fontSize: 13, color: T.textLight }}>Belum ada pemberitahuan.</p>}
+                     )) : <p style={{ fontSize: 12, color: T.textGray, textAlign: "center", margin: "10px 0" }}>Belum ada pemberitahuan.</p>}
                    </div>
                  </div>
                )}
              </div>
-             <Button disableRipple onPress={() => setIsLeaveModalOpen(true)} style={{ background: T.primary, color: "white", fontWeight: "600", borderRadius: 8, height: 44, padding: "0 20px" }}>
+             <Button disableRipple onPress={() => setIsLeaveModalOpen(true)} className="glow-btn shadow-[0_4px_15px_rgba(37,99,235,0.25)]" style={{ background: T.primary, color: "white", fontWeight: "700", borderRadius: 12, height: 44, padding: "0 20px" }}>
                + Ajukan Cuti Baru
              </Button>
            </div>
-        </div>
+         </div>
 
-        {activePage === "dashboard" && (
-          <>
-            {/* STATS KOTAK ADMIN LTE STYLE */}
-            <div className="resp-grid-3" style={{ marginBottom: 24 }}>
-              
-              <div style={{ background: "#00c0ef", color: "white", padding: "20px 20px", borderRadius: 4, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
-                 <div style={{ zIndex: 2 }}>
-                   <h3 style={{ fontSize: 38, fontWeight: "bold", margin: "0 0 4px 0" }}>{sisaCuti}</h3>
-                   <p style={{ fontSize: 15, margin: 0 }}>Sisa Cuti</p>
-                 </div>
-                 <div style={{ position: "absolute", right: 10, top: 10, fontSize: 60, opacity: 0.2, zIndex: 1, lineHeight: 1 }}>
-                   🏖️
-                 </div>
-              </div>
-
-              <div style={{ background: "#00a65a", color: "white", padding: "20px 20px", borderRadius: 4, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
-                 <div style={{ zIndex: 2 }}>
-                   <h3 style={{ fontSize: 38, fontWeight: "bold", margin: "0 0 4px 0" }}>{totalTerpakai}</h3>
-                   <p style={{ fontSize: 15, margin: 0 }}>Cuti Terpakai</p>
-                 </div>
-                 <div style={{ position: "absolute", right: 10, top: 10, fontSize: 60, opacity: 0.2, zIndex: 1, lineHeight: 1 }}>
-                   📊
-                 </div>
-              </div>
-
-              <div style={{ background: "#f39c12", color: "white", padding: "20px 20px", borderRadius: 4, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
-                 <div style={{ zIndex: 2 }}>
-                   <h3 style={{ fontSize: 38, fontWeight: "bold", margin: "0 0 4px 0" }}>{kuotaTotal}</h3>
-                   <p style={{ fontSize: 15, margin: 0 }}>Total Kuota</p>
-                 </div>
-                 <div style={{ position: "absolute", right: 10, top: 10, fontSize: 60, opacity: 0.2, zIndex: 1, lineHeight: 1 }}>
-                   📅
-                 </div>
-              </div>
-
-            </div>
-
-            {/* TWO COLUMN CONTENT AREA */}
-            <div className="resp-grid-2" style={{ marginBottom: 24 }}>
-              
-              {/* KOLOM KIRI: Pengajuan Terakhir */}
-              <div style={{ background: "white", borderRadius: 4, border: "1px solid #d2d6de", overflow: "hidden", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
-                <div style={{ padding: "12px 16px", borderBottom: "1px solid #f4f4f4", background: "white", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <h3 style={{ margin: 0, fontSize: 16, color: "#333", fontWeight: "normal" }}>⏳ Pengajuan Terakhir Anda</h3>
-                  <span onClick={() => setActivePage("leaves")} style={{ fontSize: 13, color: "#00c0ef", cursor: "pointer", fontWeight: "600" }}>Lihat Semua &rarr;</span>
-                </div>
-                <div style={{ padding: "8px 16px 16px", display: "flex", flexDirection: "column" }}>
-                  {leaves.length > 0 ? leaves.slice(0, 3).map(l => (
-                    <div key={l.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 16, paddingBottom: 16, borderBottom: "1px solid #f4f4f4" }}>
-                      <div>
-                        <p style={{ margin: "0 0 6px 0", fontSize: 13, fontWeight: "700", color: "#333" }}>{l.leave_type_name || "Cuti Tahunan"} <span style={{ color: "#777", fontWeight: "normal" }}>({l.total_days} Hari)</span></p>
-                        <p style={{ margin: 0, fontSize: 12, color: "#777" }}>{l.start_date.slice(0,10)} s/d {l.end_date.slice(0,10)}</p>
-                      </div>
-                      <span style={{ background: statusStyle[l.status]?.bg || "#f3f4f6", color: statusStyle[l.status]?.color || "#374151", padding: "4px 10px", borderRadius: 4, fontSize: 11, fontWeight: "bold", textTransform: "uppercase" }}>
-                        {statusStyle[l.status]?.label || l.status}
-                      </span>
-                    </div>
-                  )) : (
-                    <div style={{ textAlign: "center", padding: "32px 0", color: "#777", fontSize: 13 }}>Belum ada riwayat pengajuan cuti.</div>
-                  )}
-                </div>
-              </div>
-
-              {/* KOLOM KANAN: Widget Info */}
-              <div style={{ background: "#0073b7", borderRadius: 4, border: "none", color: "white", padding: 24, display: "flex", flexDirection: "column", position: "relative", overflow: "hidden", boxShadow: "0 1px 1px rgba(0,0,0,0.1)" }}>
-                <div style={{ position: "absolute", right: -20, top: -20, fontSize: 100, opacity: 0.1, transform: "rotate(15deg)" }}>🏖️</div>
-                <div style={{ zIndex: 1, flex: 1 }}>
-                  <h3 style={{ margin: "0 0 12px 0", fontSize: 18, fontWeight: "normal", display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 20 }}>{sisaCuti > 5 ? "✨" : "⚠️"}</span> {sisaCuti > 5 ? "Waktunya Liburan!" : "Kuota Menipis!"}
-                  </h3>
-                  <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, opacity: 0.9 }}>
-                    {sisaCuti > 5 
-                      ? `Anda masih memiliki ${sisaCuti} hari cuti tahun ini. Jangan lupakan keseimbangan kerja dan istirahat Anda.` 
-                      : `Sisa cuti Anda tinggal ${sisaCuti} hari. Gunakan sisa kuota tersebut dengan bijak.`}
-                  </p>
-                </div>
-                <div style={{ zIndex: 1, marginTop: 24 }}>
-                  <Button disableRipple onPress={() => setIsLeaveModalOpen(true)} style={{ background: "rgba(255,255,255,0.2)", color: "white", border: "1px solid rgba(255,255,255,0.4)", fontWeight: "bold", width: "100%", borderRadius: 4, height: 36, fontSize: 13 }}>
-                    Ambil Cuti Sekarang
-                  </Button>
-                </div>
-              </div>
-
-            </div>
-          </>
-        )}
-
-        {/* MODAL AJUKAN CUTI */}
-        {isLeaveModalOpen && (
-          <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-            <div className="resp-form-card" style={{ width: "100%", maxWidth: 600, background: T.cardBg, borderRadius: 16, border: T.cardBorder, padding: 32, boxShadow: "0 20px 25px -5px rgba(0,0,0,0.2)", position: "relative", maxHeight: "90vh", overflowY: "auto" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-                <h3 style={{ margin: 0, fontSize: 20, fontWeight: "700", color: T.textDark }}>Ajukan Cuti Baru</h3>
-                <button onClick={() => setIsLeaveModalOpen(false)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: T.textGray }}>✕</button>
-              </div>
-
-              {leaveError && <div style={{ background: "#fef2f2", color: T.red, padding: "12px 16px", borderRadius: 8, fontSize: 13, fontWeight: "500", marginBottom: 24 }}>{leaveError}</div>}
-
-              <div style={{ marginBottom: 20 }}>
-                <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
-                  Jenis Cuti <span style={{ color: T.red }}>*</span>
-                </label>
-                <select value={leaveForm.leave_type_id}
-                  onChange={(e) => setLeaveForm(prev => ({ ...prev, leave_type_id: e.target.value }))}
-                  style={{ width: "100%", border: T.cardBorder, borderRadius: 8, padding: "12px 14px", fontSize: 14, color: T.textDark, background: T.bg, outline: "none", cursor: "pointer", fontFamily: "inherit" }}>
-                  <option value="">Pilih Jenis Cuti</option>
-                  {leaveTypes.map(type => (
-                    <option key={type.id} value={String(type.id)}>{type.name} (Maks. {type.max_days} Hari)</option>
-                  ))}
-                </select>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
-                <div>
-                  <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
-                    Tanggal Mulai <span style={{ color: T.red }}>*</span>
-                  </label>
-                  <input type="date" min={todayIsoStr} value={leaveForm.start_date}
-                    onChange={(e) => setLeaveForm(prev => ({ ...prev, start_date: e.target.value }))}
-                    style={{ width: "100%", border: T.cardBorder, borderRadius: 8, padding: "11px 14px", fontSize: 14, color: T.textDark, background: T.bg, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
-                    Tanggal Selesai <span style={{ color: T.red }}>*</span>
-                  </label>
-                  <input type="date" min={leaveForm.start_date || todayIsoStr} value={leaveForm.end_date}
-                    onChange={(e) => setLeaveForm(prev => ({ ...prev, end_date: e.target.value }))}
-                    style={{ width: "100%", border: T.cardBorder, borderRadius: 8, padding: "11px 14px", fontSize: 14, color: T.textDark, background: T.bg, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }} />
-                </div>
-              </div>
-
-              {totalDays() > 0 && (
-                <div style={{ background: T.highlightBg, color: T.primary, padding: "16px 20px", borderRadius: 8, fontSize: 13, marginBottom: 24, display: "flex", flexDirection: "column", gap: 8 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span>Total Durasi:</span>
-                    <span style={{ fontWeight: "700" }}>{totalDays()} Hari Kerja</span>
+         {activePage === "dashboard" && (
+           <>
+             {/* STATS KOTAK (Redesigned with Premium Gradient Accents) */}
+             <div className="resp-grid-3" style={{ gap: 20, marginBottom: 28 }}>
+               
+               <div className="gradient-sky-glow premium-card-hover rounded-2xl animate-fade-in-up" style={{ padding: "24px", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 8px 30px rgba(0, 0, 0, 0.02)" }}>
+                  <div style={{ zIndex: 2 }}>
+                    <p style={{ fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5, margin: "0 0 4px 0", opacity: 0.8 }}>Sisa Cuti Caturwulan</p>
+                    <h3 style={{ fontSize: 36, fontWeight: "900", margin: "0 0 4px 0" }}>{sisaCuti} <span style={{ fontSize: 14, fontWeight: "600" }}>Hari</span></h3>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span>Kembali Kerja:</span>
-                    <span style={{ fontWeight: "700" }}>{getReturnDate()}</span>
+                  <div style={{ position: "absolute", right: 16, bottom: 12, fontSize: 44, opacity: 0.15, zIndex: 1 }}>
+                    🏖️
                   </div>
-                </div>
-              )}
+               </div>
 
-              <div style={{ marginBottom: 24 }}>
-                <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
-                  Alasan Cuti <span style={{ color: T.red }}>*</span>
-                </label>
-                <Textarea
-                  placeholder="Tulis alasan..."
-                  value={leaveForm.reason}
-                  onValueChange={(val) => setLeaveForm(prev => ({ ...prev, reason: val }))}
-                  variant="bordered"
-                  minRows={3}
-                  classNames={{
-                    inputWrapper: "!border-[#e5e7eb] rounded-lg !bg-transparent",
-                    input: "text-sm",
-                  }}
-                />
-              </div>
+               <div className="gradient-emerald-glow premium-card-hover rounded-2xl animate-fade-in-up" style={{ padding: "24px", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 8px 30px rgba(0, 0, 0, 0.02)" }}>
+                  <div style={{ zIndex: 2 }}>
+                    <p style={{ fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5, margin: "0 0 4px 0", opacity: 0.8 }}>Total Terpakai</p>
+                    <h3 style={{ fontSize: 36, fontWeight: "900", margin: "0 0 4px 0" }}>{totalTerpakai} <span style={{ fontSize: 14, fontWeight: "600" }}>Hari</span></h3>
+                  </div>
+                  <div style={{ position: "absolute", right: 16, bottom: 12, fontSize: 44, opacity: 0.15, zIndex: 1 }}>
+                    📈
+                  </div>
+               </div>
 
-              <div style={{ marginBottom: 32 }}>
-                <label style={{ fontSize: 13, fontWeight: "600", color: T.textDark, display: "block", marginBottom: 8 }}>
-                  Lampiran <span style={{ fontSize: 12, fontWeight: "400", color: T.textGray }}>(Opsional)</span>
-                </label>
-                <div onClick={() => document.getElementById("modal-file-upload").click()} style={{ border: `2px dashed ${attachmentFile ? T.primary : "#cbd5e1"}`, borderRadius: 10, padding: "16px", textAlign: "center", cursor: "pointer", background: T.bg }}>
-                  <input id="modal-file-upload" type="file" accept="image/*,.pdf" style={{ display: "none" }} onChange={(e) => setAttachmentFile(e.target.files[0] || null)} />
-                  {attachmentFile ? (
-                    <span style={{ fontSize: 12, fontWeight: "600", color: T.primary }}>📎 {attachmentFile.name}</span>
-                  ) : (
-                    <span style={{ fontSize: 12, color: T.textGray }}>🖼️ Klik untuk pilih file</span>
-                  )}
-                </div>
-              </div>
+               <div className="gradient-indigo-glow premium-card-hover rounded-2xl animate-fade-in-up" style={{ padding: "24px", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 8px 30px rgba(0, 0, 0, 0.02)" }}>
+                  <div style={{ zIndex: 2 }}>
+                    <p style={{ fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5, margin: "0 0 4px 0", opacity: 0.8 }}>Kuota Tahunan</p>
+                    <h3 style={{ fontSize: 36, fontWeight: "900", margin: "0 0 4px 0" }}>{kuotaTotal} <span style={{ fontSize: 14, fontWeight: "600" }}>Hari</span></h3>
+                  </div>
+                  <div style={{ position: "absolute", right: 16, bottom: 12, fontSize: 44, opacity: 0.15, zIndex: 1 }}>
+                    📅
+                  </div>
+               </div>
 
-              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
-                <Button disableRipple onPress={() => setIsLeaveModalOpen(false)} style={{ background: "transparent", border: T.cardBorder, color: T.textDark, borderRadius: 8 }}>Batal</Button>
-                <Button disableRipple isLoading={leaveLoading} onPress={handleSubmitLeave} style={{ background: T.primary, color: "white", borderRadius: 8 }}>Kirim Pengajuan</Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activePage === "leaves" && (
-           <div style={{ background: T.cardBg, borderRadius: 12, border: T.cardBorder }}>
-             <div style={{ padding: "20px 24px", borderBottom: T.cardBorder }}>
-               <h3 style={{ margin: 0, fontSize: 16, fontWeight: "600", color: T.textDark }}>Riwayat Pengajuan Cuti</h3>
              </div>
-             <div className="resp-table-wrapper">
-             <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
-               <thead>
-                 <tr>
-                   <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase" }}>Tipe Cuti</th>
-                   <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase" }}>Jadwal</th>
-                   <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Durasi</th>
-                   <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Lampiran</th>
-                   <th style={{ padding: "16px 24px", fontSize: 12, fontWeight: "600", color: T.textGray, borderBottom: T.cardBorder, background: T.bg, textTransform: "uppercase", textAlign: "center" }}>Status</th>
-                 </tr>
-               </thead>
-               <tbody>
-                 {leaves.map(l => (
-                   <tr key={l.id} style={{ borderBottom: T.cardBorder }}>
-                     <td style={{ padding: "16px 24px", fontSize: 13, color: T.textDark, fontWeight: "500" }}><span style={{marginRight: 8}}>📄</span>{l.leave_type_name || "Cuti Tahunan"}</td>
-                     <td style={{ padding: "16px 24px", fontSize: 13, color: T.textGray }}>{l.start_date.slice(0,10)} sd {l.end_date.slice(0,10)}</td>
-                     <td style={{ padding: "16px 24px", fontSize: 13, color: T.textDark, textAlign: "center", fontWeight: "600" }}>{l.total_days} Hari</td>
-                     <td style={{ padding: "16px 24px", textAlign: "center" }}>
-                       {leaveRowHasAttachment(l) ? (
-                         <button
-                           type="button"
-                           onClick={() => openMyAttachment(l)}
-                           style={{ background: "none", border: "none", cursor: "pointer", color: T.primary, fontSize: 12, fontWeight: "700" }}>
-                           📎 Buka
-                         </button>
-                       ) : (
-                         <span style={{ fontSize: 11, color: T.textGray }}>-</span>
-                       )}
-                     </td>
-                     <td style={{ padding: "16px 24px", textAlign: "center" }}>
-                       <span style={{ display: "inline-block", background: statusStyle[l.status]?.bg || "#f3f4f6", color: statusStyle[l.status]?.color || "#374151", padding: "6px 12px", borderRadius: 20, fontSize: 11, fontWeight: "600", textTransform: "uppercase" }}>
+
+             {/* TWO COLUMN CONTENT AREA */}
+             <div className="resp-grid-2" style={{ gap: 24, marginBottom: 24 }}>
+               
+               {/* KOLOM KIRI: Pengajuan Terakhir */}
+               <div className="glass-card" style={{ borderRadius: 20, border: T.cardBorder, overflow: "hidden", boxShadow: "0 10px 30px rgba(0,0,0,0.01)" }}>
+                 <div style={{ padding: "20px 24px", borderBottom: "1px dashed rgba(148, 163, 184, 0.2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                   <h3 style={{ margin: 0, fontSize: 15, color: T.textDark, fontWeight: "800", tracking: -0.2 }}>⏳ Pengajuan Cuti Terakhir</h3>
+                   <span onClick={() => setActivePage("leaves")} style={{ fontSize: 12, color: T.primary, cursor: "pointer", fontWeight: "700" }}>Lihat Semua &rarr;</span>
+                 </div>
+                 <div style={{ padding: "8px 24px 20px", display: "flex", flexDirection: "column" }}>
+                   {leaves.length > 0 ? leaves.slice(0, 3).map(l => (
+                     <div key={l.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 16, paddingBottom: 16, borderBottom: "1px solid rgba(148, 163, 184, 0.1)" }}>
+                       <div>
+                         <p style={{ margin: "0 0 4px 0", fontSize: 13, fontWeight: "700", color: T.textDark }}>{l.leave_type_name || "Cuti Tahunan"} <span style={{ color: T.textGray, fontWeight: "600", fontSize: 11 }}>({l.total_days} Hari)</span></p>
+                         <p style={{ margin: 0, fontSize: 11, color: T.textGray, fontWeight: "600" }}>{l.start_date.slice(0,10)} s/d {l.end_date.slice(0,10)}</p>
+                       </div>
+                       <span className={`status-pill status-${l.status === 'disetujui' ? 'approved' : l.status}`}>
+                         <span className="status-dot"></span>
                          {statusStyle[l.status]?.label || l.status}
                        </span>
-                     </td>
-                   </tr>
-                 ))}
-                 {leaves.length === 0 && <tr><td colSpan="5" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: T.textGray }}>Belum ada riwayat cuti.</td></tr>}
-               </tbody>
-             </table>
-             </div>
-           </div>
-        )}
-        {activePage === "info" && (
-           <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-             {/* Banner Panduan / SOP Cuti */}
-             <div style={{ background: "linear-gradient(to right, #2563eb, #1e40af)", borderRadius: 16, padding: 32, color: "white", boxShadow: "0 10px 15px -3px rgba(37,99,235,0.3)" }}>
-                <h3 style={{ fontSize: 20, fontWeight: "800", margin: "0 0 12px 0", display: "flex", alignItems: "center", gap: 12 }}>
-                   <span style={{ fontSize: 24 }}>📚</span> Panduan & Kebijakan Cuti
-                </h3>
-                <p style={{ margin: "0 0 8px 0", fontSize: 14, opacity: 0.9, lineHeight: 1.6, display: "flex", gap: 12 }}>
-                   <span style={{ fontWeight: "bold" }}>1.</span> <span>Pengajuan Cuti Tahunan wajib dilakukan selambat-lambatnya <b>H-3</b> (tiga hari) sebelum tanggal pelaksanaan cuti.</span>
-                </p>
-                <p style={{ margin: "0 0 8px 0", fontSize: 14, opacity: 0.9, lineHeight: 1.6, display: "flex", gap: 12 }}>
-                   <span style={{ fontWeight: "bold" }}>2.</span> <span>Pengambilan Cuti Sakit yang memakan waktu lebih dari 1 hari <b>wajib</b> ditindaklanjuti dengan menyerahkan Surat Keterangan Sakit dari Dokter ke HRD.</span>
-                </p>
-                <p style={{ margin: "0", fontSize: 14, opacity: 0.9, lineHeight: 1.6, display: "flex", gap: 12 }}>
-                   <span style={{ fontWeight: "bold" }}>3.</span> <span>Keputusan persetujuan atau penolakan cuti sepenuhnya berada di bawah wewenang HRD dengan mempertimbangkan rasio kehadiran departemen.</span>
-                </p>
-             </div>
-
-             {/* Daftar Jenis Hak Cuti */}
-             <div>
-                <h3 style={{ fontSize: 18, fontWeight: "800", color: T.textDark, margin: "0 0 16px 0" }}>Daftar Hak Cuti Karyawan</h3>
-                <div className="resp-info-cards">
-                   {balances.map(b => (
-                      <div key={b.id} style={{ background: T.cardBg, borderRadius: 12, border: T.cardBorder, padding: 24, paddingLeft: 20, borderLeft: `6px solid ${T.primary}`, display: "flex", flexDirection: "column", gap: 12, transition: "transform 0.2s", cursor: "default" }} onMouseEnter={(e)=>e.currentTarget.style.transform="translateY(-4px)"} onMouseLeave={(e)=>e.currentTarget.style.transform="translateY(0)"}>
-                         <div>
-                            <p style={{ fontSize: 13, fontWeight: "800", color: T.textDark, margin: "0 0 8px 0" }}>{b.leave_type_name.toUpperCase()}</p>
-                            <div style={{ display: "flex", gap: 8 }}>
-                               <span style={{ display: "inline-block", background: "#f0fdf4", color: T.green, padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: "800", textTransform: "uppercase" }}>Sisa: {b.remaining_days} Hari</span>
-                               <span style={{ display: "inline-block", background: "#fef2f2", color: T.red, padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: "800", textTransform: "uppercase" }}>Pakai: {b.used_days} Hari</span>
-                            </div>
-                         </div>
-                         <div style={{ height: 4, background: "#f1f5f9", borderRadius: 2, overflow: "hidden", marginTop: 4 }}>
-                            <div style={{ width: `${(b.used_days / (b.total_days || 1)) * 100}%`, height: "100%", background: T.primary }}></div>
-                         </div>
-                         <p style={{ fontSize: 11, color: T.textGray, margin: 0, lineHeight: 1.5 }}>
-                            Total kuota Anda untuk jenis cuti ini adalah {b.total_days} hari di tahun {b.year}.
-                         </p>
-                      </div>
-                   ))}
-                   {balances.length === 0 && (
-                      <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: 32, background: T.cardBg, borderRadius: 12, border: T.cardBorder, color: T.textGray, fontSize: 13 }}>
-                         Memuat kebijakan cuti dari server...
-                      </div>
+                     </div>
+                   )) : (
+                     <div style={{ textAlign: "center", padding: "36px 0", color: T.textGray, fontSize: 13, fontWeight: "600" }}>Belum ada riwayat pengajuan cuti.</div>
                    )}
-                </div>
+                 </div>
+               </div>
+
+               {/* KOLOM KANAN: Widget Info (Redesigned to a stunning dark-blue/indigo banner) */}
+               <div style={{ background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)", borderRadius: 20, color: "white", padding: 32, display: "flex", flexDirection: "column", position: "relative", overflow: "hidden", border: isDarkMode ? "1px solid #334155" : "none", boxShadow: "0 10px 30px rgba(0,0,0,0.05)" }}>
+                 <div style={{ position: "absolute", right: -24, top: -24, fontSize: 100, opacity: 0.08, transform: "rotate(15deg)" }}>🌴</div>
+                 <div style={{ zIndex: 1, flex: 1 }}>
+                   <h3 style={{ margin: "0 0 12px 0", fontSize: 18, fontWeight: "800", display: "flex", alignItems: "center", gap: 8, letterSpacing: -0.3 }}>
+                     <span>{sisaCuti > 5 ? "✨" : "⚠️"}</span> {sisaCuti > 5 ? "Keseimbangan Kerja & Hidup" : "Sisa Kuota Terbatas"}
+                   </h3>
+                   <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, opacity: 0.8, fontWeight: "500" }}>
+                     {sisaCuti > 5 
+                       ? `Anda memiliki sisa kuota ${sisaCuti} hari cuti aktif. Jadwalkan istirahat Anda untuk menjaga produktivitas prima.` 
+                       : `Kuota cuti Anda tersisa ${sisaCuti} hari. Disarankan untuk menggunakan sisa cuti ini secara selektif.`}
+                   </p>
+                 </div>
+                 <div style={{ zIndex: 1, marginTop: 28 }}>
+                   <Button disableRipple onPress={() => setIsLeaveModalOpen(true)} className="glow-btn" style={{ background: T.primary, color: "white", fontWeight: "700", width: "100%", borderRadius: 12, height: 44, border: "none", fontSize: 13 }}>
+                     Ambil Cuti Sekarang
+                   </Button>
+                 </div>
+               </div>
+
+             </div>
+           </>
+         )}
+
+         {/* MODAL AJUKAN CUTI (Styled beautifully as a slide-up elegant card) */}
+         {isLeaveModalOpen && (
+           <div style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.4)", backdropFilter: "blur(5px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+             <div className="glass-card" style={{ width: "100%", maxWidth: 600, borderRadius: 24, padding: 32, boxShadow: "0 30px 60px -15px rgba(0,0,0,0.3)", position: "relative", maxHeight: "90vh", overflowY: "auto" }}>
+               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+                 <h3 style={{ margin: 0, fontSize: 20, fontWeight: "800", color: T.textDark, letterSpacing: -0.5 }}>Formulir Cuti Baru</h3>
+                 <button onClick={() => setIsLeaveModalOpen(false)} style={{ background: T.bg, border: "none", fontSize: 14, cursor: "pointer", color: T.textGray, width: 28, height: 28, borderRadius: "50%" }}>✕</button>
+               </div>
+
+               {leaveError && <div style={{ background: "rgba(239, 68, 68, 0.08)", color: T.red, padding: "12px 16px", borderRadius: 12, fontSize: 13, fontWeight: "600", marginBottom: 20, border: "1px solid rgba(239, 68, 68, 0.15)" }}>⚠️ {leaveError}</div>}
+
+               <div style={{ marginBottom: 20 }}>
+                 <label style={{ fontSize: 12, fontWeight: "700", color: T.textDark, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                   Jenis Cuti <span style={{ color: T.red }}>*</span>
+                 </label>
+                 <select value={leaveForm.leave_type_id}
+                   onChange={(e) => setLeaveForm(prev => ({ ...prev, leave_type_id: e.target.value }))}
+                   style={{ width: "100%", border: "1px solid #cbd5e1", borderRadius: 12, padding: "12px 14px", fontSize: 14, color: T.textDark, background: T.bg, outline: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: "600" }}>
+                   <option value="">Pilih Jenis Cuti</option>
+                   {leaveTypes.map(type => (
+                     <option key={type.id} value={String(type.id)}>{type.name} (Maks. {type.max_days} Hari)</option>
+                   ))}
+                 </select>
+               </div>
+
+               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+                 <div>
+                   <label style={{ fontSize: 12, fontWeight: "700", color: T.textDark, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                     Tanggal Mulai <span style={{ color: T.red }}>*</span>
+                   </label>
+                   <input type="date" min={todayIsoStr} value={leaveForm.start_date}
+                     onChange={(e) => setLeaveForm(prev => ({ ...prev, start_date: e.target.value }))}
+                     style={{ width: "100%", border: "1px solid #cbd5e1", borderRadius: 12, padding: "11px 14px", fontSize: 14, color: T.textDark, background: T.bg, outline: "none", boxSizing: "border-box", fontFamily: "inherit", fontWeight: "600" }} />
+                 </div>
+                 <div>
+                   <label style={{ fontSize: 12, fontWeight: "700", color: T.textDark, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                     Tanggal Selesai <span style={{ color: T.red }}>*</span>
+                   </label>
+                   <input type="date" min={leaveForm.start_date || todayIsoStr} value={leaveForm.end_date}
+                     onChange={(e) => setLeaveForm(prev => ({ ...prev, end_date: e.target.value }))}
+                     style={{ width: "100%", border: "1px solid #cbd5e1", borderRadius: 12, padding: "11px 14px", fontSize: 14, color: T.textDark, background: T.bg, outline: "none", boxSizing: "border-box", fontFamily: "inherit", fontWeight: "600" }} />
+                 </div>
+               </div>
+
+               {totalDays() > 0 && (
+                 <div className="gradient-indigo-glow" style={{ padding: "16px 20px", borderRadius: 12, fontSize: 13, marginBottom: 24, display: "flex", flexDirection: "column", gap: 8, fontWeight: "600" }}>
+                   <div style={{ display: "flex", justifyContent: "space-between" }}>
+                     <span>Durasi Pengajuan:</span>
+                     <span style={{ fontWeight: "800" }}>{totalDays()} Hari Kerja</span>
+                   </div>
+                   <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px dashed rgba(67, 56, 202, 0.15)", paddingTop: 8 }}>
+                     <span>Kembali Bekerja:</span>
+                     <span style={{ fontWeight: "800" }}>{getReturnDate()}</span>
+                   </div>
+                 </div>
+               )}
+
+               <div style={{ marginBottom: 24 }}>
+                 <label style={{ fontSize: 12, fontWeight: "700", color: T.textDark, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                   Alasan Cuti <span style={{ color: T.red }}>*</span>
+                 </label>
+                 <Textarea
+                   placeholder="Tuliskan alasan cuti Anda secara profesional..."
+                   value={leaveForm.reason}
+                   onValueChange={(val) => setLeaveForm(prev => ({ ...prev, reason: val }))}
+                   variant="bordered"
+                   minRows={3}
+                   classNames={{
+                     inputWrapper: "border border-slate-300 rounded-xl bg-slate-50/50 shadow-none hover:border-slate-400 focus-within:!border-blue-600 focus-within:!bg-white p-3",
+                     input: "text-sm text-slate-700 font-semibold",
+                   }}
+                 />
+               </div>
+
+               <div style={{ marginBottom: 32 }}>
+                 <label style={{ fontSize: 12, fontWeight: "700", color: T.textDark, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                   Lampiran Bukti <span style={{ fontSize: 11, fontWeight: "500", color: T.textGray }}>(Opsional)</span>
+                 </label>
+                 <div onClick={() => document.getElementById("modal-file-upload").click()} style={{ border: `2px dashed ${attachmentFile ? T.primary : "#cbd5e1"}`, borderRadius: 12, padding: "16px", textAlign: "center", cursor: "pointer", background: T.bg }}>
+                   <input id="modal-file-upload" type="file" accept="image/*,.pdf" style={{ display: "none" }} onChange={(e) => setAttachmentFile(e.target.files[0] || null)} />
+                   {attachmentFile ? (
+                     <span style={{ fontSize: 12, fontWeight: "700", color: T.primary }}>📎 &nbsp; {attachmentFile.name}</span>
+                   ) : (
+                     <span style={{ fontSize: 12, color: T.textGray, fontWeight: "600" }}>🖼️ &nbsp; Klik untuk pilih berkas lampiran</span>
+                   )}
+                 </div>
+               </div>
+
+               <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+                 <Button disableRipple onPress={() => setIsLeaveModalOpen(false)} style={{ background: "white", border: T.cardBorder, color: T.textDark, borderRadius: 12, height: 44, fontWeight: "700" }}>Batal</Button>
+                 <Button disableRipple isLoading={leaveLoading} onPress={handleSubmitLeave} className="glow-btn" style={{ background: T.primary, color: "white", borderRadius: 12, height: 44, fontWeight: "700" }}>Kirim Pengajuan</Button>
+               </div>
              </div>
            </div>
-        )}
-        {activePage === "calendar" && (
-           <div style={{ background: T.cardBg, borderRadius: 16, border: T.cardBorder, minHeight: 600, display: "flex", flexDirection: "column", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" }}>
-             <div className="resp-calendar-toolbar" style={{ padding: "24px 32px", borderBottom: T.cardBorder, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-               <div style={{ minWidth: 0 }}>
-                  <h3 style={{ margin: 0, fontSize: 20, fontWeight: "800", color: T.textDark }}>Kalender Jadwal Pribadi</h3>
-                  <p style={{ margin: "4px 0 0 0", fontSize: 14, color: T.textGray }}>Visualisasi hari masuk dan hari libur/cuti Anda</p>
-               </div>
-               <div style={{ display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
-                 <button type="button" onClick={() => setCurrentMonthDate(new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() - 1, 1))} style={{ width: 40, height: 40, borderRadius: 12, border: T.cardBorder, background: T.cardBg, cursor: "pointer", fontWeight: "bold" }}>←</button>
-                 <span style={{ fontSize: 16, fontWeight: "700", minWidth: 120, textAlign: "center" }}>
-                   {currentMonthDate.toLocaleDateString("id-ID", { month: "long", year: "numeric" })}
-                 </span>
-                 <button type="button" onClick={() => setCurrentMonthDate(new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 1))} style={{ width: 40, height: 40, borderRadius: 12, border: T.cardBorder, background: T.cardBg, cursor: "pointer", fontWeight: "bold" }}>→</button>
-                 <button type="button" onClick={() => setCurrentMonthDate(new Date())} style={{ height: 40, padding: "0 16px", borderRadius: 12, border: "none", background: T.bg, color: T.textDark, cursor: "pointer", fontWeight: "600", fontSize: 13 }}>Hari Ini</button>
-               </div>
-             </div>
-             
-             <div className="resp-calendar-scroll" style={{ flex: 1, padding: 24, display: "flex", flexDirection: "column" }}>
-                <div className="resp-calendar-inner">
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 12, marginBottom: 12 }}>
-                  {["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"].map(d => (
-                    <div key={d} style={{ textAlign: "center", fontSize: 12, fontWeight: "700", color: T.textGray, textTransform: "uppercase" }}>{d}</div>
+         )}
+
+         {activePage === "leaves" && (
+            <div className="glass-card animate-fade-in-up" style={{ borderRadius: 20, border: T.cardBorder, overflow: "hidden" }}>
+              <div style={{ padding: "20px 24px", borderBottom: "1px dashed rgba(148, 163, 184, 0.2)" }}>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: "800", color: T.textDark }}>Riwayat Pengajuan Cuti</h3>
+              </div>
+              <div className="resp-table-wrapper">
+              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+                <thead>
+                  <tr>
+                    <th style={{ padding: "16px 24px", fontSize: 11, fontWeight: "800", color: T.textGray, borderBottom: T.cardBorder, background: isDarkMode ? "#1e293b" : "#f8fafc", textTransform: "uppercase", letterSpacing: 0.5 }}>Tipe Cuti</th>
+                    <th style={{ padding: "16px 24px", fontSize: 11, fontWeight: "800", color: T.textGray, borderBottom: T.cardBorder, background: isDarkMode ? "#1e293b" : "#f8fafc", textTransform: "uppercase", letterSpacing: 0.5 }}>Jadwal</th>
+                    <th style={{ padding: "16px 24px", fontSize: 11, fontWeight: "800", color: T.textGray, borderBottom: T.cardBorder, background: isDarkMode ? "#1e293b" : "#f8fafc", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center" }}>Durasi</th>
+                    <th style={{ padding: "16px 24px", fontSize: 11, fontWeight: "800", color: T.textGray, borderBottom: T.cardBorder, background: isDarkMode ? "#1e293b" : "#f8fafc", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center" }}>Lampiran</th>
+                    <th style={{ padding: "16px 24px", fontSize: 11, fontWeight: "800", color: T.textGray, borderBottom: T.cardBorder, background: isDarkMode ? "#1e293b" : "#f8fafc", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center" }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leaves.map(l => (
+                    <tr key={l.id} style={{ borderBottom: T.cardBorder }}>
+                      <td style={{ padding: "16px 24px", fontSize: 13, color: T.textDark, fontWeight: "700" }}><span style={{marginRight: 8}}>📄</span>{l.leave_type_name || "Cuti Tahunan"}</td>
+                      <td style={{ padding: "16px 24px", fontSize: 12, color: T.textGray, fontWeight: "600" }}>{l.start_date.slice(0,10)} sd {l.end_date.slice(0,10)}</td>
+                      <td style={{ padding: "16px 24px", fontSize: 13, color: T.textDark, textAlign: "center", fontWeight: "800" }}>{l.total_days} Hari</td>
+                      <td style={{ padding: "16px 24px", textAlign: "center" }}>
+                        {leaveRowHasAttachment(l) ? (
+                          <button
+                            type="button"
+                            onClick={() => openMyAttachment(l)}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: T.primary, fontSize: 12, fontWeight: "800" }}>
+                            📎 Buka File
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: 11, color: T.textLight, fontWeight: "600" }}>-</span>
+                        )}
+                      </td>
+                      <td style={{ padding: "16px 24px", textAlign: "center" }}>
+                        <span className={`status-pill status-${l.status === 'disetujui' ? 'approved' : l.status}`}>
+                          <span className="status-dot"></span>
+                          {statusStyle[l.status]?.label || l.status}
+                        </span>
+                      </td>
+                    </tr>
                   ))}
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 12, flex: 1 }}>
-                  {(() => {
-                    const year = currentMonthDate.getFullYear();
-                    const month = currentMonthDate.getMonth();
-                    const firstDay = new Date(year, month, 1).getDay();
-                    const daysInMonth = new Date(year, month + 1, 0).getDate();
-                    
-                    const cells = [];
-                    for(let i=0; i<firstDay; i++) cells.push(<div key={`empty-${i}`} style={{ background: T.bg, borderRadius: 12, opacity: 0.5 }}></div>);
-                    
-                    for(let day=1; day<=daysInMonth; day++) {
-                      const dateObj = new Date(year, month, day);
-                      dateObj.setHours(0,0,0,0);
-                      
-                      const isToday = new Date().setHours(0,0,0,0) === dateObj.getTime();
-                      
-                      const myApprovedLeaves = leaves.filter(l => l.status === "approved" || l.status === "disetujui");
-                      
-                      const drops = myApprovedLeaves.filter(l => {
-                         const st = new Date(l.start_date); st.setHours(0,0,0,0);
-                         const en = new Date(l.end_date); en.setHours(23,59,59,999);
-                         return dateObj >= st && dateObj <= en;
-                      });
-                      
-                      cells.push(
-                        <div key={day} className="resp-calendar-cell" style={{ border: drops.length > 0 ? `2px solid ${T.primary}` : T.cardBorder, borderRadius: 12, minHeight: 120, padding: "8px", background: isToday ? "#eff6ff" : (drops.length > 0 ? "#eff6ff" : "white"), display: "flex", flexDirection: "column", gap: 4, transition: "transform 0.1s", cursor: "pointer" }}
-                             onMouseEnter={e => e.currentTarget.style.transform = "scale(1.02)"}
-                             onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
-                          <div style={{ fontSize: 14, fontWeight: isToday || drops.length > 0 ? "800" : "600", color: isToday ? T.primary : T.textDark, textAlign: "right", marginBottom: 4 }}>
-                            {day}
-                          </div>
-                          <div style={{ display: "flex", flexDirection: "column", gap: 4, overflowY: "auto", flex: 1 }}>
-                            {drops.map(l => (
-                              <div key={'drop'+l.id} title={l.leave_type_name} style={{ background: T.primary, color: "white", fontSize: 11, fontWeight: "700", padding: "6px 8px", borderRadius: 8, textAlign: "center", boxShadow: "0 2px 4px rgba(37,99,235,0.3)" }}>
-                                {l.leave_type_name.split(' ')[0]}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    }
-                    return cells;
-                  })()}
-                </div>
-                </div>
-             </div>
-           </div>
-        )}
-
-      </div>
-
-      {/* SUCCESS MODAL REUSABLE */}
-      {successModal.open && (
-        <div className="resp-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10001, backdropFilter: "blur(6px)", padding: 20 }}>
-          <div className="resp-modal-shell animate-bounce-subtle" style={{ background: "white", borderRadius: 28, padding: "40px 32px", width: 400, maxWidth: "100%", textAlign: "center", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.15)" }}>
-            <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#dcfce7", color: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, margin: "0 auto 24px" }}>
-              ✓
+                  {leaves.length === 0 && <tr><td colSpan="5" style={{ padding: "32px", textAlign: "center", fontSize: 13, color: T.textGray, fontWeight: "600" }}>Belum ada riwayat cuti.</td></tr>}
+                </tbody>
+              </table>
+              </div>
             </div>
-            <h2 style={{ fontSize: 22, fontWeight: "800", color: "#1e293b", margin: "0 0 12px 0" }}>{successModal.title}</h2>
-            <p style={{ fontSize: 14, color: "#64748b", margin: "0 0 32px 0", lineHeight: 1.6 }}>{successModal.message}</p>
-            <Button 
-              disableRipple 
-              onPress={() => setSuccessModal({ ...successModal, open: false })} 
-              style={{ width: "100%", background: "#1e293b", color: "white", height: 52, borderRadius: 16, fontWeight: "700", fontSize: 15 }}
-            >
-              Oke, Mengerti
-            </Button>
-          </div>
-        </div>
-      )}
+         )}
+
+         {activePage === "info" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 32 }} className="animate-fade-in-up">
+              {/* Banner Panduan / SOP Cuti (Refactored to gorgeous gradient overlay) */}
+              <div style={{ background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #4f46e5 100%)", borderRadius: 20, padding: 36, color: "white", boxShadow: "0 15px 35px rgba(37,99,235,0.2)" }}>
+                 <h3 style={{ fontSize: 18, fontWeight: "800", margin: "0 0 16px 0", display: "flex", alignItems: "center", gap: 12, letterSpacing: -0.3 }}>
+                    <span style={{ fontSize: 24 }}>📚</span> Kebijakan & Regulasi Cuti Kantor
+                 </h3>
+                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                   <p style={{ margin: 0, fontSize: 13, opacity: 0.9, lineHeight: 1.6, display: "flex", gap: 12, fontWeight: "500" }}>
+                      <span style={{ fontWeight: "800" }}>1.</span> <span>Pengajuan Cuti Tahunan wajib dilakukan selambat-lambatnya <b>H-3</b> sebelum tanggal mulai cuti agar tim dapat menyesuaikan alur kerja.</span>
+                   </p>
+                   <p style={{ margin: 0, fontSize: 13, opacity: 0.9, lineHeight: 1.6, display: "flex", gap: 12, fontWeight: "500" }}>
+                      <span style={{ fontWeight: "800" }}>2.</span> <span>Pengajuan Cuti Sakit yang memakan waktu lebih dari 1 hari <b>wajib menyertakan lampiran</b> Surat Dokter sah dari Klinik/Rumah Sakit.</span>
+                   </p>
+                   <p style={{ margin: 0, fontSize: 13, opacity: 0.9, lineHeight: 1.6, display: "flex", gap: 12, fontWeight: "500" }}>
+                      <span style={{ fontWeight: "800" }}>3.</span> <span>Persetujuan pengajuan cuti bersifat mutlak di bawah wewenang Staff HRD berdasarkan persentase kesiapan tim divisi masing-masing.</span>
+                   </p>
+                 </div>
+              </div>
+
+              {/* Daftar Jenis Hak Cuti */}
+              <div>
+                 <h3 style={{ fontSize: 16, fontWeight: "800", color: T.textDark, margin: "0 0 16px 0" }}>Kebijakan & Detail Sisa Kuota Cuti Anda</h3>
+                 <div className="resp-info-cards" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
+                    {balances.map(b => (
+                       <div key={b.id} className="glass-card premium-card-hover" style={{ borderRadius: 20, border: T.cardBorder, padding: 24, paddingLeft: 20, borderLeft: `6px solid ${T.primary}`, display: "flex", flexDirection: "column", gap: 12, cursor: "default" }}>
+                          <div>
+                             <p style={{ fontSize: 13, fontWeight: "800", color: T.textDark, margin: "0 0 8px 0" }}>{b.leave_type_name.toUpperCase()}</p>
+                             <div style={{ display: "flex", gap: 8 }}>
+                                <span style={{ display: "inline-block", background: "rgba(16,185,129,0.08)", color: T.green, padding: "4px 10px", borderRadius: 6, fontSize: 10, fontWeight: "800" }}>SISA: {b.remaining_days} HARI</span>
+                                <span style={{ display: "inline-block", background: "rgba(239,68,68,0.08)", color: T.red, padding: "4px 10px", borderRadius: 6, fontSize: 10, fontWeight: "800" }}>TERPAKAI: {b.used_days} HARI</span>
+                             </div>
+                          </div>
+                          <div style={{ height: 5, background: isDarkMode ? "#334155" : "#f1f5f9", borderRadius: 3, overflow: "hidden", marginTop: 4 }}>
+                             <div style={{ width: `${(b.used_days / (b.total_days || 1)) * 100}%`, height: "100%", background: T.primary }}></div>
+                          </div>
+                          <p style={{ fontSize: 11, color: T.textGray, margin: 0, lineHeight: 1.5, fontWeight: "600" }}>
+                             Total kuota yang dialokasikan untuk Anda adalah {b.total_days} hari pada tahun anggaran {b.year}.
+                          </p>
+                       </div>
+                    ))}
+                    {balances.length === 0 && (
+                       <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: 32, background: T.cardBg, borderRadius: 20, border: T.cardBorder, color: T.textGray, fontSize: 13, fontWeight: "600" }}>
+                          Sedang menyinkronkan kebijakan cuti dengan server...
+                       </div>
+                    )}
+                 </div>
+              </div>
+            </div>
+         )}
+
+         {activePage === "calendar" && (
+            <div className="glass-card animate-fade-in-up" style={{ borderRadius: 20, border: T.cardBorder, minHeight: 600, display: "flex", flexDirection: "column" }}>
+              <div className="resp-calendar-toolbar" style={{ padding: "24px 32px", borderBottom: "1px dashed rgba(148, 163, 184, 0.2)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+                <div style={{ minWidth: 0 }}>
+                   <h3 style={{ margin: 0, fontSize: 18, fontWeight: "800", color: T.textDark, letterSpacing: -0.3 }}>Kalender Jadwal Pribadi</h3>
+                   <p style={{ margin: "4px 0 0 0", fontSize: 13, color: T.textGray, fontWeight: "600" }}>Visualisasi hari kerja serta agenda cuti Anda secara interaktif.</p>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
+                  <button type="button" onClick={() => setCurrentMonthDate(new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() - 1, 1))} style={{ width: 40, height: 40, borderRadius: 12, border: T.cardBorder, background: T.cardBg, cursor: "pointer", fontWeight: "bold", color: T.textDark }}>←</button>
+                  <span style={{ fontSize: 14, fontWeight: "800", minWidth: 120, textAlign: "center", color: T.textDark }}>
+                    {currentMonthDate.toLocaleDateString("id-ID", { month: "long", year: "numeric" })}
+                  </span>
+                  <button type="button" onClick={() => setCurrentMonthDate(new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 1))} style={{ width: 40, height: 40, borderRadius: 12, border: T.cardBorder, background: T.cardBg, cursor: "pointer", fontWeight: "bold", color: T.textDark }}>→</button>
+                  <button type="button" onClick={() => setCurrentMonthDate(new Date())} style={{ height: 40, padding: "0 16px", borderRadius: 12, border: "none", background: T.highlightBg, color: T.primary, cursor: "pointer", fontWeight: "700", fontSize: 13 }}>Hari Ini</button>
+                </div>
+              </div>
+              
+              <div className="resp-calendar-scroll" style={{ flex: 1, padding: 24, display: "flex", flexDirection: "column" }}>
+                 <div className="resp-calendar-inner">
+                 <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 12, marginBottom: 12 }}>
+                   {["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"].map(d => (
+                     <div key={d} style={{ textAlign: "center", fontSize: 11, fontWeight: "800", color: T.textGray, textTransform: "uppercase", letterSpacing: 0.5 }}>{d}</div>
+                   ))}
+                 </div>
+                 <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 12, flex: 1 }}>
+                   {(() => {
+                     const year = currentMonthDate.getFullYear();
+                     const month = currentMonthDate.getMonth();
+                     const firstDay = new Date(year, month, 1).getDay();
+                     const daysInMonth = new Date(year, month + 1, 0).getDate();
+                     
+                     const cells = [];
+                     for(let i=0; i<firstDay; i++) cells.push(<div key={`empty-${i}`} style={{ background: T.bg, borderRadius: 12, opacity: 0.3 }}></div>);
+                     
+                     for(let day=1; day<=daysInMonth; day++) {
+                       const dateObj = new Date(year, month, day);
+                       dateObj.setHours(0,0,0,0);
+                       
+                       const isToday = new Date().setHours(0,0,0,0) === dateObj.getTime();
+                       
+                       const myApprovedLeaves = leaves.filter(l => l.status === "approved" || l.status === "disetujui");
+                       
+                       const drops = myApprovedLeaves.filter(l => {
+                          const st = new Date(l.start_date); st.setHours(0,0,0,0);
+                          const en = new Date(l.end_date); en.setHours(23,59,59,999);
+                          return dateObj >= st && dateObj <= en;
+                       });
+                       
+                       cells.push(
+                         <div key={day} className="resp-calendar-cell" style={{ border: drops.length > 0 ? `2px solid ${T.primary}` : T.cardBorder, borderRadius: 12, minHeight: 120, padding: "8px", background: isToday ? "rgba(37,99,235,0.06)" : (drops.length > 0 ? "rgba(37,99,235,0.04)" : T.cardBg), display: "flex", flexDirection: "column", gap: 4, transition: "transform 0.1s", cursor: "pointer" }}
+                              onMouseEnter={e => e.currentTarget.style.transform = "scale(1.02)"}
+                              onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
+                           <div style={{ fontSize: 14, fontWeight: isToday || drops.length > 0 ? "800" : "700", color: isToday ? T.primary : T.textDark, textAlign: "right", marginBottom: 4 }}>
+                             {day}
+                           </div>
+                           <div style={{ display: "flex", flexDirection: "column", gap: 4, overflowY: "auto", flex: 1 }}>
+                             {drops.map(l => (
+                               <div key={'drop'+l.id} title={l.leave_type_name} style={{ background: T.primary, color: "white", fontSize: 10, fontWeight: "800", padding: "6px 8px", borderRadius: 8, textAlign: "center", boxShadow: "0 2px 4px rgba(37,99,235,0.2)" }}>
+                                 {l.leave_type_name.split(' ')[0]}
+                               </div>
+                             ))}
+                           </div>
+                         </div>
+                       );
+                     }
+                     return cells;
+                   })()}
+                 </div>
+                 </div>
+              </div>
+            </div>
+         )}
+
+       </div>
+
+       {/* SUCCESS MODAL REUSABLE */}
+       {successModal.open && (
+         <div className="resp-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10001, backdropFilter: "blur(6px)", padding: 20 }}>
+           <div className="resp-modal-shell animate-bounce-subtle" style={{ background: "white", borderRadius: 28, padding: "40px 32px", width: 400, maxWidth: "100%", textAlign: "center", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.15)" }}>
+             <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#dcfce7", color: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, margin: "0 auto 24px" }}>
+               ✓
+             </div>
+             <h2 style={{ fontSize: 22, fontWeight: "800", color: "#1e293b", margin: "0 0 12px 0" }}>{successModal.title}</h2>
+             <p style={{ fontSize: 14, color: "#64748b", margin: "0 0 32px 0", lineHeight: 1.6 }}>{successModal.message}</p>
+             <Button 
+               disableRipple 
+               onPress={() => setSuccessModal({ ...successModal, open: false })} 
+               style={{ width: "100%", background: "#1e293b", color: "white", height: 52, borderRadius: 16, fontWeight: "700", fontSize: 15 }}
+             >
+               Oke, Mengerti
+             </Button>
+           </div>
+         </div>
+       )}
     </div>
   );
 }
