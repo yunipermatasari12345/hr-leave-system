@@ -402,7 +402,7 @@ export default function HrdDashboard() {
   const mode = isDarkMode ? "dark" : "light";
   const T = { 
     bg: mode === "dark" ? "#0f172a" : "#f8fafc", 
-    sidebar: mode === "dark" ? "#1e293b" : "#0ea5e9", 
+    sidebar: mode === "dark" ? "#1e293b" : "#e0f2fe", 
     cardBg: mode === "dark" ? "#1e293b" : "white",
     cardBorder: mode === "dark" ? "1px solid #334155" : "1px solid #bae6fd", 
     textDark: mode === "dark" ? "#f8fafc" : "#0f172a", 
@@ -413,11 +413,11 @@ export default function HrdDashboard() {
     green: "#10b981", 
     yellow: mode === "dark" ? "#d97706" : "#f59e0b",
     highlightBg: mode === "dark" ? "#1e3a8a" : "#e0f2fe",
-    activeMenuBg: mode === "dark" ? "rgba(59, 130, 246, 0.15)" : "#ffffff", 
-    activeMenuText: mode === "dark" ? "#60a5fa" : "#0ea5e9", 
-    logoText: mode === "dark" ? "#f8fafc" : "#ffffff", 
-    logoIconBg: mode === "dark" ? "#4f46e5" : "rgba(255, 255, 255, 0.2)",
-    inactiveMenuText: mode === "dark" ? "#cbd5e1" : "rgba(255, 255, 255, 0.85)"
+    activeMenuBg: mode === "dark" ? "rgba(59, 130, 246, 0.15)" : "#0ea5e9", 
+    activeMenuText: mode === "dark" ? "#60a5fa" : "#ffffff", 
+    logoText: mode === "dark" ? "#f8fafc" : "#0ea5e9", 
+    logoIconBg: mode === "dark" ? "#4f46e5" : "#0ea5e9", 
+    inactiveMenuText: mode === "dark" ? "#cbd5e1" : "#0f172a"
   };
   const statusStyle = { pending: { bg: "#fef3c7", color: "#d97706", label: "Menunggu" }, approved: { bg: "#dcfce7", color: "#166534", label: "Disetujui" }, rejected: { bg: "#fee2e2", color: "#991b1b", label: "Ditolak" }, disetujui: { bg: "#dcfce7", color: "#166534", label: "Disetujui" } };
   const MenuHeader = ({ label }) => {
@@ -491,14 +491,14 @@ export default function HrdDashboard() {
         flexDirection: "column", 
         flexShrink: 0, 
         paddingTop: 32,
-        color: isDarkMode ? T.textDark : "#ffffff"
+        color: isDarkMode ? T.textDark : "#0f172a"
       }}>
         <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 24, display: "flex", alignItems: "center", gap: 12, justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ width: 34, height: 34, borderRadius: 10, background: T.logoIconBg, display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>AS</div>
             <h1 style={{ color: T.logoText, fontSize: 18, fontWeight: "800", margin: 0, letterSpacing: -0.5 }}>appskep</h1>
           </div>
-          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: isDarkMode ? T.textDark : "#ffffff" }}>
+          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: isDarkMode ? T.textDark : "#0f172a" }}>
              {isMobileMenuOpen ? "✕" : "☰"}
           </button>
         </div>
@@ -521,35 +521,35 @@ export default function HrdDashboard() {
           </div>
           {/* RINGKASAN DATA COLLAPSIBLE */}
           <div className="sidebar-status" style={{ padding: "0 20px", marginTop: 16 }}>
-            <div onClick={() => setIsStatusOpen(!isStatusOpen)} style={{ background: isDarkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(255, 255, 255, 0.18)", borderRadius: 12, padding: "12px 16px", cursor: "pointer", transition: "all 0.3s ease", border: isDarkMode ? T.cardBorder : "1px solid rgba(255, 255, 255, 0.25)" }}>
+            <div onClick={() => setIsStatusOpen(!isStatusOpen)} style={{ background: isDarkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(14, 165, 233, 0.08)", borderRadius: 12, padding: "12px 16px", cursor: "pointer", transition: "all 0.3s ease", border: isDarkMode ? T.cardBorder : "1px solid rgba(14, 165, 233, 0.2)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ fontSize: 14 }}>🏢</span>
-                  <p style={{ fontSize: 10, fontWeight: "800", color: isDarkMode ? T.textGray : "rgba(255, 255, 255, 0.9)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Ringkasan Data</p>
+                  <p style={{ fontSize: 10, fontWeight: "800", color: isDarkMode ? T.textGray : "#0369a1", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Ringkasan Data</p>
                 </div>
-                <span style={{ fontSize: 10, color: isDarkMode ? T.textGray : "rgba(255, 255, 255, 0.9)", transform: isStatusOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s" }}>▼</span>
+                <span style={{ fontSize: 10, color: isDarkMode ? T.textGray : "#0369a1", transform: isStatusOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s" }}>▼</span>
               </div>
               {isStatusOpen && (
-                <div style={{ marginTop: 12, paddingTop: 10, borderTop: `1px dashed ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.3)"}`, display: "flex", flexDirection: "column", gap: 8 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: isDarkMode ? T.textDark : "#ffffff" }}>
+                <div style={{ marginTop: 12, paddingTop: 10, borderTop: `1px dashed ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(14, 165, 233, 0.2)"}`, display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: isDarkMode ? T.textDark : "#0f172a" }}>
                     <span>Karyawan</span> <b>{employees.length} Orang</b>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: isDarkMode ? T.textDark : "#ffffff" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: isDarkMode ? T.textDark : "#0f172a" }}>
                     <span>Dep. Aktif</span> <b>{computedReports.length} Depart.</b>
                   </div>
                 </div>
               )}
             </div>
           </div>
-          <div className="sidebar-profile" style={{ marginTop: "auto", padding: "24px", borderTop: isDarkMode ? T.cardBorder : "1px solid rgba(255, 255, 255, 0.2)" }}>
+          <div className="sidebar-profile" style={{ marginTop: "auto", padding: "24px", borderTop: isDarkMode ? T.cardBorder : "1px solid rgba(14, 165, 233, 0.15)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-              <div style={{ width: 38, height: 38, borderRadius: "50%", background: isDarkMode ? "#3b82f6" : "rgba(255, 255, 255, 0.25)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: "800" }}>HR</div>
+              <div style={{ width: 38, height: 38, borderRadius: "50%", background: isDarkMode ? "#3b82f6" : "#0ea5e9", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: "800" }}>HR</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 13, fontWeight: "700", color: isDarkMode ? T.textDark : "#ffffff", margin: "0 0 2px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
-                <p style={{ fontSize: 11, fontWeight: "500", color: isDarkMode ? T.textGray : "rgba(255, 255, 255, 0.8)", margin: 0 }}>Administrator HRD</p>
+                <p style={{ fontSize: 13, fontWeight: "700", color: isDarkMode ? T.textDark : "#0f172a", margin: "0 0 2px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
+                <p style={{ fontSize: 11, fontWeight: "500", color: isDarkMode ? T.textGray : "#0369a1", margin: 0 }}>Administrator HRD</p>
               </div>
             </div>
-            <Button disableRipple onPress={handleLogout} style={{ width: "100%", background: isDarkMode ? "rgba(239, 68, 68, 0.08)" : "rgba(255, 255, 255, 0.2)", border: "none", color: isDarkMode ? T.red : "#ffffff", fontWeight: "700", fontSize: 13, borderRadius: 8, height: 38 }} onMouseEnter={(e)=>e.currentTarget.style.background=isDarkMode ? "rgba(239, 68, 68, 0.15)" : "rgba(255, 255, 255, 0.3)"} onMouseLeave={(e)=>e.currentTarget.style.background=isDarkMode ? "rgba(239, 68, 68, 0.08)" : "rgba(255, 255, 255, 0.2)"}>
+            <Button disableRipple onPress={handleLogout} style={{ width: "100%", background: isDarkMode ? "rgba(239, 68, 68, 0.08)" : "rgba(239, 68, 68, 0.08)", border: "none", color: isDarkMode ? T.red : "#ef4444", fontWeight: "700", fontSize: 13, borderRadius: 8, height: 38 }} onMouseEnter={(e)=>e.currentTarget.style.background="rgba(239, 68, 68, 0.15)"} onMouseLeave={(e)=>e.currentTarget.style.background="rgba(239, 68, 68, 0.08)"}>
               🚪 &nbsp; Keluar
             </Button>
           </div>
@@ -644,17 +644,6 @@ export default function HrdDashboard() {
              <button onClick={toggleTheme} style={{ background: T.bg, border: T.cardBorder, padding: "8px 12px", borderRadius: 8, cursor: "pointer", color: T.textDark, fontSize: 13, display: "flex", alignItems: "center", gap: 4 }}>
                <span>{isDarkMode ? "☀️" : "🌙"}</span>
              </button>
-
-             {/* Message Icon with Badge (Mocked to match image aesthetic, count = 7) */}
-             <div style={{ position: "relative" }}>
-                <button style={{ position: "relative", width: 38, height: 38, borderRadius: 8, border: T.cardBorder, background: T.bg, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: T.textDark }}>
-                  ✉️
-                  <span style={{ position: "absolute", top: -4, right: -4, background: "#ef4444", color: "white", fontSize: 9, fontWeight: "800", height: 16, minWidth: 16, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>
-                    7
-                  </span>
-                </button>
-             </div>
-
              {/* Notification Bell Icon with Badge */}
              <div style={{ position: "relative" }}>
                 <button onClick={() => setIsNotifOpen(!isNotifOpen)} style={{ position: "relative", width: 38, height: 38, borderRadius: 8, border: T.cardBorder, background: T.bg, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: T.textDark }}>

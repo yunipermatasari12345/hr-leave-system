@@ -29,7 +29,7 @@ export default function AddEmployee() {
   const mode = isDarkMode ? "dark" : "light";
   const T = { 
     bg: mode === "dark" ? "#0f172a" : "#f8fafc", 
-    sidebar: mode === "dark" ? "#1e293b" : "#0ea5e9", 
+    sidebar: mode === "dark" ? "#1e293b" : "#e0f2fe", 
     cardBg: mode === "dark" ? "#1e293b" : "white",
     cardBorder: mode === "dark" ? "1px solid #334155" : "1px solid #bae6fd", 
     textDark: mode === "dark" ? "#f8fafc" : "#0f172a", 
@@ -40,11 +40,11 @@ export default function AddEmployee() {
     green: "#10b981", 
     yellow: mode === "dark" ? "#d97706" : "#f59e0b",
     highlightBg: mode === "dark" ? "#1e3a8a" : "#e0f2fe",
-    activeMenuBg: mode === "dark" ? "rgba(59, 130, 246, 0.15)" : "#ffffff", 
-    activeMenuText: mode === "dark" ? "#60a5fa" : "#0ea5e9", 
-    logoText: mode === "dark" ? "#f8fafc" : "#ffffff", 
-    logoIconBg: mode === "dark" ? "#4f46e5" : "rgba(255, 255, 255, 0.2)",
-    inactiveMenuText: mode === "dark" ? "#cbd5e1" : "rgba(255, 255, 255, 0.85)"
+    activeMenuBg: mode === "dark" ? "rgba(59, 130, 246, 0.15)" : "#0ea5e9", 
+    activeMenuText: mode === "dark" ? "#60a5fa" : "#ffffff", 
+    logoText: mode === "dark" ? "#f8fafc" : "#0ea5e9", 
+    logoIconBg: mode === "dark" ? "#4f46e5" : "#0ea5e9", 
+    inactiveMenuText: mode === "dark" ? "#cbd5e1" : "#0f172a"
   };
 
   const handleSubmit = async () => {
@@ -128,14 +128,14 @@ export default function AddEmployee() {
         flexDirection: "column", 
         flexShrink: 0, 
         paddingTop: 32,
-        color: isDarkMode ? T.textDark : "#ffffff"
+        color: isDarkMode ? T.textDark : "#0f172a"
       }}>
         <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 24, display: "flex", alignItems: "center", gap: 12, justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ width: 34, height: 34, borderRadius: 10, background: T.logoIconBg, display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>AS</div>
             <h1 style={{ color: T.logoText, fontSize: 18, fontWeight: "800", margin: 0, letterSpacing: -0.5 }}>appskep</h1>
           </div>
-          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: isDarkMode ? T.textDark : "#ffffff" }}>
+          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: isDarkMode ? T.textDark : "#0f172a" }}>
              {isMobileMenuOpen ? "✕" : "☰"}
           </button>
         </div>
@@ -157,15 +157,15 @@ export default function AddEmployee() {
             <MenuItem id="audit" label="Audit Trail" icon="🛡️" />
           </div>
 
-          <div className="sidebar-profile" style={{ marginTop: "auto", padding: "24px", borderTop: isDarkMode ? T.cardBorder : "1px solid rgba(255, 255, 255, 0.2)" }}>
+          <div className="sidebar-profile" style={{ marginTop: "auto", padding: "24px", borderTop: isDarkMode ? T.cardBorder : "1px solid rgba(14, 165, 233, 0.15)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-              <div style={{ width: 38, height: 38, borderRadius: "50%", background: isDarkMode ? "#3b82f6" : "rgba(255, 255, 255, 0.25)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: "800" }}>HR</div>
+              <div style={{ width: 38, height: 38, borderRadius: "50%", background: isDarkMode ? "#3b82f6" : "#0ea5e9", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: "800" }}>HR</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 13, fontWeight: "700", color: isDarkMode ? T.textDark : "#ffffff", margin: "0 0 2px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
-                <p style={{ fontSize: 11, fontWeight: "500", color: isDarkMode ? T.textGray : "rgba(255, 255, 255, 0.8)", margin: 0 }}>Administrator HRD</p>
+                <p style={{ fontSize: 13, fontWeight: "700", color: isDarkMode ? T.textDark : "#0f172a", margin: "0 0 2px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
+                <p style={{ fontSize: 11, fontWeight: "500", color: isDarkMode ? T.textGray : "#0369a1", margin: 0 }}>Administrator HRD</p>
               </div>
             </div>
-            <Button disableRipple onPress={() => { localStorage.clear(); navigate("/login"); }} style={{ width: "100%", background: isDarkMode ? "rgba(239, 68, 68, 0.08)" : "rgba(255, 255, 255, 0.2)", border: "none", color: isDarkMode ? T.red : "#ffffff", fontWeight: "700", fontSize: 13, borderRadius: 8, height: 38 }} onMouseEnter={(e)=>e.currentTarget.style.background=isDarkMode ? "rgba(239, 68, 68, 0.15)" : "rgba(255, 255, 255, 0.3)"} onMouseLeave={(e)=>e.currentTarget.style.background=isDarkMode ? "rgba(239, 68, 68, 0.08)" : "rgba(255, 255, 255, 0.2)"}>
+            <Button disableRipple onPress={() => { localStorage.clear(); navigate("/login"); }} style={{ width: "100%", background: isDarkMode ? "rgba(239, 68, 68, 0.08)" : "rgba(239, 68, 68, 0.08)", border: "none", color: isDarkMode ? T.red : "#ef4444", fontWeight: "700", fontSize: 13, borderRadius: 8, height: 38 }} onMouseEnter={(e)=>e.currentTarget.style.background="rgba(239, 68, 68, 0.15)"} onMouseLeave={(e)=>e.currentTarget.style.background="rgba(239, 68, 68, 0.08)"}>
               🚪 &nbsp; Keluar
             </Button>
           </div>
