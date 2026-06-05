@@ -525,16 +525,16 @@ export default function HrdDashboard() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ fontSize: 14 }}>🏢</span>
-                  <p style={{ fontSize: 10, fontWeight: "800", color: isDarkMode ? T.textGray : "#0369a1", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Ringkasan Data</p>
+                  <p style={{ fontSize: 10, fontWeight: "800", color: isDarkMode ? T.textGray : "#000000", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Ringkasan Data</p>
                 </div>
-                <span style={{ fontSize: 10, color: isDarkMode ? T.textGray : "#0369a1", transform: isStatusOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s" }}>▼</span>
+                <span style={{ fontSize: 10, color: isDarkMode ? T.textGray : "#000000", transform: isStatusOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s" }}>▼</span>
               </div>
               {isStatusOpen && (
                 <div style={{ marginTop: 12, paddingTop: 10, borderTop: `1px dashed ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(14, 165, 233, 0.2)"}`, display: "flex", flexDirection: "column", gap: 8 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: isDarkMode ? T.textDark : "#0f172a" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: isDarkMode ? T.textDark : "#000000" }}>
                     <span>Karyawan</span> <b>{employees.length} Orang</b>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: isDarkMode ? T.textDark : "#0f172a" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: isDarkMode ? T.textDark : "#000000" }}>
                     <span>Dep. Aktif</span> <b>{computedReports.length} Depart.</b>
                   </div>
                 </div>
@@ -545,11 +545,11 @@ export default function HrdDashboard() {
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
               <div style={{ width: 38, height: 38, borderRadius: "50%", background: isDarkMode ? "#3b82f6" : "#0ea5e9", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: "800" }}>HR</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 13, fontWeight: "700", color: isDarkMode ? T.textDark : "#0f172a", margin: "0 0 2px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
-                <p style={{ fontSize: 11, fontWeight: "500", color: isDarkMode ? T.textGray : "#0369a1", margin: 0 }}>Administrator HRD</p>
+                <p style={{ fontSize: 13, fontWeight: "700", color: isDarkMode ? T.textDark : "#000000", margin: "0 0 2px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
+                <p style={{ fontSize: 11, fontWeight: "500", color: isDarkMode ? T.textGray : "#000000", margin: 0 }}>Administrator HRD</p>
               </div>
             </div>
-            <Button disableRipple onPress={handleLogout} style={{ width: "100%", background: isDarkMode ? "rgba(239, 68, 68, 0.08)" : "rgba(239, 68, 68, 0.08)", border: "none", color: isDarkMode ? T.red : "#ef4444", fontWeight: "700", fontSize: 13, borderRadius: 8, height: 38 }} onMouseEnter={(e)=>e.currentTarget.style.background="rgba(239, 68, 68, 0.15)"} onMouseLeave={(e)=>e.currentTarget.style.background="rgba(239, 68, 68, 0.08)"}>
+            <Button disableRipple onPress={handleLogout} style={{ width: "100%", background: isDarkMode ? "rgba(239, 68, 68, 0.08)" : "rgba(239, 68, 68, 0.08)", border: "none", color: isDarkMode ? T.red : "#000000", fontWeight: "700", fontSize: 13, borderRadius: 8, height: 38 }} onMouseEnter={(e)=>e.currentTarget.style.background="rgba(239, 68, 68, 0.15)"} onMouseLeave={(e)=>e.currentTarget.style.background="rgba(239, 68, 68, 0.08)"}>
               🚪 &nbsp; Keluar
             </Button>
           </div>
