@@ -44,11 +44,12 @@ export default function NewLeave() {
         activeMenuBg: "rgba(59, 130, 246, 0.15)",
         activeMenuText: "#60a5fa",
         logoText: "#f8fafc",
-        logoIconBg: "#4f46e5"
+        logoIconBg: "#4f46e5",
+        inactiveMenuText: "#cbd5e1"
       }
     : {
         bg: "#f8fafc",
-        sidebar: "#e0f2fe",
+        sidebar: "#0ea5e9",
         cardBg: "white",
         cardBorder: "1px solid #bae6fd",
         textDark: "#0f172a",
@@ -58,10 +59,11 @@ export default function NewLeave() {
         red: "#ef4444",
         green: "#10b981",
         yellow: "#f59e0b",
-        activeMenuBg: "#0284c7",
-        activeMenuText: "#ffffff",
-        logoText: "#0369a1",
-        logoIconBg: "#0284c7"
+        activeMenuBg: "#ffffff",
+        activeMenuText: "#0ea5e9",
+        logoText: "#ffffff",
+        logoIconBg: "rgba(255, 255, 255, 0.2)",
+        inactiveMenuText: "rgba(255, 255, 255, 0.85)"
       };
   const [balances, setBalances] = useState([]);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
@@ -136,7 +138,7 @@ export default function NewLeave() {
     <div style={{ 
       fontSize: 11, 
       fontWeight: "800", 
-      color: isDarkMode ? "rgba(255, 255, 255, 0.6)" : "#475569", 
+      color: isDarkMode ? "rgba(255, 255, 255, 0.6)" : "rgba(255, 255, 255, 0.65)", 
       padding: "16px 16px 6px 16px", 
       textTransform: "uppercase", 
       letterSpacing: 1.0 
@@ -166,7 +168,7 @@ export default function NewLeave() {
           borderRadius: 8, 
           cursor: "pointer", 
           background: isActive ? T.activeMenuBg : "transparent", 
-          color: isActive ? T.activeMenuText : (isDarkMode ? "#cbd5e1" : "#1f2937"), 
+          color: isActive ? T.activeMenuText : T.inactiveMenuText, 
           fontWeight: isActive ? "700" : "600", 
           fontSize: 14, 
           transition: "all 0.2s ease", 

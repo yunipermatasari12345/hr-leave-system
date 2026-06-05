@@ -402,7 +402,7 @@ export default function HrdDashboard() {
   const mode = isDarkMode ? "dark" : "light";
   const T = { 
     bg: mode === "dark" ? "#0f172a" : "#f8fafc", 
-    sidebar: mode === "dark" ? "#1e293b" : "#e0f2fe", 
+    sidebar: mode === "dark" ? "#1e293b" : "#0ea5e9", 
     cardBg: mode === "dark" ? "#1e293b" : "white",
     cardBorder: mode === "dark" ? "1px solid #334155" : "1px solid #bae6fd", 
     textDark: mode === "dark" ? "#f8fafc" : "#0f172a", 
@@ -413,10 +413,11 @@ export default function HrdDashboard() {
     green: "#10b981", 
     yellow: mode === "dark" ? "#d97706" : "#f59e0b",
     highlightBg: mode === "dark" ? "#1e3a8a" : "#e0f2fe",
-    activeMenuBg: mode === "dark" ? "rgba(59, 130, 246, 0.15)" : "#0284c7", 
-    activeMenuText: mode === "dark" ? "#60a5fa" : "#ffffff", 
-    logoText: mode === "dark" ? "#f8fafc" : "#0369a1", 
-    logoIconBg: mode === "dark" ? "#4f46e5" : "#0284c7"
+    activeMenuBg: mode === "dark" ? "rgba(59, 130, 246, 0.15)" : "#ffffff", 
+    activeMenuText: mode === "dark" ? "#60a5fa" : "#0ea5e9", 
+    logoText: mode === "dark" ? "#f8fafc" : "#ffffff", 
+    logoIconBg: mode === "dark" ? "#4f46e5" : "rgba(255, 255, 255, 0.2)",
+    inactiveMenuText: mode === "dark" ? "#cbd5e1" : "rgba(255, 255, 255, 0.85)"
   };
   const statusStyle = { pending: { bg: "#fef3c7", color: "#d97706", label: "Menunggu" }, approved: { bg: "#dcfce7", color: "#166534", label: "Disetujui" }, rejected: { bg: "#fee2e2", color: "#991b1b", label: "Ditolak" }, disetujui: { bg: "#dcfce7", color: "#166534", label: "Disetujui" } };
   const MenuHeader = ({ label }) => {
@@ -424,7 +425,7 @@ export default function HrdDashboard() {
       <div style={{ 
         fontSize: 11, 
         fontWeight: "800", 
-        color: isDarkMode ? "rgba(255, 255, 255, 0.6)" : "#475569", 
+        color: isDarkMode ? "rgba(255, 255, 255, 0.6)" : "rgba(255, 255, 255, 0.65)", 
         padding: "16px 16px 6px 16px", 
         textTransform: "uppercase", 
         letterSpacing: 1.0 
@@ -450,7 +451,7 @@ export default function HrdDashboard() {
           borderRadius: 8, 
           cursor: "pointer", 
           background: isActive ? T.activeMenuBg : "transparent", 
-          color: isActive ? T.activeMenuText : (isDarkMode ? "#cbd5e1" : "#1f2937"), 
+          color: isActive ? T.activeMenuText : T.inactiveMenuText, 
           fontWeight: isActive ? "700" : "600", 
           fontSize: 14, 
           transition: "all 0.2s ease", 
