@@ -29,17 +29,21 @@ export default function AddEmployee() {
   const mode = isDarkMode ? "dark" : "light";
   const T = { 
     bg: mode === "dark" ? "#0f172a" : "#f8fafc", 
-    sidebar: mode === "dark" ? "#1e293b" : "white", 
+    sidebar: mode === "dark" ? "#1e293b" : "#e0f2fe", 
     cardBg: mode === "dark" ? "#1e293b" : "white",
-    cardBorder: mode === "dark" ? "1px solid #334155" : "1px solid #e5e7eb", 
-    textDark: mode === "dark" ? "#f8fafc" : "#1f2937", 
-    textGray: mode === "dark" ? "#94a3b8" : "#64748b", 
-    textLight: mode === "dark" ? "#475569" : "#94a3b8", 
-    primary: "#2563eb", 
+    cardBorder: mode === "dark" ? "1px solid #334155" : "1px solid #bae6fd", 
+    textDark: mode === "dark" ? "#f8fafc" : "#0f172a", 
+    textGray: mode === "dark" ? "#94a3b8" : "#0369a1", 
+    textLight: mode === "dark" ? "#475569" : "#0ea5e9", 
+    primary: "#0284c7", 
     red: "#ef4444", 
     green: "#10b981", 
     yellow: mode === "dark" ? "#d97706" : "#f59e0b",
-    highlightBg: mode === "dark" ? "#1e3a8a" : "#eff6ff"
+    highlightBg: mode === "dark" ? "#1e3a8a" : "#e0f2fe",
+    activeMenuBg: mode === "dark" ? "rgba(59, 130, 246, 0.15)" : "#0284c7", 
+    activeMenuText: mode === "dark" ? "#60a5fa" : "#ffffff", 
+    logoText: mode === "dark" ? "#f8fafc" : "#0369a1", 
+    logoIconBg: mode === "dark" ? "#4f46e5" : "#0284c7"
   };
 
   const handleSubmit = async () => {
@@ -66,41 +70,101 @@ export default function AddEmployee() {
 
   const today = new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
-  const MenuItem = ({ id, label, icon }) => (
-    <div onClick={() => { navigate(id === 'dashboard' ? "/hrd/dashboard" : "/hrd/employees/add"); setIsMobileMenuOpen(false); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 8, cursor: "pointer", background: id === "add_employee" ? "#eff6ff" : "transparent", color: id === "add_employee" ? "#1d4ed8" : T.textGray, fontWeight: id === "add_employee" ? "600" : "500", fontSize: 14, transition: "background 0.2s", marginBottom: 4 }}>
-      <span style={{ fontSize: 16 }}>{icon}</span> {label}
+  const MenuHeader = ({ label }) => (
+    <div style={{ 
+      fontSize: 11, 
+      fontWeight: "800", 
+      color: isDarkMode ? "rgba(255, 255, 255, 0.6)" : "#475569", 
+      padding: "16px 16px 6px 16px", 
+      textTransform: "uppercase", 
+      letterSpacing: 1.0 
+    }}>
+      {label}
     </div>
   );
 
+  const MenuItem = ({ id, label, icon }) => {
+    const isActive = id === "employees";
+    return (
+      <div 
+        onClick={() => { 
+          if (id === "employees") {
+            setIsMobileMenuOpen(false);
+          } else {
+            navigate("/hrd/dashboard", { state: { activePage: id } });
+          }
+        }} 
+        style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          gap: 12, 
+          padding: "12px 16px", 
+          borderRadius: 8, 
+          cursor: "pointer", 
+          background: isActive ? T.activeMenuBg : "transparent", 
+          color: isActive ? T.activeMenuText : (isDarkMode ? "#cbd5e1" : "#1f2937"), 
+          fontWeight: isActive ? "700" : "600", 
+          fontSize: 14, 
+          transition: "all 0.2s ease", 
+          marginBottom: 4,
+          paddingLeft: 16,
+        }}
+        className="premium-menu-item"
+      >
+        <span style={{ fontSize: 16, opacity: isActive ? 1 : 0.9 }}>{icon}</span> {label}
+      </div>
+    );
+  };
+
   return (
-    <div className="resp-layout font-['Plus_Jakarta_Sans',sans-serif]" style={{ display: "flex", minHeight: "100vh", background: T.bg }}>
-      {/* SIDEBAR KLASIK */}
-      <div className="resp-sidebar glass-card" style={{ width: 260, borderRight: T.cardBorder, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
-        <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 12, justifyContent: "space-between" }}>
+    <div className={`resp-layout font-['Plus_Jakarta_Sans',sans-serif] ${isDarkMode ? "dark" : ""} w-full`} style={{ display: "flex", minHeight: "100vh", background: T.bg, color: T.textDark, transition: "background 0.3s, color 0.3s" }}>
+      {/* SIDEBAR PREMIUM */}
+      <div className="resp-sidebar" style={{ 
+        width: 260, 
+        background: T.sidebar, 
+        borderRight: isDarkMode ? T.cardBorder : "none", 
+        display: "flex", 
+        flexDirection: "column", 
+        flexShrink: 0, 
+        paddingTop: 32,
+        color: isDarkMode ? T.textDark : "#ffffff"
+      }}>
+        <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 24, display: "flex", alignItems: "center", gap: 12, justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>AS</div>
-            <h1 style={{ color: T.textDark, fontSize: 18, fontWeight: "800", margin: 0, letterSpacing: -0.5 }}>appskep</h1>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: T.logoIconBg, display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>AS</div>
+            <h1 style={{ color: T.logoText, fontSize: 18, fontWeight: "800", margin: 0, letterSpacing: -0.5 }}>appskep</h1>
           </div>
-          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: T.textDark }}>
+          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: isDarkMode ? T.textDark : "#ffffff" }}>
              {isMobileMenuOpen ? "✕" : "☰"}
           </button>
         </div>
         
-        <div className={`sidebar-collapsible ${isMobileMenuOpen ? "open" : ""}`} style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+        <div className={`sidebar-collapsible ${isMobileMenuOpen ? "open" : ""}`} style={{ display: "flex", flexDirection: "column", flex: 1, background: isMobileMenuOpen ? T.sidebar : "transparent" }}>
           <div className="sidebar-menu" style={{ display: "flex", flexDirection: "column", padding: "0 16px" }}>
-            <MenuItem id="dashboard" label="Dashboard Utama" icon="❖" />
-            <MenuItem id="add_employee" label="Tambah Karyawan" icon="👤" />
+            <MenuHeader label="Utama" />
+            <MenuItem id="dashboard" label="Dashboard" icon="❖" />
+            
+            <MenuHeader label="Manajemen Cuti" />
+            <MenuItem id="leaves" label="Pengajuan Cuti" icon="📑" />
+            <MenuItem id="calendar" label="Kalender Cuti" icon="📅" />
+            
+            <MenuHeader label="Manajemen Pegawai" />
+            <MenuItem id="employees" label="Data Karyawan" icon="👥" />
+            
+            <MenuHeader label="Laporan & Keamanan" />
+            <MenuItem id="reports" label="Laporan Ekspor" icon="📊" />
+            <MenuItem id="audit" label="Audit Trail" icon="🛡️" />
           </div>
 
-          <div className="sidebar-profile" style={{ marginTop: "auto", padding: "24px", borderTop: T.cardBorder }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-              <div style={{ width: 38, height: 38, borderRadius: "50%", background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: "800", boxShadow: "0 4px 10px rgba(59, 130, 246, 0.25)" }}>HR</div>
+          <div className="sidebar-profile" style={{ marginTop: "auto", padding: "24px", borderTop: isDarkMode ? T.cardBorder : "1px solid rgba(255, 255, 255, 0.2)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+              <div style={{ width: 38, height: 38, borderRadius: "50%", background: isDarkMode ? "#3b82f6" : "rgba(255, 255, 255, 0.25)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: "800" }}>HR</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 13, fontWeight: "700", color: T.textDark, margin: "0 0 2px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
-                <p style={{ fontSize: 11, fontWeight: "600", color: T.textGray, margin: 0 }}>Administrator HRD</p>
+                <p style={{ fontSize: 13, fontWeight: "700", color: isDarkMode ? T.textDark : "#ffffff", margin: "0 0 2px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
+                <p style={{ fontSize: 11, fontWeight: "500", color: isDarkMode ? T.textGray : "rgba(255, 255, 255, 0.8)", margin: 0 }}>Administrator HRD</p>
               </div>
             </div>
-            <Button disableRipple onPress={() => { localStorage.clear(); navigate("/login"); }} style={{ width: "100%", background: "rgba(239, 68, 68, 0.08)", border: "none", color: T.red, fontWeight: "700", fontSize: 13, borderRadius: 10, height: 38 }} onMouseEnter={(e)=>e.currentTarget.style.background="rgba(239, 68, 68, 0.15)"} onMouseLeave={(e)=>e.currentTarget.style.background="rgba(239, 68, 68, 0.08)"}>
+            <Button disableRipple onPress={() => { localStorage.clear(); navigate("/login"); }} style={{ width: "100%", background: isDarkMode ? "rgba(239, 68, 68, 0.08)" : "rgba(255, 255, 255, 0.2)", border: "none", color: isDarkMode ? T.red : "#ffffff", fontWeight: "700", fontSize: 13, borderRadius: 8, height: 38 }} onMouseEnter={(e)=>e.currentTarget.style.background=isDarkMode ? "rgba(239, 68, 68, 0.15)" : "rgba(255, 255, 255, 0.3)"} onMouseLeave={(e)=>e.currentTarget.style.background=isDarkMode ? "rgba(239, 68, 68, 0.08)" : "rgba(255, 255, 255, 0.2)"}>
               🚪 &nbsp; Keluar
             </Button>
           </div>

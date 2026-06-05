@@ -155,17 +155,21 @@ export default function EmployeeDashboard() {
   const mode = isDarkMode ? "dark" : "light";
   const T = { 
     bg: mode === "dark" ? "#0f172a" : "#f8fafc", 
-    sidebar: mode === "dark" ? "#1e293b" : "white", 
+    sidebar: mode === "dark" ? "#1e293b" : "#e0f2fe", 
     cardBg: mode === "dark" ? "#1e293b" : "white",
-    cardBorder: mode === "dark" ? "1px solid #334155" : "1px solid #e5e7eb", 
-    textDark: mode === "dark" ? "#f8fafc" : "#1f2937", 
-    textGray: mode === "dark" ? "#94a3b8" : "#64748b", 
-    textLight: mode === "dark" ? "#475569" : "#94a3b8", 
-    primary: "#2563eb", 
+    cardBorder: mode === "dark" ? "1px solid #334155" : "1px solid #bae6fd", 
+    textDark: mode === "dark" ? "#f8fafc" : "#0f172a", 
+    textGray: mode === "dark" ? "#94a3b8" : "#0369a1", 
+    textLight: mode === "dark" ? "#475569" : "#0ea5e9", 
+    primary: "#0284c7", 
     red: "#ef4444", 
     green: "#10b981", 
     yellow: mode === "dark" ? "#d97706" : "#f59e0b",
-    highlightBg: mode === "dark" ? "#1e3a8a" : "#eff6ff"
+    highlightBg: mode === "dark" ? "#1e3a8a" : "#e0f2fe",
+    activeMenuBg: mode === "dark" ? "rgba(59, 130, 246, 0.15)" : "#0284c7", 
+    activeMenuText: mode === "dark" ? "#60a5fa" : "#ffffff", 
+    logoText: mode === "dark" ? "#f8fafc" : "#0369a1", 
+    logoIconBg: mode === "dark" ? "#4f46e5" : "#0284c7"
   };
 
   const statusStyle = { pending: { bg: "#fef3c7", color: "#d97706", label: "Menunggu" }, approved: { bg: "#dcfce7", color: "#166534", label: "Disetujui" }, rejected: { bg: "#fee2e2", color: "#991b1b", label: "Ditolak" }, disetujui: { bg: "#dcfce7", color: "#166534", label: "Disetujui" } };
@@ -179,12 +183,12 @@ export default function EmployeeDashboard() {
   const MenuHeader = ({ label }) => {
     return (
       <div style={{ 
-        fontSize: 10, 
+        fontSize: 11, 
         fontWeight: "800", 
-        color: "rgba(255, 255, 255, 0.45)", 
+        color: isDarkMode ? "rgba(255, 255, 255, 0.6)" : "#475569", 
         padding: "16px 16px 6px 16px", 
         textTransform: "uppercase", 
-        letterSpacing: 0.8 
+        letterSpacing: 1.0 
       }}>
         {label}
       </div>
@@ -207,18 +211,17 @@ export default function EmployeeDashboard() {
           padding: "12px 16px", 
           borderRadius: 8, 
           cursor: "pointer", 
-          background: isActive ? "rgba(255, 255, 255, 0.12)" : "transparent", 
-          color: isActive ? "white" : "rgba(255, 255, 255, 0.75)", 
-          fontWeight: isActive ? "700" : "500", 
-          fontSize: 13, 
+          background: isActive ? T.activeMenuBg : "transparent", 
+          color: isActive ? T.activeMenuText : (isDarkMode ? "#cbd5e1" : "#1f2937"), 
+          fontWeight: isActive ? "700" : "600", 
+          fontSize: 14, 
           transition: "all 0.2s ease", 
           marginBottom: 4,
-          borderLeft: isActive ? "4px solid #fff" : "4px solid transparent",
-          paddingLeft: isActive ? 12 : 16,
+          paddingLeft: 16,
         }}
         className="premium-menu-item"
       >
-        <span style={{ fontSize: 16, opacity: isActive ? 1 : 0.8 }}>{icon}</span> {label}
+        <span style={{ fontSize: 16, opacity: isActive ? 1 : 0.9 }}>{icon}</span> {label}
       </div>
     );
   };
@@ -226,28 +229,28 @@ export default function EmployeeDashboard() {
   return (
     <div className={`resp-layout font-['Plus_Jakarta_Sans',sans-serif] ${isDarkMode ? "dark" : ""} w-full`} style={{ display: "flex", minHeight: "100vh", background: T.bg, color: T.textDark, transition: "background 0.3s, color 0.3s" }}>
       
-      {/* SIDEBAR KLASIK (Visually Uplifted to Premium Corporate Sidebar) */}
+      {/* SIDEBAR PREMIUM (Visually Uplifted to Light/Dark Premium Sidebar) */}
       <div className="resp-sidebar" style={{ 
         width: 260, 
-        background: isDarkMode ? "#1e293b" : "#3051a3", 
-        borderRight: isDarkMode ? "1px solid #334155" : "none", 
+        background: T.sidebar, 
+        borderRight: isDarkMode ? T.cardBorder : "none", 
         display: "flex", 
         flexDirection: "column", 
         flexShrink: 0, 
         paddingTop: 32,
-        color: "white"
+        color: isDarkMode ? T.textDark : "#ffffff"
       }}>
         <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 24, display: "flex", alignItems: "center", gap: 12, justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255, 255, 255, 0.2)", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>📅</div>
-            <h1 style={{ color: "white", fontSize: 16, fontWeight: "800", margin: 0, letterSpacing: -0.5, textTransform: "uppercase" }}>CUTI APPSKEP</h1>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: T.logoIconBg, display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>AS</div>
+            <h1 style={{ color: T.logoText, fontSize: 18, fontWeight: "800", margin: 0, letterSpacing: -0.5 }}>appskep</h1>
           </div>
-          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: "white" }}>
+          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: isDarkMode ? T.textDark : "#ffffff" }}>
              {isMobileMenuOpen ? "✕" : "☰"}
           </button>
         </div>
         
-        <div className={`sidebar-collapsible ${isMobileMenuOpen ? "open" : ""}`} style={{ display: "flex", flexDirection: "column", flex: 1, background: isMobileMenuOpen ? (isDarkMode ? "#1e293b" : "#3051a3") : "transparent" }}>
+        <div className={`sidebar-collapsible ${isMobileMenuOpen ? "open" : ""}`} style={{ display: "flex", flexDirection: "column", flex: 1, background: isMobileMenuOpen ? T.sidebar : "transparent" }}>
           <div className="sidebar-menu" style={{ display: "flex", flexDirection: "column", padding: "0 16px" }}>
             <MenuHeader label="Utama" />
             <MenuItem id="dashboard" label="Dashboard Utama" icon="❖" />
@@ -261,35 +264,35 @@ export default function EmployeeDashboard() {
 
           {/* Kuota Cuti */}
           <div className="sidebar-status" style={{ padding: "0 20px", marginTop: 16 }}>
-            <div onClick={() => setIsStatusOpen(!isStatusOpen)} style={{ background: "rgba(255, 255, 255, 0.08)", borderRadius: 12, padding: "12px 16px", cursor: "pointer", transition: "all 0.3s ease", border: "1px solid rgba(255, 255, 255, 0.1)" }}>
+            <div onClick={() => setIsStatusOpen(!isStatusOpen)} style={{ background: isDarkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(255, 255, 255, 0.18)", borderRadius: 12, padding: "12px 16px", cursor: "pointer", transition: "all 0.3s ease", border: isDarkMode ? T.cardBorder : "1px solid rgba(255, 255, 255, 0.25)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ fontSize: 14 }}>📊</span>
-                  <p style={{ fontSize: 10, fontWeight: "800", color: "rgba(255, 255, 255, 0.7)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Kuota Cuti 2026</p>
+                  <p style={{ fontSize: 10, fontWeight: "800", color: isDarkMode ? T.textGray : "rgba(255, 255, 255, 0.9)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Kuota Cuti 2026</p>
                 </div>
-                <span style={{ fontSize: 10, color: "rgba(255, 255, 255, 0.5)", transform: isStatusOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s" }}>▼</span>
+                <span style={{ fontSize: 10, color: isDarkMode ? T.textGray : "rgba(255, 255, 255, 0.9)", transform: isStatusOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s" }}>▼</span>
               </div>
               {isStatusOpen && (
-                <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px dashed rgba(255, 255, 255, 0.15)", display: "flex", flexDirection: "column", gap: 8 }}>
-                  <div><p style={{ fontSize: 9, fontWeight: "800", color: "rgba(255, 255, 255, 0.6)", margin: "0 0 2px 0", textTransform: "uppercase" }}>Karyawan</p><p style={{ fontSize: 12, fontWeight: "700", color: "white", margin: 0 }}>{name}</p></div>
+                <div style={{ marginTop: 12, paddingTop: 10, borderTop: `1px dashed ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.3)"}`, display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div><p style={{ fontSize: 9, fontWeight: "800", color: isDarkMode ? T.textLight : "rgba(255, 255, 255, 0.7)", margin: "0 0 2px 0", textTransform: "uppercase" }}>Karyawan</p><p style={{ fontSize: 12, fontWeight: "700", color: isDarkMode ? T.textDark : "#ffffff", margin: 0 }}>{name}</p></div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                    <div><p style={{ fontSize: 9, fontWeight: "800", color: "rgba(255, 255, 255, 0.6)", margin: "0 0 2px 0", textTransform: "uppercase" }}>Terpakai</p><p style={{ fontSize: 12, fontWeight: "800", color: "white", margin: 0 }}>{totalTerpakai} HARI</p></div>
-                    <div><p style={{ fontSize: 9, fontWeight: "800", color: "rgba(255, 255, 255, 0.6)", margin: "0 0 2px 0", textTransform: "uppercase" }}>Sisa</p><p style={{ fontSize: 12, fontWeight: "800", color: "white", margin: 0 }}>{sisaCuti} HARI</p></div>
+                    <div><p style={{ fontSize: 9, fontWeight: "800", color: isDarkMode ? T.textLight : "rgba(255, 255, 255, 0.7)", margin: "0 0 2px 0", textTransform: "uppercase" }}>Terpakai</p><p style={{ fontSize: 12, fontWeight: "800", color: isDarkMode ? T.textDark : "#ffffff", margin: 0 }}>{totalTerpakai} HARI</p></div>
+                    <div><p style={{ fontSize: 9, fontWeight: "800", color: isDarkMode ? T.textLight : "rgba(255, 255, 255, 0.7)", margin: "0 0 2px 0", textTransform: "uppercase" }}>Sisa</p><p style={{ fontSize: 12, fontWeight: "800", color: isDarkMode ? T.textDark : "#ffffff", margin: 0 }}>{sisaCuti} HARI</p></div>
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="sidebar-profile" style={{ marginTop: "auto", padding: "24px", borderTop: "1px solid rgba(255, 255, 255, 0.1)" }}>
+          <div className="sidebar-profile" style={{ marginTop: "auto", padding: "24px", borderTop: isDarkMode ? T.cardBorder : "1px solid rgba(255, 255, 255, 0.2)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-              <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(255, 255, 255, 0.2)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: "800", border: "1px solid rgba(255, 255, 255, 0.2)" }}>{name.substring(0,2).toUpperCase()}</div>
+              <div style={{ width: 38, height: 38, borderRadius: "50%", background: isDarkMode ? "#3b82f6" : "rgba(255, 255, 255, 0.25)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: "800" }}>{name.substring(0,2).toUpperCase()}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 13, fontWeight: "700", color: "white", margin: "0 0 2px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
-                <p style={{ fontSize: 11, fontWeight: "500", color: "rgba(255, 255, 255, 0.65)", margin: 0 }}>{pos}</p>
+                <p style={{ fontSize: 13, fontWeight: "700", color: isDarkMode ? T.textDark : "#ffffff", margin: "0 0 2px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
+                <p style={{ fontSize: 11, fontWeight: "500", color: isDarkMode ? T.textGray : "rgba(255, 255, 255, 0.8)", margin: 0 }}>{pos}</p>
               </div>
             </div>
-            <Button disableRipple onPress={handleLogout} style={{ width: "100%", background: "rgba(239, 68, 68, 0.15)", border: "none", color: "#fca5a5", fontWeight: "700", fontSize: 13, borderRadius: 8, height: 38 }} onMouseEnter={(e)=>e.currentTarget.style.background="rgba(239, 68, 68, 0.25)"} onMouseLeave={(e)=>e.currentTarget.style.background="rgba(239, 68, 68, 0.15)"}>
+            <Button disableRipple onPress={handleLogout} style={{ width: "100%", background: isDarkMode ? "rgba(239, 68, 68, 0.08)" : "rgba(255, 255, 255, 0.2)", border: "none", color: isDarkMode ? T.red : "#ffffff", fontWeight: "700", fontSize: 13, borderRadius: 8, height: 38 }} onMouseEnter={(e)=>e.currentTarget.style.background=isDarkMode ? "rgba(239, 68, 68, 0.15)" : "rgba(255, 255, 255, 0.3)"} onMouseLeave={(e)=>e.currentTarget.style.background=isDarkMode ? "rgba(239, 68, 68, 0.08)" : "rgba(255, 255, 255, 0.2)"}>
               🚪 &nbsp; Keluar
             </Button>
           </div>

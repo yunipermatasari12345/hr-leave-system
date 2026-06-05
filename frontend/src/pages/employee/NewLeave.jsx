@@ -31,6 +31,7 @@ export default function NewLeave() {
   const T = isDarkMode 
     ? {
         bg: "#0f172a",
+        sidebar: "#1e293b",
         cardBg: "#1e293b",
         cardBorder: "1px solid #334155",
         textDark: "#f8fafc",
@@ -39,19 +40,28 @@ export default function NewLeave() {
         primary: "#3b82f6",
         red: "#ef4444",
         green: "#10b981",
-        yellow: "#f59e0b"
+        yellow: "#f59e0b",
+        activeMenuBg: "rgba(59, 130, 246, 0.15)",
+        activeMenuText: "#60a5fa",
+        logoText: "#f8fafc",
+        logoIconBg: "#4f46e5"
       }
     : {
         bg: "#f8fafc",
+        sidebar: "#e0f2fe",
         cardBg: "white",
-        cardBorder: "1px solid #e2e8f0",
+        cardBorder: "1px solid #bae6fd",
         textDark: "#0f172a",
-        textGray: "#64748b",
-        textLight: "#94a3b8",
-        primary: "#3051a3",
+        textGray: "#0369a1",
+        textLight: "#0ea5e9",
+        primary: "#0284c7",
         red: "#ef4444",
         green: "#10b981",
-        yellow: "#f59e0b"
+        yellow: "#f59e0b",
+        activeMenuBg: "#0284c7",
+        activeMenuText: "#ffffff",
+        logoText: "#0369a1",
+        logoIconBg: "#0284c7"
       };
   const [balances, setBalances] = useState([]);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
@@ -123,7 +133,14 @@ export default function NewLeave() {
   const today = new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   const MenuHeader = ({ label }) => (
-    <div style={{ fontSize: 10, fontWeight: "800", color: "rgba(255, 255, 255, 0.4)", textTransform: "uppercase", letterSpacing: 1.2, padding: "16px 16px 8px 16px" }}>
+    <div style={{ 
+      fontSize: 11, 
+      fontWeight: "800", 
+      color: isDarkMode ? "rgba(255, 255, 255, 0.6)" : "#475569", 
+      padding: "16px 16px 6px 16px", 
+      textTransform: "uppercase", 
+      letterSpacing: 1.0 
+    }}>
       {label}
     </div>
   );
@@ -148,18 +165,17 @@ export default function NewLeave() {
           padding: "12px 16px", 
           borderRadius: 8, 
           cursor: "pointer", 
-          background: isActive ? "rgba(255, 255, 255, 0.12)" : "transparent", 
-          color: isActive ? "white" : "rgba(255, 255, 255, 0.75)", 
-          fontWeight: isActive ? "700" : "500", 
-          fontSize: 13, 
+          background: isActive ? T.activeMenuBg : "transparent", 
+          color: isActive ? T.activeMenuText : (isDarkMode ? "#cbd5e1" : "#1f2937"), 
+          fontWeight: isActive ? "700" : "600", 
+          fontSize: 14, 
           transition: "all 0.2s ease", 
           marginBottom: 4,
-          borderLeft: isActive ? "4px solid #fff" : "4px solid transparent",
-          paddingLeft: isActive ? 12 : 16,
+          paddingLeft: 16,
         }}
         className="premium-menu-item"
       >
-        <span style={{ fontSize: 16, opacity: isActive ? 1 : 0.8 }}>{icon}</span> {label}
+        <span style={{ fontSize: 16, opacity: isActive ? 1 : 0.9 }}>{icon}</span> {label}
       </div>
     );
   };
@@ -167,28 +183,28 @@ export default function NewLeave() {
   return (
     <div className={`resp-layout font-['Plus_Jakarta_Sans',sans-serif] ${isDarkMode ? "dark" : ""} w-full`} style={{ display: "flex", minHeight: "100vh", background: T.bg, color: T.textDark, transition: "background 0.3s, color 0.3s" }}>
       
-      {/* SIDEBAR KLASIK (Visually Uplifted to Premium Corporate Sidebar) */}
+      {/* SIDEBAR PREMIUM */}
       <div className="resp-sidebar" style={{ 
         width: 260, 
-        background: isDarkMode ? "#1e293b" : "#3051a3", 
-        borderRight: isDarkMode ? "1px solid #334155" : "none", 
+        background: T.sidebar, 
+        borderRight: isDarkMode ? T.cardBorder : "none", 
         display: "flex", 
         flexDirection: "column", 
         flexShrink: 0, 
         paddingTop: 32,
-        color: "white"
+        color: isDarkMode ? T.textDark : "#ffffff"
       }}>
         <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 24, display: "flex", alignItems: "center", gap: 12, justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255, 255, 255, 0.2)", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>📅</div>
-            <h1 style={{ color: "white", fontSize: 16, fontWeight: "800", margin: 0, letterSpacing: -0.5, textTransform: "uppercase" }}>CUTI APPSKEP</h1>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: T.logoIconBg, display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>AS</div>
+            <h1 style={{ color: T.logoText, fontSize: 18, fontWeight: "800", margin: 0, letterSpacing: -0.5 }}>appskep</h1>
           </div>
-          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: "white" }}>
+          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: isDarkMode ? T.textDark : "#ffffff" }}>
              {isMobileMenuOpen ? "✕" : "☰"}
           </button>
         </div>
         
-        <div className={`sidebar-collapsible ${isMobileMenuOpen ? "open" : ""}`} style={{ display: "flex", flexDirection: "column", flex: 1, background: isMobileMenuOpen ? (isDarkMode ? "#1e293b" : "#3051a3") : "transparent" }}>
+        <div className={`sidebar-collapsible ${isMobileMenuOpen ? "open" : ""}`} style={{ display: "flex", flexDirection: "column", flex: 1, background: isMobileMenuOpen ? T.sidebar : "transparent" }}>
           <div className="sidebar-menu" style={{ display: "flex", flexDirection: "column", padding: "0 16px" }}>
             <MenuHeader label="Utama" />
             <MenuItem id="dashboard" label="Dashboard Utama" icon="❖" />
@@ -202,35 +218,35 @@ export default function NewLeave() {
 
           {/* Kuota Cuti */}
           <div className="sidebar-status" style={{ padding: "0 20px", marginTop: 16 }}>
-            <div onClick={() => setIsStatusOpen(!isStatusOpen)} style={{ background: "rgba(255, 255, 255, 0.08)", borderRadius: 12, padding: "12px 16px", cursor: "pointer", transition: "all 0.3s ease", border: "1px solid rgba(255, 255, 255, 0.1)" }}>
+            <div onClick={() => setIsStatusOpen(!isStatusOpen)} style={{ background: isDarkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(255, 255, 255, 0.18)", borderRadius: 12, padding: "12px 16px", cursor: "pointer", transition: "all 0.3s ease", border: isDarkMode ? T.cardBorder : "1px solid rgba(255, 255, 255, 0.25)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ fontSize: 14 }}>📊</span>
-                  <p style={{ fontSize: 10, fontWeight: "800", color: "rgba(255, 255, 255, 0.7)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Kuota Cuti 2026</p>
+                  <p style={{ fontSize: 10, fontWeight: "800", color: isDarkMode ? T.textGray : "rgba(255, 255, 255, 0.9)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Kuota Cuti 2026</p>
                 </div>
-                <span style={{ fontSize: 10, color: "rgba(255, 255, 255, 0.5)", transform: isStatusOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s" }}>▼</span>
+                <span style={{ fontSize: 10, color: isDarkMode ? T.textGray : "rgba(255, 255, 255, 0.9)", transform: isStatusOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s" }}>▼</span>
               </div>
               {isStatusOpen && (
-                <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px dashed rgba(255, 255, 255, 0.15)", display: "flex", flexDirection: "column", gap: 8 }}>
-                  <div><p style={{ fontSize: 9, fontWeight: "800", color: "rgba(255, 255, 255, 0.6)", margin: "0 0 2px 0", textTransform: "uppercase" }}>Karyawan</p><p style={{ fontSize: 12, fontWeight: "700", color: "white", margin: 0 }}>{name}</p></div>
+                <div style={{ marginTop: 12, paddingTop: 10, borderTop: `1px dashed ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.3)"}`, display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div><p style={{ fontSize: 9, fontWeight: "800", color: isDarkMode ? T.textLight : "rgba(255, 255, 255, 0.7)", margin: "0 0 2px 0", textTransform: "uppercase" }}>Karyawan</p><p style={{ fontSize: 12, fontWeight: "700", color: isDarkMode ? T.textDark : "#ffffff", margin: 0 }}>{name}</p></div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                    <div><p style={{ fontSize: 9, fontWeight: "800", color: "rgba(255, 255, 255, 0.6)", margin: "0 0 2px 0", textTransform: "uppercase" }}>Terpakai</p><p style={{ fontSize: 12, fontWeight: "800", color: "white", margin: 0 }}>{totalTerpakai} HARI</p></div>
-                    <div><p style={{ fontSize: 9, fontWeight: "800", color: "rgba(255, 255, 255, 0.6)", margin: "0 0 2px 0", textTransform: "uppercase" }}>Sisa</p><p style={{ fontSize: 12, fontWeight: "800", color: "white", margin: 0 }}>{sisaCuti} HARI</p></div>
+                    <div><p style={{ fontSize: 9, fontWeight: "800", color: isDarkMode ? T.textLight : "rgba(255, 255, 255, 0.7)", margin: "0 0 2px 0", textTransform: "uppercase" }}>Terpakai</p><p style={{ fontSize: 12, fontWeight: "800", color: isDarkMode ? T.textDark : "#ffffff", margin: 0 }}>{totalTerpakai} HARI</p></div>
+                    <div><p style={{ fontSize: 9, fontWeight: "800", color: isDarkMode ? T.textLight : "rgba(255, 255, 255, 0.7)", margin: "0 0 2px 0", textTransform: "uppercase" }}>Sisa</p><p style={{ fontSize: 12, fontWeight: "800", color: isDarkMode ? T.textDark : "#ffffff", margin: 0 }}>{sisaCuti} HARI</p></div>
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="sidebar-profile" style={{ marginTop: "auto", padding: "24px", borderTop: "1px solid rgba(255, 255, 255, 0.1)" }}>
+          <div className="sidebar-profile" style={{ marginTop: "auto", padding: "24px", borderTop: isDarkMode ? T.cardBorder : "1px solid rgba(255, 255, 255, 0.2)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-              <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(255, 255, 255, 0.2)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: "800", border: "1px solid rgba(255, 255, 255, 0.2)" }}>{name.substring(0,2).toUpperCase()}</div>
+              <div style={{ width: 38, height: 38, borderRadius: "50%", background: isDarkMode ? "#3b82f6" : "rgba(255, 255, 255, 0.25)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: "800" }}>{name.substring(0,2).toUpperCase()}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 13, fontWeight: "700", color: "white", margin: "0 0 2px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
-                <p style={{ fontSize: 11, fontWeight: "500", color: "rgba(255, 255, 255, 0.65)", margin: 0 }}>{pos}</p>
+                <p style={{ fontSize: 13, fontWeight: "700", color: isDarkMode ? T.textDark : "#ffffff", margin: "0 0 2px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
+                <p style={{ fontSize: 11, fontWeight: "500", color: isDarkMode ? T.textGray : "rgba(255, 255, 255, 0.8)", margin: 0 }}>{pos}</p>
               </div>
             </div>
-            <Button disableRipple onPress={() => { localStorage.clear(); navigate("/login"); }} style={{ width: "100%", background: "rgba(255, 255, 255, 0.1)", border: "none", color: "white", fontWeight: "700", fontSize: 13, borderRadius: 10, height: 38 }} onMouseEnter={(e)=>e.currentTarget.style.background="rgba(255, 255, 255, 0.2)"} onMouseLeave={(e)=>e.currentTarget.style.background="rgba(255, 255, 255, 0.1)"}>
+            <Button disableRipple onPress={() => { localStorage.clear(); navigate("/login"); }} style={{ width: "100%", background: isDarkMode ? "rgba(239, 68, 68, 0.08)" : "rgba(255, 255, 255, 0.2)", border: "none", color: isDarkMode ? T.red : "#ffffff", fontWeight: "700", fontSize: 13, borderRadius: 8, height: 38 }} onMouseEnter={(e)=>e.currentTarget.style.background=isDarkMode ? "rgba(239, 68, 68, 0.15)" : "rgba(255, 255, 255, 0.3)"} onMouseLeave={(e)=>e.currentTarget.style.background=isDarkMode ? "rgba(239, 68, 68, 0.08)" : "rgba(255, 255, 255, 0.2)"}>
               🚪 &nbsp; Keluar
             </Button>
           </div>
