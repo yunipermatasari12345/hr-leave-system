@@ -405,19 +405,19 @@ export default function HrdDashboard() {
     sidebar: mode === "dark" ? "#1e293b" : "#e0f2fe", 
     cardBg: mode === "dark" ? "#1e293b" : "white",
     cardBorder: mode === "dark" ? "1px solid #334155" : "1px solid #bae6fd", 
-    textDark: mode === "dark" ? "#f8fafc" : "#0f172a", 
-    textGray: mode === "dark" ? "#94a3b8" : "#0369a1", 
-    textLight: mode === "dark" ? "#475569" : "#0ea5e9", 
+    textDark: mode === "dark" ? "#f8fafc" : "#000000", 
+    textGray: mode === "dark" ? "#94a3b8" : "#000000", 
+    textLight: mode === "dark" ? "#475569" : "#000000", 
     primary: "#0284c7", 
     red: "#ef4444", 
     green: "#10b981", 
     yellow: mode === "dark" ? "#d97706" : "#f59e0b",
     highlightBg: mode === "dark" ? "#1e3a8a" : "#e0f2fe",
-    activeMenuBg: mode === "dark" ? "rgba(59, 130, 246, 0.15)" : "#0ea5e9", 
-    activeMenuText: mode === "dark" ? "#60a5fa" : "#ffffff", 
-    logoText: mode === "dark" ? "#f8fafc" : "#0ea5e9", 
-    logoIconBg: mode === "dark" ? "#4f46e5" : "#0ea5e9", 
-    inactiveMenuText: mode === "dark" ? "#cbd5e1" : "#0f172a"
+    activeMenuBg: mode === "dark" ? "rgba(59, 130, 246, 0.15)" : "rgba(14, 165, 233, 0.18)", 
+    activeMenuText: mode === "dark" ? "#60a5fa" : "#000000", 
+    logoText: mode === "dark" ? "#f8fafc" : "#000000", 
+    logoIconBg: mode === "dark" ? "#4f46e5" : "#000000", 
+    inactiveMenuText: mode === "dark" ? "#cbd5e1" : "#000000"
   };
   const statusStyle = { pending: { bg: "#fef3c7", color: "#d97706", label: "Menunggu" }, approved: { bg: "#dcfce7", color: "#166534", label: "Disetujui" }, rejected: { bg: "#fee2e2", color: "#991b1b", label: "Ditolak" }, disetujui: { bg: "#dcfce7", color: "#166534", label: "Disetujui" } };
   const MenuHeader = ({ label }) => {
@@ -425,7 +425,7 @@ export default function HrdDashboard() {
       <div style={{ 
         fontSize: 11, 
         fontWeight: "800", 
-        color: isDarkMode ? "rgba(255, 255, 255, 0.6)" : "rgba(255, 255, 255, 0.65)", 
+        color: isDarkMode ? "rgba(255, 255, 255, 0.6)" : "#000000", 
         padding: "16px 16px 6px 16px", 
         textTransform: "uppercase", 
         letterSpacing: 1.0 
@@ -491,14 +491,14 @@ export default function HrdDashboard() {
         flexDirection: "column", 
         flexShrink: 0, 
         paddingTop: 32,
-        color: isDarkMode ? T.textDark : "#0f172a"
+        color: isDarkMode ? T.textDark : "#000000"
       }}>
         <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 24, display: "flex", alignItems: "center", gap: 12, justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: T.logoIconBg, display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>AS</div>
-            <h1 style={{ color: T.logoText, fontSize: 18, fontWeight: "800", margin: 0, letterSpacing: -0.5 }}>appskep</h1>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: isDarkMode ? "#4f46e5" : "#0ea5e9", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>AS</div>
+            <h1 style={{ color: isDarkMode ? "#f8fafc" : "#000000", fontSize: 18, fontWeight: "800", margin: 0, letterSpacing: -0.5 }}>appskep</h1>
           </div>
-          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: isDarkMode ? T.textDark : "#0f172a" }}>
+          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: isDarkMode ? T.textDark : "#000000" }}>
              {isMobileMenuOpen ? "✕" : "☰"}
           </button>
         </div>

@@ -52,18 +52,18 @@ export default function NewLeave() {
         sidebar: "#e0f2fe",
         cardBg: "white",
         cardBorder: "1px solid #bae6fd",
-        textDark: "#0f172a",
-        textGray: "#0369a1",
-        textLight: "#0ea5e9",
+        textDark: "#000000",
+        textGray: "#000000",
+        textLight: "#000000",
         primary: "#0284c7",
         red: "#ef4444",
         green: "#10b981",
         yellow: "#f59e0b",
-        activeMenuBg: "#0ea5e9",
-        activeMenuText: "#ffffff",
-        logoText: "#0ea5e9",
-        logoIconBg: "#0ea5e9",
-        inactiveMenuText: "#0f172a"
+        activeMenuBg: "rgba(14, 165, 233, 0.18)",
+        activeMenuText: "#000000",
+        logoText: "#000000",
+        logoIconBg: "#000000",
+        inactiveMenuText: "#000000"
       };
   const [balances, setBalances] = useState([]);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
@@ -138,7 +138,7 @@ export default function NewLeave() {
     <div style={{ 
       fontSize: 11, 
       fontWeight: "800", 
-      color: isDarkMode ? "rgba(255, 255, 255, 0.6)" : "rgba(255, 255, 255, 0.65)", 
+      color: isDarkMode ? "rgba(255, 255, 255, 0.6)" : "#000000", 
       padding: "16px 16px 6px 16px", 
       textTransform: "uppercase", 
       letterSpacing: 1.0 
@@ -194,14 +194,14 @@ export default function NewLeave() {
         flexDirection: "column", 
         flexShrink: 0, 
         paddingTop: 32,
-        color: isDarkMode ? T.textDark : "#0f172a"
+        color: isDarkMode ? T.textDark : "#000000"
       }}>
         <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 24, display: "flex", alignItems: "center", gap: 12, justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: T.logoIconBg, display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>AS</div>
-            <h1 style={{ color: T.logoText, fontSize: 18, fontWeight: "800", margin: 0, letterSpacing: -0.5 }}>appskep</h1>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: isDarkMode ? "#4f46e5" : "#0ea5e9", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>AS</div>
+            <h1 style={{ color: isDarkMode ? "#f8fafc" : "#000000", fontSize: 18, fontWeight: "800", margin: 0, letterSpacing: -0.5 }}>appskep</h1>
           </div>
-          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: isDarkMode ? T.textDark : "#0f172a" }}>
+          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: isDarkMode ? T.textDark : "#000000" }}>
              {isMobileMenuOpen ? "✕" : "☰"}
           </button>
         </div>

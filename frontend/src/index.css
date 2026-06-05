@@ -715,4 +715,18 @@ body {
   left: 100%;
 }
 
+/* ===== FORCE BLACK TEXT ON LIGHT MODE SIDEBAR ===== */
+/* Paksa semua tulisan di sidebar mode terang menjadi hitam */
+:not(.dark) .resp-sidebar,
+:not(.dark) .resp-sidebar *,
+:not(.dark) .sidebar-collapsible,
+:not(.dark) .sidebar-collapsible * {
+  color: #000000 !important;
+}
+
+/* Pengecualian: teks di dalam avatar (kotak/bulat berteks putih) tetap putih */
+:not(.dark) .resp-sidebar .avatar-white,
+:not(.dark) .sidebar-collapsible .avatar-white {
+  color: #ffffff !important;
+}
 
