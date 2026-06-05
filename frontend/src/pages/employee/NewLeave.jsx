@@ -19,11 +19,50 @@ export default function NewLeave() {
   const dept = localStorage.getItem(STORAGE_KEYS.department) || "Grup Umum";
   const pos = localStorage.getItem(STORAGE_KEYS.position) || "Seksi Staff";
 
-  const T = { bg: "#f8fafc", sidebar: "white", cardBorder: "1px solid #e5e7eb", textDark: "#1f2937", textGray: "#64748b", textLight: "#94a3b8", primary: "#2563eb", red: "#ef4444", green: "#10b981", yellow: "#f59e0b" };
+  const [isDarkMode, setIsDarkMode] = useState(
+    localStorage.getItem(STORAGE_KEYS.theme) === "dark"
+  );
+  const toggleTheme = () => {
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
+    localStorage.setItem(STORAGE_KEYS.theme, newMode ? "dark" : "light");
+  };
+
+  const T = isDarkMode 
+    ? {
+        bg: "#0f172a",
+        cardBg: "#1e293b",
+        cardBorder: "1px solid #334155",
+        textDark: "#f8fafc",
+        textGray: "#94a3b8",
+        textLight: "#64748b",
+        primary: "#3b82f6",
+        red: "#ef4444",
+        green: "#10b981",
+        yellow: "#f59e0b"
+      }
+    : {
+        bg: "#f8fafc",
+        cardBg: "white",
+        cardBorder: "1px solid #e2e8f0",
+        textDark: "#0f172a",
+        textGray: "#64748b",
+        textLight: "#94a3b8",
+        primary: "#3051a3",
+        red: "#ef4444",
+        green: "#10b981",
+        yellow: "#f59e0b"
+      };
+  const [balances, setBalances] = useState([]);
+  const [isStatusOpen, setIsStatusOpen] = useState(false);
 
   useEffect(() => {
     leaveApi.getTypes().then((data) => setLeaveTypes(data || [])).catch(() => {});
+    leaveApi.getMyBalances().then((data) => setBalances(data || [])).catch(() => {});
   }, []);
+
+  const totalTerpakai = balances.find(b => b.leave_type_name === "Cuti Tahunan")?.used_days || 0;
+  const sisaCuti = balances.find(b => b.leave_type_name === "Cuti Tahunan")?.remaining_days || 0;
 
   const todayIsoStr = new Date().toISOString().split("T")[0];
 
@@ -83,64 +122,183 @@ export default function NewLeave() {
 
   const today = new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
-  const MenuItem = ({ id, label, icon }) => (
-    <div onClick={() => { navigate(id === 'dashboard' ? "/dashboard" : "/leaves/new"); setIsMobileMenuOpen(false); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 8, cursor: "pointer", background: id === "new_leave" ? "#eff6ff" : "transparent", color: id === "new_leave" ? "#1d4ed8" : T.textGray, fontWeight: id === "new_leave" ? "600" : "500", fontSize: 14, transition: "background 0.2s", marginBottom: 4 }}>
-      <span style={{ fontSize: 16 }}>{icon}</span> {label}
+  const MenuHeader = ({ label }) => (
+    <div style={{ fontSize: 10, fontWeight: "800", color: "rgba(255, 255, 255, 0.4)", textTransform: "uppercase", letterSpacing: 1.2, padding: "16px 16px 8px 16px" }}>
+      {label}
     </div>
   );
 
+  const MenuItem = ({ id, label, icon }) => {
+    const isActive = id === "new_leave";
+    return (
+      <div 
+        onClick={() => { 
+          if (id === "new_leave") {
+            setIsMobileMenuOpen(false);
+          } else if (id === "dashboard") {
+            navigate("/dashboard", { state: { activePage: "dashboard" } });
+          } else {
+            navigate("/dashboard", { state: { activePage: id } });
+          }
+        }} 
+        style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          gap: 12, 
+          padding: "12px 16px", 
+          borderRadius: 8, 
+          cursor: "pointer", 
+          background: isActive ? "rgba(255, 255, 255, 0.12)" : "transparent", 
+          color: isActive ? "white" : "rgba(255, 255, 255, 0.75)", 
+          fontWeight: isActive ? "700" : "500", 
+          fontSize: 13, 
+          transition: "all 0.2s ease", 
+          marginBottom: 4,
+          borderLeft: isActive ? "4px solid #fff" : "4px solid transparent",
+          paddingLeft: isActive ? 12 : 16,
+        }}
+        className="premium-menu-item"
+      >
+        <span style={{ fontSize: 16, opacity: isActive ? 1 : 0.8 }}>{icon}</span> {label}
+      </div>
+    );
+  };
+
   return (
-    <div className="resp-layout font-['Plus_Jakarta_Sans',sans-serif]" style={{ display: "flex", minHeight: "100vh", background: T.bg }}>
-      {/* SIDEBAR PREMIUM */}
-      <div className="resp-sidebar glass-card" style={{ width: 260, borderRight: T.cardBorder, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
-        <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 12, justifyContent: "space-between" }}>
+    <div className={`resp-layout font-['Plus_Jakarta_Sans',sans-serif] ${isDarkMode ? "dark" : ""} w-full`} style={{ display: "flex", minHeight: "100vh", background: T.bg, color: T.textDark, transition: "background 0.3s, color 0.3s" }}>
+      
+      {/* SIDEBAR KLASIK (Visually Uplifted to Premium Corporate Sidebar) */}
+      <div className="resp-sidebar" style={{ 
+        width: 260, 
+        background: isDarkMode ? "#1e293b" : "#3051a3", 
+        borderRight: isDarkMode ? "1px solid #334155" : "none", 
+        display: "flex", 
+        flexDirection: "column", 
+        flexShrink: 0, 
+        paddingTop: 32,
+        color: "white"
+      }}>
+        <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 24, display: "flex", alignItems: "center", gap: 12, justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>AS</div>
-            <h1 style={{ color: T.textDark, fontSize: 18, fontWeight: "800", margin: 0, letterSpacing: -0.5 }}>appskep</h1>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255, 255, 255, 0.2)", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>📅</div>
+            <h1 style={{ color: "white", fontSize: 16, fontWeight: "800", margin: 0, letterSpacing: -0.5, textTransform: "uppercase" }}>CUTI APPSKEP</h1>
           </div>
-          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: T.textDark }}>
+          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: "white" }}>
              {isMobileMenuOpen ? "✕" : "☰"}
           </button>
         </div>
         
-        <div className={`sidebar-collapsible ${isMobileMenuOpen ? "open" : ""}`} style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+        <div className={`sidebar-collapsible ${isMobileMenuOpen ? "open" : ""}`} style={{ display: "flex", flexDirection: "column", flex: 1, background: isMobileMenuOpen ? (isDarkMode ? "#1e293b" : "#3051a3") : "transparent" }}>
           <div className="sidebar-menu" style={{ display: "flex", flexDirection: "column", padding: "0 16px" }}>
+            <MenuHeader label="Utama" />
             <MenuItem id="dashboard" label="Dashboard Utama" icon="❖" />
             <MenuItem id="new_leave" label="Ajukan Cuti Baru" icon="➕" />
+            
+            <MenuHeader label="Manajemen Pribadi" />
+            <MenuItem id="leaves" label="Riwayat Cuti" icon="📄" />
+            <MenuItem id="calendar" label="Kalender Saya" icon="📅" />
+            <MenuItem id="info" label="Informasi Cuti" icon="ℹ️" />
           </div>
 
-          <div className="sidebar-profile" style={{ marginTop: "auto", padding: "24px", borderTop: T.cardBorder }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-              <div style={{ width: 38, height: 38, borderRadius: "50%", background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: "800", boxShadow: "0 4px 10px rgba(245, 158, 11, 0.25)" }}>
-                {name.substring(0,2).toUpperCase()}
+          {/* Kuota Cuti */}
+          <div className="sidebar-status" style={{ padding: "0 20px", marginTop: 16 }}>
+            <div onClick={() => setIsStatusOpen(!isStatusOpen)} style={{ background: "rgba(255, 255, 255, 0.08)", borderRadius: 12, padding: "12px 16px", cursor: "pointer", transition: "all 0.3s ease", border: "1px solid rgba(255, 255, 255, 0.1)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 14 }}>📊</span>
+                  <p style={{ fontSize: 10, fontWeight: "800", color: "rgba(255, 255, 255, 0.7)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Kuota Cuti 2026</p>
+                </div>
+                <span style={{ fontSize: 10, color: "rgba(255, 255, 255, 0.5)", transform: isStatusOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s" }}>▼</span>
               </div>
+              {isStatusOpen && (
+                <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px dashed rgba(255, 255, 255, 0.15)", display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div><p style={{ fontSize: 9, fontWeight: "800", color: "rgba(255, 255, 255, 0.6)", margin: "0 0 2px 0", textTransform: "uppercase" }}>Karyawan</p><p style={{ fontSize: 12, fontWeight: "700", color: "white", margin: 0 }}>{name}</p></div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div><p style={{ fontSize: 9, fontWeight: "800", color: "rgba(255, 255, 255, 0.6)", margin: "0 0 2px 0", textTransform: "uppercase" }}>Terpakai</p><p style={{ fontSize: 12, fontWeight: "800", color: "white", margin: 0 }}>{totalTerpakai} HARI</p></div>
+                    <div><p style={{ fontSize: 9, fontWeight: "800", color: "rgba(255, 255, 255, 0.6)", margin: "0 0 2px 0", textTransform: "uppercase" }}>Sisa</p><p style={{ fontSize: 12, fontWeight: "800", color: "white", margin: 0 }}>{sisaCuti} HARI</p></div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="sidebar-profile" style={{ marginTop: "auto", padding: "24px", borderTop: "1px solid rgba(255, 255, 255, 0.1)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+              <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(255, 255, 255, 0.2)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: "800", border: "1px solid rgba(255, 255, 255, 0.2)" }}>{name.substring(0,2).toUpperCase()}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 13, fontWeight: "700", color: T.textDark, margin: "0 0 2px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
-                <p style={{ fontSize: 11, fontWeight: "600", color: T.textGray, margin: 0 }}>{pos} · {dept}</p>
+                <p style={{ fontSize: 13, fontWeight: "700", color: "white", margin: "0 0 2px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
+                <p style={{ fontSize: 11, fontWeight: "500", color: "rgba(255, 255, 255, 0.65)", margin: 0 }}>{pos}</p>
               </div>
             </div>
-            <Button disableRipple onPress={() => { localStorage.clear(); navigate("/login"); }} style={{ width: "100%", background: "rgba(239, 68, 68, 0.08)", border: "none", color: T.red, fontWeight: "700", fontSize: 13, borderRadius: 10, height: 38 }} onMouseEnter={(e)=>e.currentTarget.style.background="rgba(239, 68, 68, 0.15)"} onMouseLeave={(e)=>e.currentTarget.style.background="rgba(239, 68, 68, 0.08)"}>
+            <Button disableRipple onPress={() => { localStorage.clear(); navigate("/login"); }} style={{ width: "100%", background: "rgba(255, 255, 255, 0.1)", border: "none", color: "white", fontWeight: "700", fontSize: 13, borderRadius: 10, height: 38 }} onMouseEnter={(e)=>e.currentTarget.style.background="rgba(255, 255, 255, 0.2)"} onMouseLeave={(e)=>e.currentTarget.style.background="rgba(255, 255, 255, 0.1)"}>
               🚪 &nbsp; Keluar
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Form Area */}
-      <div className="resp-content" style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      {/* Main Content Area */}
+      <div className="resp-content" style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", padding: "40px" }}>
         
-        {/* TOPBAR */}
-        <div className="resp-form-topbar" style={{ padding: "40px 40px 24px", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-          <div>
-            <h2 style={{ fontSize: 24, fontWeight: "800", color: T.textDark, margin: "0 0 6px 0", letterSpacing: -0.5 }}>Formulir Pengajuan Cuti</h2>
-            <p style={{ fontSize: 13, color: T.textGray, margin: 0, fontWeight: "500" }}>Isi form di bawah secara lengkap untuk mengajukan cuti baru ke HRD.</p>
-          </div>
-          <div className="resp-header-right" style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ fontSize: 13, color: T.textGray, fontWeight: "600" }}>📅 &nbsp; {today}</div>
-            <Button disableRipple onPress={() => navigate("/dashboard")} style={{ background: "white", border: T.cardBorder, color: T.textDark, fontWeight: "700", borderRadius: 12, height: 40, padding: "0 20px" }}>
-              Batal
-            </Button>
-          </div>
+        {/* HEADER / TOPBAR */}
+        <div className="resp-header" style={{ 
+          display: "flex", 
+          justifyContent: "space-between", 
+          alignItems: "center", 
+          marginBottom: 36, 
+          flexWrap: "wrap", 
+          gap: 16,
+          background: T.cardBg,
+          padding: "16px 24px",
+          borderRadius: 12,
+          border: T.cardBorder,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.02)"
+        }}>
+           <div>
+              {/* Enterprise Breadcrumb */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, fontWeight: "700", color: T.textGray, marginBottom: 4, textTransform: "uppercase", letterSpacing: 1.5 }}>
+                 <span>PT APPSKEP</span>
+                 <span style={{ fontSize: 10, opacity: 0.5 }}>/</span>
+                 <span>Portal Karyawan</span>
+                 <span style={{ fontSize: 10, opacity: 0.5 }}>/</span>
+                 <span style={{ color: T.primary }}>Ajukan Cuti Baru</span>
+              </div>
+              
+              <h2 style={{ fontSize: 22, fontWeight: "800", color: T.textDark, margin: 0, letterSpacing: -0.5 }}>
+                Formulir Pengajuan Cuti
+              </h2>
+           </div>
+           <div className="resp-header-right" style={{ display: "flex", alignItems: "center", gap: 16 }}>
+             {/* THEME TOGGLE */}
+             <button onClick={toggleTheme} style={{ background: T.bg, border: T.cardBorder, padding: "8px 12px", borderRadius: 8, cursor: "pointer", color: T.textDark, fontSize: 13, display: "flex", alignItems: "center", gap: 4 }}>
+               <span>{isDarkMode ? "☀️" : "🌙"}</span>
+             </button>
+
+             {/* Message Icon with Badge */}
+             <div style={{ position: "relative" }}>
+                <button style={{ position: "relative", width: 38, height: 38, borderRadius: 8, border: T.cardBorder, background: T.bg, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: T.textDark }}>
+                  ✉️
+                  <span style={{ position: "absolute", top: -4, right: -4, background: "#ef4444", color: "white", fontSize: 9, fontWeight: "800", height: 16, minWidth: 16, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>
+                    7
+                  </span>
+                </button>
+             </div>
+
+             {/* Notification Bell Icon */}
+             <div style={{ position: "relative" }}>
+                <button style={{ position: "relative", width: 38, height: 38, borderRadius: 8, border: T.cardBorder, background: T.bg, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: T.textDark }}>
+                  🔔
+                </button>
+             </div>
+
+             {/* Profile Info far right topbar */}
+             <div style={{ display: "flex", alignItems: "center", gap: 10, borderLeft: `1px solid ${isDarkMode ? "#334155" : "#e5e7eb"}`, paddingLeft: 12 }}>
+                <span style={{ fontSize: 13, fontWeight: "700", color: T.textDark }} className="hidden md:inline">{name}</span>
+                <div style={{ width: 34, height: 34, borderRadius: "50%", background: isDarkMode ? "#3b82f6" : "#3051a3", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: "800" }}>
+                  {name.substring(0, 2).toUpperCase()}
+                </div>
+             </div>
+           </div>
         </div>
 
         <div className="resp-form-body" style={{ flex: 1, padding: "0 40px 40px", overflowX: "hidden", overflowY: "auto" }}>

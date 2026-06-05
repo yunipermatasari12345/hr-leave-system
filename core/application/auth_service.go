@@ -165,7 +165,6 @@ func (s *AuthService) UpdateUserRole(ctx context.Context, userID int32, newRole 
 	return s.users.UpdateRole(ctx, userID, newRole)
 }
 
-
 // IsEmailRegistered mengecek apakah email sudah terdaftar di sistem lokal
 func (s *AuthService) IsEmailRegistered(ctx context.Context, email string) (bool, string, error) {
 	normalizedEmail := strings.ToLower(strings.TrimSpace(email))

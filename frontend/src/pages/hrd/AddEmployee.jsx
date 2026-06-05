@@ -17,7 +17,30 @@ export default function AddEmployee() {
 
   const name = localStorage.getItem(STORAGE_KEYS.name) || "HRD Admin";
 
-  const T = { bg: "#f8fafc", sidebar: "white", cardBorder: "1px solid #e5e7eb", textDark: "#1f2937", textGray: "#64748b", textLight: "#94a3b8", primary: "#2563eb", red: "#ef4444", green: "#10b981", yellow: "#f59e0b" };
+  const savedTheme = localStorage.getItem("hr_theme");
+  const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const [isDarkMode, setIsDarkMode] = useState(savedTheme ? savedTheme === "dark" : systemDark);
+  const toggleTheme = () => {
+    const next = !isDarkMode;
+    setIsDarkMode(next);
+    localStorage.setItem("hr_theme", next ? "dark" : "light");
+  };
+
+  const mode = isDarkMode ? "dark" : "light";
+  const T = { 
+    bg: mode === "dark" ? "#0f172a" : "#f8fafc", 
+    sidebar: mode === "dark" ? "#1e293b" : "white", 
+    cardBg: mode === "dark" ? "#1e293b" : "white",
+    cardBorder: mode === "dark" ? "1px solid #334155" : "1px solid #e5e7eb", 
+    textDark: mode === "dark" ? "#f8fafc" : "#1f2937", 
+    textGray: mode === "dark" ? "#94a3b8" : "#64748b", 
+    textLight: mode === "dark" ? "#475569" : "#94a3b8", 
+    primary: "#2563eb", 
+    red: "#ef4444", 
+    green: "#10b981", 
+    yellow: mode === "dark" ? "#d97706" : "#f59e0b",
+    highlightBg: mode === "dark" ? "#1e3a8a" : "#eff6ff"
+  };
 
   const handleSubmit = async () => {
     if (!form.email || !form.full_name || !form.department || !form.position || !form.role) {

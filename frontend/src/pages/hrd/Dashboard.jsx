@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button, Divider } from "@heroui/react";
 import * as XLSX from "xlsx";
 import { exportLeavesWithImages } from "../../utils/excelExport";
@@ -66,7 +66,8 @@ export default function HrdDashboard() {
   const [successModal, setSuccessModal] = useState({ open: false, title: "", message: "" });
   const modalAttachCleanupRef = useRef(null);
   const previewAttachCleanupRef = useRef(null);
-  const [activePage, setActivePage] = useState("dashboard");
+  const location = useLocation();
+  const [activePage, setActivePage] = useState(location.state?.activePage || "dashboard");
   const navigate = useNavigate();
   const name = localStorage.getItem(STORAGE_KEYS.name) || "HRD Admin";
   const myRole = localStorage.getItem(STORAGE_KEYS.role) || "hrd";
@@ -414,6 +415,20 @@ export default function HrdDashboard() {
     highlightBg: mode === "dark" ? "#1e3a8a" : "#eff6ff"
   };
   const statusStyle = { pending: { bg: "#fef3c7", color: "#d97706", label: "Menunggu" }, approved: { bg: "#dcfce7", color: "#166534", label: "Disetujui" }, rejected: { bg: "#fee2e2", color: "#991b1b", label: "Ditolak" }, disetujui: { bg: "#dcfce7", color: "#166534", label: "Disetujui" } };
+  const MenuHeader = ({ label }) => {
+    return (
+      <div style={{ 
+        fontSize: 10, 
+        fontWeight: "800", 
+        color: "rgba(255, 255, 255, 0.45)", 
+        padding: "16px 16px 6px 16px", 
+        textTransform: "uppercase", 
+        letterSpacing: 0.8 
+      }}>
+        {label}
+      </div>
+    );
+  };
   const MenuItem = ({ id, label, icon, onClick }) => {
     const isActive = activePage === id;
     return (
@@ -428,15 +443,16 @@ export default function HrdDashboard() {
           alignItems: "center", 
           gap: 12, 
           padding: "12px 16px", 
-          borderRadius: 12, 
+          borderRadius: 8, 
           cursor: "pointer", 
-          background: isActive ? "rgba(37, 99, 235, 0.08)" : "transparent", 
-          color: isActive ? T.primary : T.textGray, 
-          fontWeight: isActive ? "800" : "600", 
+          background: isActive ? "rgba(255, 255, 255, 0.12)" : "transparent", 
+          color: isActive ? "white" : "rgba(255, 255, 255, 0.75)", 
+          fontWeight: isActive ? "700" : "500", 
           fontSize: 13, 
           transition: "all 0.2s ease", 
-          marginBottom: 6,
-          border: isActive ? `1px solid rgba(37, 99, 235, 0.15)` : "1px solid transparent"
+          marginBottom: 4,
+          borderLeft: isActive ? "4px solid #fff" : "4px solid transparent",
+          paddingLeft: isActive ? 12 : 16,
         }}
         className="premium-menu-item"
       >
@@ -462,58 +478,74 @@ export default function HrdDashboard() {
   return (
     <div className={`resp-layout font-['Plus_Jakarta_Sans',sans-serif] ${isDarkMode ? "dark" : ""} w-full`} style={{ display: "flex", minHeight: "100vh", background: T.bg, color: T.textDark, transition: "background 0.3s, color 0.3s" }}>
       
-      {/* SIDEBAR KLASIK (Visually Uplifted to Premium Glassmorphic) */}
-      <div className="resp-sidebar glass-card" style={{ width: 260, borderRight: T.cardBorder, display: "flex", flexDirection: "column", flexShrink: 0, paddingTop: 32 }}>
-        <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 12, justifyContent: "space-between" }}>
+      {/* SIDEBAR KLASIK (Visually Uplifted to Premium Corporate Sidebar) */}
+      <div className="resp-sidebar" style={{ 
+        width: 260, 
+        background: isDarkMode ? "#1e293b" : "#3051a3", 
+        borderRight: isDarkMode ? "1px solid #334155" : "none", 
+        display: "flex", 
+        flexDirection: "column", 
+        flexShrink: 0, 
+        paddingTop: 32,
+        color: "white"
+      }}>
+        <div className="sidebar-logo" style={{ padding: "0 24px", marginBottom: 24, display: "flex", alignItems: "center", gap: 12, justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>AS</div>
-            <h1 style={{ color: T.textDark, fontSize: 18, fontWeight: "800", margin: 0, letterSpacing: -0.5 }}>appskep</h1>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255, 255, 255, 0.2)", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>📅</div>
+            <h1 style={{ color: "white", fontSize: 16, fontWeight: "800", margin: 0, letterSpacing: -0.5, textTransform: "uppercase" }}>CUTI APPSKEP</h1>
           </div>
-          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: T.textDark }}>
+          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: "white" }}>
              {isMobileMenuOpen ? "✕" : "☰"}
           </button>
         </div>
         
-        <div className={`sidebar-collapsible ${isMobileMenuOpen ? "open" : ""}`} style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+        <div className={`sidebar-collapsible ${isMobileMenuOpen ? "open" : ""}`} style={{ display: "flex", flexDirection: "column", flex: 1, background: isMobileMenuOpen ? (isDarkMode ? "#1e293b" : "#3051a3") : "transparent" }}>
           <div className="sidebar-menu" style={{ display: "flex", flexDirection: "column", padding: "0 16px" }}>
+            <MenuHeader label="Utama" />
             <MenuItem id="dashboard" label="Dashboard" icon="❖" />
+            
+            <MenuHeader label="Manajemen Cuti" />
             <MenuItem id="leaves" label="Pengajuan Cuti" icon="📑" />
             <MenuItem id="calendar" label="Kalender Cuti" icon="📅" />
+            
+            <MenuHeader label="Manajemen Pegawai" />
             <MenuItem id="employees" label="Data Karyawan" icon="👥" />
+            
+            <MenuHeader label="Laporan & Keamanan" />
             <MenuItem id="reports" label="Laporan Ekspor" icon="📊" />
             <MenuItem id="audit" label="Audit Trail" icon="🛡️" />
           </div>
           {/* RINGKASAN DATA COLLAPSIBLE */}
-          <div className="sidebar-status" style={{ padding: "0 20px", marginTop: 24 }}>
-            <div onClick={() => setIsStatusOpen(!isStatusOpen)} style={{ background: isDarkMode ? "rgba(30, 41, 59, 0.4)" : "rgba(241, 245, 249, 0.6)", borderRadius: 16, padding: "16px 20px", border: T.cardBorder, cursor: "pointer", transition: "all 0.3s ease" }}>
+          <div className="sidebar-status" style={{ padding: "0 20px", marginTop: 16 }}>
+            <div onClick={() => setIsStatusOpen(!isStatusOpen)} style={{ background: "rgba(255, 255, 255, 0.08)", borderRadius: 12, padding: "12px 16px", cursor: "pointer", transition: "all 0.3s ease", border: "1px solid rgba(255, 255, 255, 0.1)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 16 }}>🏢</span>
-                  <p style={{ fontSize: 11, fontWeight: "800", color: T.textGray, margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Ringkasan Data</p>
+                  <span style={{ fontSize: 14 }}>🏢</span>
+                  <p style={{ fontSize: 10, fontWeight: "800", color: "rgba(255, 255, 255, 0.7)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Ringkasan Data</p>
                 </div>
-                <span style={{ fontSize: 12, color: T.textLight, transform: isStatusOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s" }}>▼</span>
+                <span style={{ fontSize: 10, color: "rgba(255, 255, 255, 0.5)", transform: isStatusOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s" }}>▼</span>
               </div>
               {isStatusOpen && (
-                <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px dashed rgba(148, 163, 184, 0.2)", display: "flex", flexDirection: "column", gap: 12 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, color: T.textDark }}>
+                <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px dashed rgba(255, 255, 255, 0.15)", display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: "rgba(255, 255, 255, 0.9)" }}>
                     <span>Karyawan</span> <b>{employees.length} Orang</b>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, color: T.textDark }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: "rgba(255, 255, 255, 0.9)" }}>
                     <span>Dep. Aktif</span> <b>{computedReports.length} Depart.</b>
                   </div>
                 </div>
               )}
             </div>
           </div>
-          <div className="sidebar-profile" style={{ marginTop: "auto", padding: "24px", borderTop: T.cardBorder }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-              <div style={{ width: 38, height: 38, borderRadius: "50%", background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: "800", boxShadow: "0 4px 10px rgba(37, 99, 235, 0.2)" }}>HR</div>
+          <div className="sidebar-profile" style={{ marginTop: "auto", padding: "24px", borderTop: "1px solid rgba(255, 255, 255, 0.1)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+              <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(255, 255, 255, 0.2)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: "800", border: "1px solid rgba(255, 255, 255, 0.2)" }}>HR</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 13, fontWeight: "700", color: T.textDark, margin: "0 0 2px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
-                <p style={{ fontSize: 11, fontWeight: "600", color: T.textGray, margin: 0 }}>Administrator HRD</p>
+                <p style={{ fontSize: 13, fontWeight: "700", color: "white", margin: "0 0 2px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
+                <p style={{ fontSize: 11, fontWeight: "500", color: "rgba(255, 255, 255, 0.65)", margin: 0 }}>Administrator HRD</p>
               </div>
             </div>
-            <Button disableRipple onPress={handleLogout} style={{ width: "100%", background: "rgba(239, 68, 68, 0.08)", border: "none", color: T.red, fontWeight: "700", fontSize: 13, borderRadius: 10, height: 38 }} onMouseEnter={(e)=>e.currentTarget.style.background="rgba(239, 68, 68, 0.15)"} onMouseLeave={(e)=>e.currentTarget.style.background="rgba(239, 68, 68, 0.08)"}>
+            <Button disableRipple onPress={handleLogout} style={{ width: "100%", background: "rgba(239, 68, 68, 0.15)", border: "none", color: "#fca5a5", fontWeight: "700", fontSize: 13, borderRadius: 8, height: 38 }} onMouseEnter={(e)=>e.currentTarget.style.background="rgba(239, 68, 68, 0.25)"} onMouseLeave={(e)=>e.currentTarget.style.background="rgba(239, 68, 68, 0.15)"}>
               🚪 &nbsp; Keluar
             </Button>
           </div>
@@ -522,10 +554,23 @@ export default function HrdDashboard() {
       {/* MAIN CONTENT AREA */}
       <div className="resp-content" style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "40px" }}>
         {/* HEADER */}
-        <div className="resp-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 36, flexWrap: "wrap", gap: 16 }}>
+        {/* HEADER / TOPBAR */}
+        <div className="resp-header" style={{ 
+          display: "flex", 
+          justifyContent: "space-between", 
+          alignItems: "center", 
+          marginBottom: 36, 
+          flexWrap: "wrap", 
+          gap: 16,
+          background: T.cardBg,
+          padding: "16px 24px",
+          borderRadius: 12,
+          border: T.cardBorder,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.02)"
+        }}>
            <div>
               {/* Enterprise Breadcrumb */}
-              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, fontWeight: "700", color: T.textGray, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1.5 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, fontWeight: "700", color: T.textGray, marginBottom: 4, textTransform: "uppercase", letterSpacing: 1.5 }}>
                  <span>PT APPSKEP</span>
                  <span style={{ fontSize: 10, opacity: 0.5 }}>/</span>
                  <span>HR Portal</span>
@@ -540,164 +585,245 @@ export default function HrdDashboard() {
                  </span>
               </div>
               
-              <h2 style={{ fontSize: 26, fontWeight: "900", color: T.textDark, margin: "0 0 6px 0", letterSpacing: -0.8, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              <h2 style={{ fontSize: 22, fontWeight: "800", color: T.textDark, margin: 0, letterSpacing: -0.5, display: "flex", alignItems: "center", gap: 12 }}>
                 {activePage === "dashboard" && "Dashboard Overview"}
                 {activePage === "leaves" && "Manajemen Pengajuan Cuti"}
                 {activePage === "calendar" && "Kalender Penjadwalan Cuti"}
                 {activePage === "employees" && "Manajemen Data Karyawan"}
                 {activePage === "reports" && "Analisis & Laporan Ekspor"}
                 {activePage === "audit" && "Audit Trail & Keamanan"}
-                
-                {/* Server Live Status Dot Badge */}
-                <span className="status-pill status-approved" style={{ fontSize: 9, padding: "4px 10px", textTransform: "uppercase", letterSpacing: 0.5, border: "1px solid rgba(16, 185, 129, 0.15)", background: "rgba(16, 185, 129, 0.05)" }}>
-                   <span className="status-dot"></span>
-                   LIVE DB CONNECTED
-                </span>
               </h2>
-              <p style={{ fontSize: 13, color: T.textGray, margin: 0, fontWeight: "600", display: "flex", alignItems: "center", gap: 6 }}>
-                 📅 &nbsp; {todayStr}
-              </p>
            </div>
+           
            <div className="resp-header-right" style={{ display: "flex", alignItems: "center", gap: 16 }}>
-             
-             {/* Global Search Bar - Signature Enterprise feature */}
+             {/* Attached Search Bar just like the image */}
              {(activePage === "leaves" || activePage === "employees" || activePage === "dashboard") && (
-               <div style={{ position: "relative", minWidth: 260 }}>
-                  <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 14, opacity: 0.5 }}>🔍</span>
-                  <input 
-                     type="text" 
-                     value={searchQuery}
-                     onChange={e => setSearchQuery(e.target.value)}
-                     placeholder={`Cari ${(activePage === "employees" ? "karyawan" : "pengajuan")}...`} 
-                     style={{ 
-                        width: "100%", 
-                        padding: "10px 16px 10px 38px", 
-                        borderRadius: 14, 
-                        border: T.cardBorder, 
-                        background: T.cardBg, 
-                        color: T.textDark, 
-                        fontSize: 13, 
-                        fontWeight: "600", 
-                        outline: "none", 
-                        boxSizing: "border-box", 
-                        transition: "all 0.25s ease",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.01)"
-                     }}
-                     onFocus={e => {
-                        e.target.style.borderColor = T.primary;
-                        e.target.style.boxShadow = `0 0 0 3px rgba(37,99,235,0.08)`;
-                     }}
-                     onBlur={e => {
-                        e.target.style.borderColor = "";
-                        e.target.style.boxShadow = "0 2px 8px rgba(0,0,0,0.01)";
-                     }}
-                  />
-                  {searchQuery && (
-                     <button onClick={() => setSearchQuery("")} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", border: "none", background: "transparent", color: T.textGray, cursor: "pointer", fontSize: 12, fontWeight: "800" }}>✕</button>
-                  )}
-               </div>
+                <div style={{ display: "flex", alignItems: "stretch", minWidth: 260 }}>
+                   <input 
+                      type="text" 
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      placeholder="Cari sesuatu..." 
+                      style={{ 
+                         flex: 1,
+                         padding: "10px 14px", 
+                         borderRadius: "8px 0 0 8px", 
+                         border: `1px solid ${isDarkMode ? "#334155" : "#d1d5db"}`, 
+                         borderRight: "none",
+                         background: T.bg, 
+                         color: T.textDark, 
+                         fontSize: 13, 
+                         fontWeight: "600", 
+                         outline: "none", 
+                      }}
+                   />
+                   <button 
+                      style={{ 
+                         background: isDarkMode ? "#3b82f6" : "#3051a3", 
+                         border: "none", 
+                         color: "white", 
+                         padding: "0 14px", 
+                         borderRadius: "0 8px 8px 0", 
+                         cursor: "pointer", 
+                         display: "flex", 
+                         alignItems: "center", 
+                         justifyContent: "center",
+                         fontSize: 14 
+                      }}
+                   >
+                     🔍
+                   </button>
+                </div>
              )}
-             {/* THEME TOGGLE BUTTON */}
-             <button onClick={toggleTheme} style={{ background: T.cardBg, border: T.cardBorder, padding: "8px 16px", borderRadius: 20, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, color: T.textDark, fontWeight: "700", fontSize: 13, boxShadow: "0 2px 8px rgba(0,0,0,0.02)", transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"} onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
-               <span style={{ fontSize: 16 }}>{isDarkMode ? "☀️" : "🌙"}</span>
-               {isDarkMode ? "Light Mode" : "Dark Mode"}
+
+             {/* THEME TOGGLE */}
+             <button onClick={toggleTheme} style={{ background: T.bg, border: T.cardBorder, padding: "8px 12px", borderRadius: 8, cursor: "pointer", color: T.textDark, fontSize: 13, display: "flex", alignItems: "center", gap: 4 }}>
+               <span>{isDarkMode ? "☀️" : "🌙"}</span>
              </button>
+
+             {/* Message Icon with Badge (Mocked to match image aesthetic, count = 7) */}
              <div style={{ position: "relative" }}>
-                <button onClick={() => setIsNotifOpen(!isNotifOpen)} style={{ position: "relative", width: 44, height: 44, borderRadius: 12, border: T.cardBorder, background: T.cardBg, cursor: "pointer", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", fontSize: 18, color: T.textDark }}>
+                <button style={{ position: "relative", width: 38, height: 38, borderRadius: 8, border: T.cardBorder, background: T.bg, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: T.textDark }}>
+                  ✉️
+                  <span style={{ position: "absolute", top: -4, right: -4, background: "#ef4444", color: "white", fontSize: 9, fontWeight: "800", height: 16, minWidth: 16, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>
+                    7
+                  </span>
+                </button>
+             </div>
+
+             {/* Notification Bell Icon with Badge */}
+             <div style={{ position: "relative" }}>
+                <button onClick={() => setIsNotifOpen(!isNotifOpen)} style={{ position: "relative", width: 38, height: 38, borderRadius: 8, border: T.cardBorder, background: T.bg, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: T.textDark }}>
                   🔔
-                  {pending.length > 0 && <span style={{ position: "absolute", top: 11, right: 11, width: 8, height: 8, borderRadius: 4, background: T.red }} />}
+                  {pending.length > 0 && (
+                    <span style={{ position: "absolute", top: -4, right: -4, background: "#ef4444", color: "white", fontSize: 9, fontWeight: "800", height: 16, minWidth: 16, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>
+                      {pending.length}+
+                    </span>
+                  )}
                 </button>
                 {isNotifOpen && (
-                  <div className="resp-notif-panel glass-card" style={{ position: "absolute", top: 54, right: 0, width: 320, borderRadius: 20, border: T.cardBorder, boxShadow: "0 20px 40px -15px rgba(0,0,0,0.15)", zIndex: 100, padding: 20 }}>
-                    <h4 style={{ margin: "0 0 16px 0", fontSize: 14, fontWeight: "800", color: T.textDark, borderBottom: "1px dashed rgba(148, 163, 184, 0.2)", paddingBottom: 10 }}>Pemberitahuan Cuti Baru</h4>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 14, maxHeight: 300, overflowY: "auto" }}>
+                  <div className="resp-notif-panel glass-card" style={{ position: "absolute", top: 46, right: 0, width: 320, borderRadius: 16, border: T.cardBorder, boxShadow: "0 20px 40px -15px rgba(0,0,0,0.15)", zIndex: 100, padding: 16 }}>
+                    <h4 style={{ margin: "0 0 12px 0", fontSize: 13, fontWeight: "800", color: T.textDark, borderBottom: "1px dashed rgba(148, 163, 184, 0.2)", paddingBottom: 8 }}>Pemberitahuan Cuti Baru</h4>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: 260, overflowY: "auto" }}>
                       {pending.length > 0 ? pending.slice(0, 5).map((l, i) => (
-                        <div key={i} style={{ display: "flex", gap: 12, paddingBottom: 12, borderBottom: i === pending.slice(0, 5).length - 1 ? "none" : "1px solid rgba(148, 163, 184, 0.1)" }}>
-                          <div style={{ width: 8, height: 8, borderRadius: 50, background: T.primary, marginTop: 5, flexShrink: 0 }}></div>
+                        <div key={i} style={{ display: "flex", gap: 10, paddingBottom: 10, borderBottom: i === pending.slice(0, 5).length - 1 ? "none" : "1px solid rgba(148, 163, 184, 0.1)" }}>
+                          <div style={{ width: 6, height: 6, borderRadius: "50%", background: T.primary, marginTop: 5, flexShrink: 0 }}></div>
                           <div style={{ flex: 1, textAlign: "left" }}>
-                            <p style={{ margin: "0 0 2px 0", fontSize: 13, color: T.textDark, fontWeight: "800" }}>{l.employee_name}</p>
-                            <p style={{ margin: "0 0 8px 0", fontSize: 11, color: T.textGray, fontWeight: "500", lineHeight: 1.4 }}>Mengajukan {l.leave_type_name || "cuti"} ({l.total_days} Hari Kerja)</p>
-                            <div style={{ display: "flex", gap: 6 }}>
-                              <button onClick={() => { setIsNotifOpen(false); openAction(l, "approved"); }} style={{ padding: "4px 8px", borderRadius: 6, background: T.primary, color: "white", border: "none", cursor: "pointer", fontSize: 10, fontWeight: "800" }}>Setujui</button>
-                              <button onClick={() => { setIsNotifOpen(false); openAction(l, "rejected"); }} style={{ padding: "4px 8px", borderRadius: 6, background: T.red, color: "white", border: "none", cursor: "pointer", fontSize: 10, fontWeight: "800" }}>Tolak</button>
+                            <p style={{ margin: "0 0 2px 0", fontSize: 12, color: T.textDark, fontWeight: "800" }}>{l.employee_name}</p>
+                            <p style={{ margin: "0 0 6px 0", fontSize: 10, color: T.textGray, fontWeight: "500", lineHeight: 1.4 }}>Mengajukan {l.leave_type_name || "cuti"} ({l.total_days} Hari)</p>
+                            <div style={{ display: "flex", gap: 4 }}>
+                              <button onClick={() => { setIsNotifOpen(false); openAction(l, "approved"); }} style={{ padding: "2px 6px", borderRadius: 4, background: T.primary, color: "white", border: "none", cursor: "pointer", fontSize: 9, fontWeight: "800" }}>Setujui</button>
+                              <button onClick={() => { setIsNotifOpen(false); openAction(l, "rejected"); }} style={{ padding: "2px 6px", borderRadius: 4, background: T.red, color: "white", border: "none", cursor: "pointer", fontSize: 9, fontWeight: "800" }}>Tolak</button>
                             </div>
                           </div>
                         </div>
-                      )) : <p style={{ fontSize: 12, color: T.textGray, textAlign: "center", margin: "10px 0" }}>Belum ada pengajuan baru.</p>}
+                      )) : <p style={{ fontSize: 11, color: T.textGray, textAlign: "center", margin: "6px 0" }}>Belum ada pengajuan baru.</p>}
                     </div>
                   </div>
                 )}
              </div>
+
+             {/* Profile Info far right topbar */}
+             <div style={{ display: "flex", alignItems: "center", gap: 10, borderLeft: `1px solid ${isDarkMode ? "#334155" : "#e5e7eb"}`, paddingLeft: 12 }}>
+                <span style={{ fontSize: 13, fontWeight: "700", color: T.textDark }} className="hidden md:inline">{name}</span>
+                <div style={{ width: 34, height: 34, borderRadius: "50%", background: isDarkMode ? "#3b82f6" : "#3051a3", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: "800" }}>
+                  HR
+                </div>
+             </div>
+
              {activePage === "employees" && (
-               <Button disableRipple onPress={() => setAddModalOpen(true)} className="glow-btn shadow-[0_4px_15px_rgba(37,99,235,0.25)]" style={{ background: T.primary, color: "white", fontWeight: "700", borderRadius: 12, height: 44, padding: "0 20px" }}>
-                 + Tambah Karyawan
+               <Button disableRipple onPress={() => setAddModalOpen(true)} className="glow-btn" style={{ background: T.primary, color: "white", fontWeight: "700", borderRadius: 8, height: 38, padding: "0 14px" }}>
+                 + Pegawai
                </Button>
              )}
            </div>
-         </div>
-         {/* WELCOME BANNER (Dashboard only) */}
-         {activePage === "dashboard" && (
-           <div className="resp-welcome-banner animate-fade-in-up" style={{ background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #4f46e5 100%)", borderRadius: 20, padding: "36px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32, position: "relative", overflow: "hidden", boxShadow: "0 15px 35px rgba(37,99,235,0.2)", flexWrap: "wrap", gap: 20 }}>
-             <div style={{ position: "absolute", right: -30, top: -50, opacity: 0.1, fontSize: 250, transform: "rotate(-15deg)", pointerEvents: "none" }}>✨</div>
-             
-             <div style={{ zIndex: 1, flex: "1 1 300px" }}>
-                <p style={{ margin: "0 0 8px 0", color: "#e0f2fe", fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 1.5 }}>Sistem Kehadiran & Cuti Terpadu</p>
-                <h2 style={{ margin: "0 0 12px 0", color: "white", fontSize: 26, fontWeight: "800", letterSpacing: -0.5 }}>
-                  Selamat datang kembali, {name.split(' ')[0]}! 👋
-                </h2>
-                <p style={{ margin: 0, color: "#f0f9ff", fontSize: 14, maxWidth: 520, lineHeight: 1.6, fontWeight: "500" }}>
-                  Pantau terus performa dan kehadiran tim. Ada <strong style={{ color: "white", fontWeight: "800" }}>{stats.pending_today || pending.length} pengajuan cuti baru</strong> yang menunggu keputusan dan peninjauan Anda hari ini.
-                </p>
-             </div>
-             
-             <div style={{ zIndex: 1 }}>
-                <Button disableRipple onPress={() => setAddModalOpen(true)} style={{ background: "white", color: "#2563eb", fontWeight: "800", borderRadius: 12, height: 48, padding: "0 24px", fontSize: 13, border: "none", boxShadow: "0 10px 20px rgba(0,0,0,0.05)" }}>
-                  + Daftarkan Karyawan Baru
-                </Button>
-             </div>
-           </div>
-         )}
-         {activePage === "dashboard" && (
-           <>
-             {/* STATS KOTAK (Uplifted with Premium Gradient Accents) */}
-             <div className="resp-grid-4" style={{ gap: 20, marginBottom: 32 }}>
-               
-               <div className="gradient-sky-glow premium-card-hover rounded-2xl animate-fade-in-up" style={{ padding: "24px", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 8px 30px rgba(0, 0, 0, 0.02)" }}>
-                  <div style={{ zIndex: 2 }}>
-                    <p style={{ fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5, margin: "0 0 4px 0", color: T.textGray }}>Total Karyawan</p>
-                    <h3 style={{ fontSize: 36, fontWeight: "900", margin: "0 0 4px 0" }}>{employees.length || 0} <span style={{ fontSize: 14, fontWeight: "600" }}>Orang</span></h3>
-                  </div>
-                  <div style={{ position: "absolute", right: 16, bottom: 12, fontSize: 44, opacity: 0.15, zIndex: 1 }}>
-                    👥
-                  </div>
-               </div>
-               <div className="gradient-emerald-glow premium-card-hover rounded-2xl animate-fade-in-up" style={{ padding: "24px", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 8px 30px rgba(0, 0, 0, 0.02)" }}>
-                  <div style={{ zIndex: 2 }}>
-                    <p style={{ fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5, margin: "0 0 4px 0", color: T.textGray }}>Cuti Disetujui</p>
-                    <h3 style={{ fontSize: 36, fontWeight: "900", margin: "0 0 4px 0" }}>{approved.length || 0} <span style={{ fontSize: 14, fontWeight: "600" }}>Pengajuan</span></h3>
-                  </div>
-                  <div style={{ position: "absolute", right: 16, bottom: 12, fontSize: 44, opacity: 0.15, zIndex: 1 }}>
-                    ✅
-                  </div>
-               </div>
-               <div className="gradient-yellow-glow premium-card-hover rounded-2xl animate-fade-in-up" style={{ padding: "24px", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 8px 30px rgba(0, 0, 0, 0.02)" }}>
-                  <div style={{ zIndex: 2 }}>
-                    <p style={{ fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5, margin: "0 0 4px 0", color: T.textGray }}>Menunggu Review</p>
-                    <h3 style={{ fontSize: 36, fontWeight: "900", margin: "0 0 4px 0" }}>{pending.length || 0} <span style={{ fontSize: 14, fontWeight: "600" }}>Pengajuan</span></h3>
-                  </div>
-                  <div style={{ position: "absolute", right: 16, bottom: 12, fontSize: 44, opacity: 0.15, zIndex: 1 }}>
-                    ⏳
-                  </div>
-               </div>
-               <div className="gradient-red-glow premium-card-hover rounded-2xl animate-fade-in-up" style={{ padding: "24px", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 8px 30px rgba(0, 0, 0, 0.02)" }}>
-                  <div style={{ zIndex: 2 }}>
-                    <p style={{ fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5, margin: "0 0 4px 0", color: T.textGray }}>Cuti Ditolak</p>
-                    <h3 style={{ fontSize: 36, fontWeight: "900", margin: "0 0 4px 0" }}>{rejected.length || 0} <span style={{ fontSize: 14, fontWeight: "600" }}>Pengajuan</span></h3>
-                  </div>
-                  <div style={{ position: "absolute", right: 16, bottom: 12, fontSize: 44, opacity: 0.15, zIndex: 1 }}>
-                    ❌
-                  </div>
-               </div>
+        </div>
+
+        {/* WELCOME BANNER (Dashboard only) */}
+        {activePage === "dashboard" && (
+          <div className="glass-card animate-fade-in-up" style={{ 
+            borderRadius: 12, 
+            padding: "24px 32px", 
+            display: "flex", 
+            justifyContent: "space-between", 
+            alignItems: "center", 
+            marginBottom: 32, 
+            border: T.cardBorder, 
+            boxShadow: "0 4px 20px rgba(0,0,0,0.02)", 
+            flexWrap: "wrap", 
+            gap: 20,
+            background: T.cardBg
+          }}>
+            <div style={{ flex: "1 1 300px" }}>
+               <h2 style={{ margin: "0 0 12px 0", color: "#3051a3", fontSize: 18, fontWeight: "800", lineHeight: 1.4 }}>
+                 Haloo {name} SELAMAT DATANG DI SISTEM INFORMASI MANAJEMEN CUTI KARYAWAN PT APPSKEP
+               </h2>
+               <p style={{ margin: 0, color: T.textGray, fontSize: 13, maxWidth: 640, lineHeight: 1.6, fontWeight: "500" }}>
+                 Gunakan dashboard ini untuk memantau pengajuan cuti, memverifikasi lampiran, mengelola data karyawan, serta mengekspor rekapitulasi data kehadiran dan cuti secara berkala.
+               </p>
+            </div>
+            <div style={{ fontSize: 72, userSelect: "none", opacity: 0.85 }}>
+              📅
+            </div>
+          </div>
+        )}
+
+        {activePage === "dashboard" && (
+          <>
+            {/* STATS CARDS WITH COLOR LEFT BORDERS JUST LIKE IMAGE */}
+            <div className="resp-grid-4" style={{ gap: 20, marginBottom: 32 }}>
+              
+              {/* Card 1: Total Karyawan */}
+              <div style={{
+                background: T.cardBg,
+                borderRadius: 8,
+                border: T.cardBorder,
+                borderLeft: `4px solid #3b82f6`,
+                padding: "20px 24px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.03)",
+                position: "relative",
+                overflow: "hidden"
+              }}>
+                <div>
+                  <p style={{ fontSize: 10, fontWeight: "800", textTransform: "uppercase", color: "#3b82f6", letterSpacing: 0.5, margin: "0 0 4px 0" }}>Total Karyawan</p>
+                  <h3 style={{ fontSize: 26, fontWeight: "800", color: T.textDark, margin: 0 }}>{employees.length || 0}</h3>
+                </div>
+                <div style={{ fontSize: 28, opacity: 0.3, color: T.textGray }}>
+                  👥
+                </div>
+              </div>
+
+              {/* Card 2: Cuti Disetujui */}
+              <div style={{
+                background: T.cardBg,
+                borderRadius: 8,
+                border: T.cardBorder,
+                borderLeft: `4px solid #10b981`,
+                padding: "20px 24px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.03)",
+                position: "relative",
+                overflow: "hidden"
+              }}>
+                <div>
+                  <p style={{ fontSize: 10, fontWeight: "800", textTransform: "uppercase", color: "#10b981", letterSpacing: 0.5, margin: "0 0 4px 0" }}>Cuti Disetujui</p>
+                  <h3 style={{ fontSize: 26, fontWeight: "800", color: T.textDark, margin: 0 }}>{approved.length || 0}</h3>
+                </div>
+                <div style={{ fontSize: 28, opacity: 0.3, color: T.textGray }}>
+                  ✅
+                </div>
+              </div>
+
+              {/* Card 3: Menunggu Review */}
+              <div style={{
+                background: T.cardBg,
+                borderRadius: 8,
+                border: T.cardBorder,
+                borderLeft: `4px solid #06b6d4`,
+                padding: "20px 24px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.03)",
+                position: "relative",
+                overflow: "hidden"
+              }}>
+                <div>
+                  <p style={{ fontSize: 10, fontWeight: "800", textTransform: "uppercase", color: "#06b6d4", letterSpacing: 0.5, margin: "0 0 4px 0" }}>Menunggu Review</p>
+                  <h3 style={{ fontSize: 26, fontWeight: "800", color: T.textDark, margin: 0 }}>{pending.length || 0}</h3>
+                </div>
+                <div style={{ fontSize: 28, opacity: 0.3, color: T.textGray }}>
+                  ⏳
+                </div>
+              </div>
+
+              {/* Card 4: Cuti Ditolak */}
+              <div style={{
+                background: T.cardBg,
+                borderRadius: 8,
+                border: T.cardBorder,
+                borderLeft: `4px solid #f59e0b`,
+                padding: "20px 24px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.03)",
+                position: "relative",
+                overflow: "hidden"
+              }}>
+                <div>
+                  <p style={{ fontSize: 10, fontWeight: "800", textTransform: "uppercase", color: "#f59e0b", letterSpacing: 0.5, margin: "0 0 4px 0" }}>Cuti Ditolak</p>
+                  <h3 style={{ fontSize: 26, fontWeight: "800", color: T.textDark, margin: 0 }}>{rejected.length || 0}</h3>
+                </div>
+                <div style={{ fontSize: 28, opacity: 0.3, color: T.textGray }}>
+                  ❌
+                </div>
+              </div>
              </div>
              {/* TWO COLUMN INSIGHTS */}
              <div className="resp-grid-2" style={{ gap: 24, marginBottom: 24 }}>
